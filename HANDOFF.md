@@ -44,6 +44,10 @@ several (data, code, publications, people, projects).
 - Footer: "An international collaboration of universities and research centers."
 - Hero tagline: "From rupture to rafters." (the phrase comes from the group's own work)
 - No participating-institutions banner on the home page.
+- Street View on the map: a person button (click it, then a spot on the map) and an "Open Street
+  View" link in every popup. Both open Google Maps in a new tab using Google's documented Maps URLs,
+  which need no API key. Street View is not embedded in the page, because the map is built on
+  OpenStreetMap and Google's own little man only comes with Google's map.
 - People tiers, in order: Faculty & Senior Researchers, Postdoctoral researchers,
   Graduate students, Undergraduate students, Industry collaborators, Alumni.
 - Co-founders (shown with a badge): Ertugrul Taciroglu, Aysegul Askan, Pedro Arduino.
