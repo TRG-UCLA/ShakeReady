@@ -50,7 +50,10 @@ several (data, code, publications, people, projects).
 - Okan Ilhan and Rafet Sisman are Associate Professors.
 - Wenyang Zhang (Research Associate, TACC) stays in the top tier.
 - Photos are wanted for everyone on the People page.
-- Visual identity: ink `#19242F`, amber `#E8A33D`, Archivo typeface, seismic-trace motif.
+- Visual identity: navy `#0F1A2B`, orange `#F9A03F`, Archivo typeface, seismic-trace motif.
+  The home hero shows shaking intensity as bands of color, red near the fault through orange,
+  yellow, green and cyan to blue (`#D7263D #F46036 #F9A03F #F2D16B #7BD389 #38B6C9 #3D7DD8 #5B6FD6`).
+  This was chosen by the owner from four drafted alternatives.
 
 ## Open items
 
@@ -67,8 +70,8 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
    wordmark with trace underline; epicenter mark), plus a hero illustration showing a
    topographic map, a fault rupture with radiating waves, and silhouettes of a tunnel,
-   viaduct, buildings and a suspension bridge. The hero illustration is now on the home
-   page. No logo direction has been chosen yet; the navigation uses the wordmark with trace
+   viaduct, buildings and a suspension bridge. The hero illustration is on the home
+   page, in the intensity-spectrum treatment the owner chose. No logo direction has been chosen yet; the navigation uses the wordmark with trace
    underline, and the hero pairs it with the small trace badge.
 
 ## Data provenance

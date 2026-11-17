@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Map — ShakeReady</title>
 <meta name="description" content="Interactive map of California bridges and seismically instrumented buildings. National Bridge Inventory data with filters for year built, traffic, span length, and construction material.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2319242F'/%3E%3Cpath d='M4 20 l5 0 2-9 3 14 3-18 3 13 2-5 6 0' stroke='%23E8A33D' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M4 20 l5 0 2-9 3 14 3-18 3 13 2-5 6 0' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,16 +15,16 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css">
 <style>
 :root{
-  --ink:#19242F;        /* panel ground: deep steel blue */
-  --ink-2:#223040;      /* raised rows */
-  --line:#32425A;       /* hairlines on ink */
+  --ink:#0F1A2B;        /* panel ground: deep steel blue */
+  --ink-2:#1B2B45;      /* raised rows */
+  --line:#2A3D5C;       /* hairlines on ink */
   --paper:#EFF3F6;      /* text on ink */
   --muted:#8FA1B5;
-  --amber:#E8A33D;      /* seismic accent — actions only */
+  --amber:#F9A03F;      /* seismic accent — actions only */
   --c-instr:#3D9BE9;    /* instrumented buildings */
   --c-nond:#9B6DE0;     /* non-ductile buildings */
   --c-lat:#E05252;      /* LA Times concrete */
-  --c-bridge:#E8A33D;   /* bridges */
+  --c-bridge:#F9A03F;   /* bridges */
   --radius:8px;
 }
 *{box-sizing:border-box}
@@ -74,7 +74,7 @@ details.ratings .frow:last-child{margin-bottom:10px}
 .actions{display:flex;gap:10px;margin-top:14px}
 button{font:inherit;cursor:pointer;border-radius:var(--radius);padding:9px 14px;border:1px solid transparent}
 .btn-apply{background:var(--amber);color:#1C1507;font-weight:600;flex:1}
-.btn-apply:hover{background:#F2B255}
+.btn-apply:hover{background:#FBB565}
 .btn-reset{background:none;border-color:var(--line);color:var(--muted)}
 .btn-reset:hover{color:var(--paper);border-color:var(--muted)}
 #bridgecount{margin-top:12px;font-size:13px;color:var(--muted)}
@@ -276,7 +276,7 @@ function renderBridges(){
   bridgeCluster = L.markerClusterGroup({chunkedLoading:true, disableClusteringAtZoom:15, spiderfyOnMaxZoom:true});
   const markers = rows.map(r => {
     const mk = L.circleMarker([r[F.lat], r[F.lng]], {
-      radius:6, color:"#8A5E16", weight:1, fillColor:"#E8A33D", fillOpacity:.85
+      radius:6, color:"#9A5A12", weight:1, fillColor:"#F9A03F", fillOpacity:.85
     });
     mk.bindPopup(() => bridgePopup(r));
     return mk;
