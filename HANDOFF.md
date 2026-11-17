@@ -60,8 +60,10 @@ several (data, code, publications, people, projects).
   This was chosen by the owner from four drafted alternatives.
   The bands are contours of a simple intensity model (distance to the rupture, directivity,
   uneven slip, and site variation including a soft-soil basin), so they are deliberately
-  non-circular. The fault is drawn straight, with no background linework, and the artwork is
-  kept small with fine lines, all at the owner's request. To change it, edit the parameters in
+  non-circular. The fault is drawn straight with a pair of half-headed slip arrows (right-lateral),
+  with no background linework, and the artwork is kept small with fine lines. The skyline has a
+  tunnel, a viaduct, one high-rise cluster, a suspension bridge, and a neighborhood of
+  single-family houses. All of this is at the owner's request. To change it, edit the parameters in
   `tools/build_hero.py` and run it; do not hand-edit the SVG in `index.html`.
 
 ## Open items

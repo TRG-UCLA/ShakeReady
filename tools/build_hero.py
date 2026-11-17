@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw the home-page hero artwork and write it into index.html.
 
-The picture shows a strike-slip fault rupturing toward a city. The colored bands are
+The picture shows a right-lateral strike-slip fault rupturing toward a city. The colored bands are
 contours of a shaking-intensity field computed from a deliberately simple model:
 
   * distance to the ruptured part of the fault (intensity decays with distance)
@@ -154,6 +154,39 @@ def trace(y, bursts, width=W):
         x = start + wlen
     return d + f' h{width - x:.0f}'
 
+def houses(fill, stroke, win, sw, mark):
+    """A neighborhood of single-family houses: pitched roofs, chimneys, a garage, two trees."""
+    def house(x, w, wall, roof, kind, chim, two_story=False):
+        top = GY - wall
+        g = ''
+        if chim is not None:                                   # chimney first, so the roof overlaps its base
+            g += f'<rect x="{x + w * chim:.0f}" y="{top - roof - 3}" width="6" height="{roof + 3}"></rect>'
+        g += f'<rect x="{x}" y="{top}" width="{w}" height="{wall}"></rect>'
+        if kind == 'front':                                    # gable facing the viewer
+            g += f'<path d="M{x - 4} {top} L{x + w / 2:.0f} {top - roof} L{x + w + 4} {top} Z"></path>'
+        else:                                                  # ridge running along the street
+            g += f'<path d="M{x - 4} {top} L{x + 8} {top - roof} L{x + w - 8} {top - roof} L{x + w + 4} {top} Z"></path>'
+        lit = f'<rect x="{x + w * 0.44:.0f}" y="{GY - 13}" width="7" height="13" fill="{win}" stroke="none"></rect>'
+        rows = [top + 5, top + 17] if two_story else [top + 6]
+        for y in rows[:1] if not two_story else rows[:1]:
+            for fx in (0.13, 0.70):
+                lit += f'<rect x="{x + w * fx:.0f}" y="{y}" width="7" height="7" fill="{win}" stroke="none"></rect>'
+        return g + lit
+    def tree(x, r=9):
+        return f'<rect x="{x - 1.5}" y="{GY - 12}" width="3" height="12"></rect><circle cx="{x}" cy="{GY - 12 - r + 2}" r="{r}"></circle>'
+    g = f'<g fill="{fill}" stroke="{stroke}" stroke-width="{sw}" stroke-linejoin="round">'
+    g += house(1474, 48, 26, 20, 'front', 0.70)
+    g += house(1546, 62, 24, 17, 'side', 0.22)
+    g += f'<rect x="1608" y="{GY - 18}" width="24" height="18"></rect>'                    # garage
+    g += house(1662, 46, 34, 22, 'front', 0.68, two_story=True)
+    g += tree(1738)
+    g += house(1754, 60, 24, 17, 'side', 0.74)
+    g += '</g>'
+    g += (f'<path d="M1654 622 q-6 10 0 20 M1646 619 q-8 13 0 26 M1716 622 q6 10 0 20 M1724 619 q8 13 0 26" '
+          f'fill="none" stroke="{mark}" stroke-width="1.4" stroke-linecap="round" opacity="0.9"></path>')
+    return g
+
+
 def scene():
     bg, edge, white, dark, win = '#0F1A2B', '#32486A', '#F5F7FA', '#080E18', '#17243A'
     s = f'<rect width="{W}" height="{H}" fill="{bg}"></rect>'
@@ -167,14 +200,18 @@ def scene():
     sw = [1.9, 1.8, 1.7, 1.6, 1.5, 1.4, 1.3, 1.2]; op = [1, 0.95, 0.9, 0.85, 0.78, 0.7, 0.62, 0.54]
     for i, (d, c) in enumerate(zip(rings, RAMP)):
         if d: s += f'<path d="{d}" fill="none" stroke="{c}" stroke-width="{sw[i]}" stroke-linejoin="round" opacity="{op[i]}"></path>'
-    # fault trace, rupture-direction arrow, hypocenter
-    a2, b2 = A + N * 9, B + N * 9
-    s += f'<path d="M{a2[0]:.0f} {a2[1]:.0f} L{b2[0]:.0f} {b2[1]:.0f}" stroke="{white}" stroke-width="1" stroke-dasharray="4 6" opacity="0.45" fill="none"></path>'
+    # fault trace with a pair of slip arrows, and the hypocenter.
+    # The arrows sit just off the trace on either side and point opposite ways; each has a half
+    # head on its outer side. West side toward the top, east side toward the bottom: right-lateral slip.
     s += f'<path d="M{A[0]:.0f} {A[1]:.0f} L{B[0]:.0f} {B[1]:.0f}" stroke="{white}" stroke-width="2.6" stroke-linecap="round" fill="none"></path>'
-    e0, e1 = P(0.34) + N * 26, P(0.60) + N * 26
-    h1, h2 = e1 - U * 13 + N * 6, e1 - U * 13 - N * 6
-    s += (f'<path d="M{e0[0]:.1f} {e0[1]:.1f} L{e1[0]:.1f} {e1[1]:.1f} M{h1[0]:.1f} {h1[1]:.1f} L{e1[0]:.1f} {e1[1]:.1f} L{h2[0]:.1f} {h2[1]:.1f}" '
-          f'fill="none" stroke="{white}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"></path>')
+    mid, off, half, barb_l, barb_w = P(0.54), 17.0, 62.0, 16.0, 9.0
+    d = ''
+    for side in (-1, 1):                       # -1 = west of the fault (moves up-strike), +1 = east (moves down-strike)
+        c = mid + N * off * side
+        tail, head = c - U * half * side, c + U * half * side
+        barb = head - U * barb_l * side + N * barb_w * side
+        d += f'M{tail[0]:.1f} {tail[1]:.1f} L{head[0]:.1f} {head[1]:.1f} L{barb[0]:.1f} {barb[1]:.1f} '
+    s += f'<path d="{d.strip()}" fill="none" stroke="{white}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"></path>'
     s += f'<circle cx="{HYP[0]:.0f}" cy="{HYP[1]:.0f}" r="12" fill="none" stroke="{white}" stroke-width="1.5"></circle><circle cx="{HYP[0]:.0f}" cy="{HYP[1]:.0f}" r="5.5" fill="#D7263D"></circle>'
     # ground and structures
     s += f'<rect x="0" y="{GY}" width="{W}" height="{H - GY}" fill="#0A121F"></rect>'
@@ -184,13 +221,11 @@ def scene():
     s += f'<rect x="306" y="644" width="530" height="6"></rect>'
     for x in (386, 476, 566, 656, 746):
         s += f'<rect x="{x}" y="650" width="8" height="20"></rect>'
-    for x, y, w, h in [(1712, 612, 40, 58), (1756, 588, 44, 82)]:
-        s += f'<rect x="{x}" y="{y}" width="{w}" height="{h}"></rect>'
     s += '</g>'
     s += f'<path d="M262 {GY} v-22 a22 22 0 0 1 44 0 v22 Z" fill="{win}" stroke="#3E5680" stroke-width="1.1"></path>'
-    s += windows([1764, 1778], [598, 616, 634], 7, 9, win)
     dy = GY - 520
-    s += f'<g transform="translate(250 {dy})">{cluster1(dark, edge, win, sw_s)}{susp_bridge(dark, edge, edge, sw_s)}{cluster2(dark, edge, win, sw_s)}{shakes(white, ("b1", "b2", "deck"), 0.9, 1.4)}</g>'
+    s += f'<g transform="translate(250 {dy})">{cluster1(dark, edge, win, sw_s)}{susp_bridge(dark, edge, edge, sw_s)}{shakes(white, ("b1", "deck"), 0.9, 1.4)}</g>'
+    s += houses(dark, edge, win, sw_s, white)
     s += f'<path d="M520 632 q8 -8 16 0 t16 0 t16 0" fill="none" stroke="{white}" stroke-width="1.4" stroke-linecap="round" opacity="0.9"></path>'
     s += f'<path d="{trace(712, [(240, 5), (520, 9), (800, 17), (1060, 38), (1290, 22), (1500, 30), (1700, 8)])}" fill="none" stroke="{white}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"></path>'
     return s
@@ -202,7 +237,7 @@ def main(path='index.html'):
     b = html.index('</svg>', a) + len('</svg>')
     svg = ('<svg class="hero-art" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMax slice" role="img" '
            'aria-label="A fault rupturing toward a city. Irregular bands of color show shaking intensity, strongest in red along the fault '
-           'and ahead of the rupture, weakening to blue with distance, reaching a tunnel, a viaduct, buildings and a suspension bridge.">\n'
+           'and ahead of the rupture, weakening to blue with distance, reaching a tunnel, a viaduct, high-rise buildings, a suspension bridge and a neighborhood of houses.">\n'
            % (W, H) + scene() + '\n</svg>')
     open(path, 'w', encoding='utf-8').write(html[:a] + svg + html[b:])
     print('hero artwork written to %s (%d bytes)' % (path, len(svg)))
