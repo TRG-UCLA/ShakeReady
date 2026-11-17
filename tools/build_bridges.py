@@ -168,7 +168,19 @@ def main(path):
             cond, index(counties, county), feature, facility, skew, hazus,
         ])
 
+    import datetime, hashlib
+    with open(path, 'rb') as f:
+        source_sha256 = hashlib.sha256(f.read()).hexdigest()
+    provenance = {
+        'source_file': os.path.basename(path), 'source_sha256': source_sha256,
+        'source_url': 'https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm',
+        'generated_utc': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'generator': 'tools/build_bridges.py', 'records_read': len(records), 'records_without_location': no_location,
+        'fragility_classes': 'HAZUS highway bridge classes, see data/fragility/hazus_highway_bridges.json',
+        'details': 'data/provenance.json and the Methods page of the site',
+    }
     out = {'source': 'FHWA National Bridge Inventory', 'source_year': source_year, 'state': 'California',
+           'provenance': provenance,
            'fields': fields, 'kinds': kinds, 'types': types, 'counties': counties, 'rows': rows}
     os.makedirs('data', exist_ok=True)
     with open('data/bridges.json', 'w', encoding='utf-8') as f:

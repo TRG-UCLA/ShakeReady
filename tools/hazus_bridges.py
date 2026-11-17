@@ -9,7 +9,8 @@ Source: FEMA, Hazus Earthquake Model Technical Manual, Hazus 6.1 (July 2024), Se
 https://www.fema.gov/sites/default/files/documents/fema_hazus-earthquake-model-technical-manual-6-1.pdf
 
 Everything in CLASSES and K3D_COEFFICIENTS is transcribed from those tables. Where the manual is
-silent or inconsistent, the choice made here is listed under ASSUMPTIONS, so it can be reviewed.
+silent or inconsistent, the choice made here is recorded under DECISIONS with an id and its basis,
+so that results can be traced and the choice reviewed.
 
 Run this file directly to check the implementation against the manual's worked example and to
 write data/fragility/hazus_highway_bridges.json:
@@ -64,20 +65,55 @@ CLASSES = {
     28: dict(medians=[0.80, 1.00, 1.20, 1.70], k3d=None,  ishape=0, design='Not classified', description='All other bridges that are not classified'),
 }
 
-ASSUMPTIONS = [
-    "Seismic design cutoff: Table 7-1 is followed (1975 in California, 1990 elsewhere). The sentence above the table in the "
-    "Hazus 6.1 manual states the two years the other way round; the table matches earlier Hazus documentation.",
-    "K3D = 1 + A / (N - B), as given in Table 7-2 and the text. Equation 7-3 is typeset as (1 + A) / (N - B), but the manual's "
-    "worked example evaluates it to 1.125 for A = 0.25, B = 1, N = 3, which is the Table 7-2 form.",
-    "Where N - B is zero or negative (a single-span bridge with an equation that has B = 1), K3D is taken as 1. The manual does "
-    "not say what to do in this case.",
-    "HWB28 has no K3D equation or Ishape entry in Table 7-1; K3D is taken as 1 and Kshape is not applied.",
-    "Number of spans N is NBI Item 45 (main unit spans), as in the manual's example.",
-    "'Length less than 20 m' is evaluated on NBI Item 49 (structure length).",
-    "A skew coded 99 in the NBI (skew varies along the bridge) is evaluated as 45 degrees. The manual does not address this "
-    "code. A value of 90 or more is otherwise treated as 0.",
-    "Only ground shaking is evaluated. Ground-failure (permanent ground deformation) damage needs a displacement hazard layer.",
+# Every choice made where the manual is silent or inconsistent. Each has an id so results can cite it.
+# These are published in the fragility file and on the site's Methods page.
+DECISIONS = [
+    dict(id='HZ-01', topic='Seismic design cutoff year',
+         choice='A California bridge built in 1975 or later is classed as seismic design; elsewhere the year is 1990.',
+         basis='Table 7-1 gives the year in every row. The sentence introducing the table states the two years the other way '
+               'round (1990 in California, 1975 elsewhere). The table is followed because it is explicit row by row and agrees '
+               'with earlier editions of the Hazus documentation.'),
+    dict(id='HZ-02', topic='Form of the span factor K3D',
+         choice='K3D = 1 + A / (N - B), with A and B from Table 7-2 and N the number of spans.',
+         basis='Table 7-2 and the accompanying text give this form. Equation 7-3 is printed as (1 + A) / (N - B), but the '
+               "manual's worked example evaluates it to 1.125 for A = 0.25, B = 1 and N = 3, which only the Table 7-2 form gives."),
+    dict(id='HZ-03', topic='Span factor for single-span bridges',
+         choice='K3D is taken as 1 when N - B is zero or negative.',
+         basis='The formula is undefined in that case and the manual does not say what to do. A factor of 1 leaves the class '
+               'medians unchanged.'),
+    dict(id='HZ-04', topic='Bridges that are not classified (HWB28)',
+         choice='K3D is taken as 1 and the spectral-shape factor is not applied. The skew factor still applies.',
+         basis='Table 7-1 gives no K3D equation and no I-shape value for HWB28.'),
+    dict(id='HZ-05', topic='Number of spans',
+         choice='N is NBI Item 45, the number of spans in the main unit. Approach spans (Item 46) are not counted.',
+         basis="The manual's worked example takes the number of spans from Item 45."),
+    dict(id='HZ-06', topic='The 20 m length test',
+         choice="'Length less than 20 m' is evaluated on NBI Item 49, the structure length.",
+         basis='Table 7-1 does not name the NBI item. Step 1 of the damage algorithm lists bridge length separately from '
+               'maximum span length, so the total length is used.'),
+    dict(id='HZ-07', topic='Skew recorded as 99',
+         choice='A skew coded 99 is evaluated as 45 degrees. Any other value of 90 or more is evaluated as 0.',
+         basis='The NBI uses 99 when skew varies along the bridge, and the manual does not address this code. 45 degrees is '
+               'unfavorable but bounded. A published implementation for Texas bridges treats the same code with its 45-degree '
+               'adjustment (Khosravikia et al., 2020, CTR Technical Report 5-6916-01-1).'),
+    dict(id='HZ-08', topic='Ground failure',
+         choice='Only damage from ground shaking is evaluated.',
+         basis="The manual's ground-failure functions need permanent ground deformation at each site, and no such hazard "
+               'layer is available here.'),
+    dict(id='HZ-09', topic='Culverts',
+         choice='Culverts are kept in the inventory and classified by the same rules as bridges.',
+         basis='The NBI records culverts as structures and Table 7-1 has no separate rule for them. Bridge curves fit '
+               'culverts poorly, and users may wish to exclude them.'),
+    dict(id='HZ-10', topic='Seismic retrofits',
+         choice='The design era is taken from the year built alone.',
+         basis='The NBI has no field for seismic retrofit. The year of reconstruction is not used, because a reconstruction '
+               'is not necessarily a seismic one. Bridges retrofitted after construction are therefore treated as unretrofitted.'),
+    dict(id='HZ-11', topic='Slight-damage median shown on the map',
+         choice='Bridge popups show the class value for slight damage, without the spectral-shape factor.',
+         basis='The factor needs Sa(0.3 s) and Sa(1.0 s) at the site, which come from a hazard layer. It is applied when '
+               'damage is computed.'),
 ]
+ASSUMPTIONS = [f"{d['id']} {d['topic']}: {d['choice']}" for d in DECISIONS]   # short form, kept for older readers of the file
 
 
 def classify(is_california, year_built, kind, design_type, spans, max_span_m, length_m):
@@ -198,7 +234,13 @@ def fragility_set():
             'slight': 'median * min(1, k_shape) if ishape = 1, else median',
             'moderate_extensive_complete': 'median * k_skew * k_3d',
         },
-        'assumptions': ASSUMPTIONS,
+        'transcription': 'Tables 7-1, 7-2 and 7-6 were transcribed from the manual and compared by script against the text '
+                         "extracted from the manual's PDF: all 28 sets of medians, and the K3D equation, I-shape value and "
+                         'design era of the 27 classes that have them.',
+        'verification': "The code reproduces the worked example in Section 7.1.6.2 of the manual (class HWB17, K3D = 1.125; "
+                        'damage-state probabilities 0.183, 0.205, 0.165, 0.255, 0.192 against the manual\'s rounded '
+                        '0.18, 0.20, 0.16, 0.26, 0.20). The classification passes against every row of Table 7-1.',
+        'decisions': [dict(d, status='In use. Recorded at the request of the project lead; open to review.') for d in DECISIONS],
         'classes': {f'HWB{n}': c for n, c in CLASSES.items()},
     }
 

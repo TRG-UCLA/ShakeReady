@@ -1,0 +1,104 @@
+{
+ "release": "2026-11-17",
+ "repository": "https://github.com/TRG-UCLA/ShakeReady",
+ "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
+ "sources": {
+  "nbi-2025-ca": {
+   "title": "National Bridge Inventory, 2025, California, comma-delimited file (CA25.txt)",
+   "publisher": "Federal Highway Administration, U.S. Department of Transportation",
+   "url": "https://www.fhwa.dot.gov/bridge/nbi/ascii2025.cfm",
+   "file_url": "https://www.fhwa.dot.gov/Bridge/nbi/2025/delimited/CA25.txt",
+   "retrieved_utc": "2026-11-17",
+   "sha256": "6f9cf692cd82ff9ad57579e3f746bdfc55126882933b3d0e2815dabe6cb465f5",
+   "bytes": 10710461,
+   "note": "FHWA's download page gives 25,975 highway bridges for California in 2025 and states that 2025 was the last year submitted in the Coding Guide format. A copy of the file is kept in the project's archive."
+  },
+  "hazus-6.1": {
+   "title": "Hazus Earthquake Model Technical Manual, Hazus 6.1, July 2024",
+   "publisher": "Federal Emergency Management Agency",
+   "url": "https://www.fema.gov/sites/default/files/documents/fema_hazus-earthquake-model-technical-manual-6-1.pdf",
+   "retrieved_utc": "2026-11-17",
+   "sha256": "59b7e55aac842e0c1b8185ef76f58172496e50f52b615af613c359a10f095754",
+   "bytes": 13742737,
+   "note": "Section 7.1, Highway Transportation System: Tables 7-1, 7-2 and 7-6, Equations 7-1 to 7-4, and the worked example in Section 7.1.6.2. The manual credits Basoz and Mander (1999) for the theory behind the bridge damage functions."
+  },
+  "kmz-instrumented": {
+   "title": "Instrumented.kmz, a Google My Maps export of instrumented buildings",
+   "publisher": "Original ShakeReady student team; files dated 2017-03-27",
+   "url": "Retrieved from the original ShakeReady WordPress site at shakeready.org before its server was retired",
+   "retrieved_utc": "2026-11-16",
+   "sha256": "1d9ea9532473c39a60239ccf834e244c3e4d1803ace80f04761fcb704178161b",
+   "bytes": 17912,
+   "note": "Station details in the file point to the Center for Engineering Strong Motion Data (CESMD). The original file is kept in the project's archive."
+  },
+  "kmz-nonductile": {
+   "title": "InstrumentedNonDuctile.kmz, a Google My Maps export of instrumented non-ductile buildings",
+   "publisher": "Original ShakeReady student team; files dated 2017-03-27",
+   "url": "Retrieved from the original ShakeReady WordPress site at shakeready.org before its server was retired",
+   "retrieved_utc": "2026-11-16",
+   "sha256": "9c13473b4506ffa596ebee9d73a8e2b51758ff9bbc961d12618cda344541119e",
+   "bytes": 10289,
+   "note": "The original file is kept in the project's archive."
+  },
+  "kmz-latimes": {
+   "title": "LATimesConcreteBldgs.kmz, a Google My Maps export of the LA Times concrete-building survey",
+   "publisher": "Original ShakeReady student team; files dated 2017-03-27",
+   "url": "Retrieved from the original ShakeReady WordPress site at shakeready.org before its server was retired",
+   "retrieved_utc": "2026-11-16",
+   "sha256": "18137ba5f580d9bdba2cf659b1d035fff899317d2980c0ed63b600b201a822bf",
+   "bytes": 252630,
+   "note": "The original file is kept in the project's archive."
+  }
+ },
+ "datasets": [
+  {"id": "nbi-bridges", "title": "NBI bridges, California, 2025", "files": ["data/bridges.json", "data/nbi_bridges.csv"],
+   "source": "nbi-2025-ca", "script": "tools/build_bridges.py",
+   "processing": [
+    "Read the comma-delimited file (single quote as text qualifier). All 25,975 records are of record type 1, the route carried on the structure, and all are kept.",
+    "Convert latitude (Item 16) and longitude (Item 17) from packed degrees, minutes and seconds to decimal degrees; west longitude is made negative.",
+    "Decode material and design codes (Item 43 for the main spans, Item 44 for approach spans) and county codes (Item 3) to names.",
+    "Carry over year built and reconstructed, lanes, traffic, span counts and lengths, skew and condition ratings as recorded.",
+    "Assign each record its HAZUS highway bridge class (see the fragility set)."
+   ]},
+  {"id": "instrumented-buildings", "title": "Instrumented buildings", "files": ["data/instrumented_buildings.geojson"],
+   "source": "kmz-instrumented", "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": ["Unpack the KMZ and read each placemark's name, coordinates and attribute table.", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
+  {"id": "instrumented-nonductile", "title": "Instrumented non-ductile buildings", "files": ["data/instrumented_nonductile_buildings.geojson"],
+   "source": "kmz-nonductile", "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": ["Unpack the KMZ and read each placemark's name and attribute table.", "Take each building's position from its Latitude and Longitude attributes (see decision BLD-02).", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
+  {"id": "latimes-concrete", "title": "LA Times concrete buildings", "files": ["data/latimes_concrete_buildings.geojson"],
+   "source": "kmz-latimes", "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": ["Unpack the KMZ and read each placemark's name, coordinates and attribute table.", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
+  {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges (fragility set)", "files": ["data/fragility/hazus_highway_bridges.json"],
+   "source": "hazus-6.1", "script": "tools/hazus_bridges.py",
+   "processing": ["Transcribe the classification scheme (Table 7-1), the K3D coefficients (Table 7-2) and the median values (Table 7-6).", "Implement Equations 7-1 to 7-4 and the damage algorithm for ground shaking.", "Record every choice made where the manual is silent or inconsistent (decisions HZ-01 to HZ-11)."]}
+ ],
+ "inventory_decisions": [
+  {"id": "NBI-01", "topic": "Which records are included", "choice": "All records in the FHWA highway-bridge file are included.", "basis": "The file holds only record type 1 (the route carried on the structure), so no record is a duplicate view of another."},
+  {"id": "NBI-02", "topic": "Records without a usable location", "choice": "A record is placed on the map only if its coordinates fall inside a bounding box around California (32.0 to 42.1 north, 124.6 to 114.0 west). Other records are listed in the CSV without coordinates.", "basis": "Guards against missing or mistyped coordinates in the source."},
+  {"id": "NBI-03", "topic": "Approach spans", "choice": "When a bridge has no approach spans (Item 46 is zero), its approach material and design are shown as None.", "basis": "The source codes these as 'other', which reads as if a material were present."},
+  {"id": "NBI-04", "topic": "Year reconstructed", "choice": "A value of zero in Item 106 means the bridge has not been reconstructed.", "basis": "NBI coding."},
+  {"id": "NBI-05", "topic": "Names of what a bridge carries and crosses", "choice": "Item 7 (facility carried) and Item 6A (feature intersected) are shown as recorded, with repeated spaces removed.", "basis": "No spelling or capitalization is changed, so the text can be matched to the source."},
+  {"id": "BLD-01", "topic": "Building attributes", "choice": "Every attribute in the original files is carried over unchanged.", "basis": "The building layers are an archive of the original team's work, not a new compilation."},
+  {"id": "BLD-02", "topic": "Positions of the six non-ductile buildings", "choice": "Their positions are taken from the Latitude and Longitude attributes in the file (for example '34.0488 N' and '118.2595 W'), with west made negative.", "basis": "The original file stored only street addresses for these six, which the original map service located on the fly."},
+  {"id": "BLD-03", "topic": "The earlier bridge snapshot", "choice": "The bridge data from the original site (about 2016, 25,431 records) is archived and no longer shown.", "basis": "Replaced by the 2025 file. The earlier snapshot lacked span counts and condition ratings, and 60 of its records had no coordinates."}
+ ],
+ "verification": [
+  {"check": "Record count against FHWA", "result": "25,975 records read, equal to the count FHWA publishes for California in 2025."},
+  {"check": "Locations against the earlier snapshot", "result": "For the 24,415 bridges present in both the 2025 file and the earlier snapshot, 95% of locations agree to within about 6 meters and 99% have the same year built."},
+  {"check": "A known structure", "result": "The longest span in the file is the Golden Gate Bridge at 1,280.2 m, the correct value."},
+  {"check": "Transcription of the HAZUS tables", "result": "A script compared the transcribed values with the text of the manual: all 28 sets of medians match, as do the K3D equation, I-shape value and design era of the 27 classes that have them."},
+  {"check": "Classification rules", "result": "The classification function returns the class given in every row of Table 7-1."},
+  {"check": "The manual's worked example", "result": "Reproduced: class HWB17, K3D = 1.125, and damage-state probabilities 0.183, 0.205, 0.165, 0.255, 0.192 against the manual's rounded 0.18, 0.20, 0.16, 0.26, 0.20."},
+  {"check": "The map against the reference code", "result": "For 425 sampled bridges, covering every class present, the adjusted medians computed in the browser equal those of the reference code to rounding error."},
+  {"check": "Map filters", "result": "Each filter tested returns the same number of bridges as an independent count from the data file."}
+ ],
+ "limits": [
+  "The HAZUS curves describe classes of bridges, not individual structures. They suit screening an inventory, not conclusions about one bridge.",
+  "The NBI does not record seismic retrofits, so retrofitted bridges are treated as built (decision HZ-10).",
+  "Culverts are in the inventory and are given bridge curves, which fit them poorly (decision HZ-09).",
+  "Only ground shaking is considered. Liquefaction, landslide and fault-rupture displacement are not (decision HZ-08).",
+  "NBI values are as submitted by the owning agencies. No value has been corrected.",
+  "The building layers date from 2017 and have not been updated."
+ ]
+}

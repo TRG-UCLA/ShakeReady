@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methods and provenance — ShakeReady</title>
+<meta name="description" content="Where ShakeReady's data comes from, how it was processed, the choices that were made, and what was checked.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M5.3 19.6 L5.6 19.6 L6 19.7 L6.4 19.7 L6.8 19.8 L7.1 20 L7.5 20.2 L7.9 20.4 L8.2 20.8 L8.6 21.2 L9 21.7 L9.3 22.3 L9.7 22.9 L10.1 23.6 L10.4 24.3 L10.8 24.8 L11.2 25.2 L11.6 25.2 L11.9 25 L12.3 24.3 L12.7 23.1 L13 21.4 L13.4 19.4 L13.8 17 L14.2 14.6 L14.5 12.1 L14.9 10 L15.3 8.2 L15.6 7.1 L16 6.7 L16.4 7.1 L16.7 8.2 L17.1 10 L17.5 12.1 L17.9 14.6 L18.2 17 L18.6 19.4 L19 21.4 L19.3 23.1 L19.7 24.3 L20.1 25 L20.4 25.2 L20.8 25.2 L21.2 24.8 L21.5 24.3 L21.9 23.6 L22.3 22.9 L22.7 22.3 L23 21.7 L23.4 21.2 L23.8 20.8 L24.1 20.4 L24.5 20.2 L24.9 20 L25.2 19.8 L25.6 19.7 L26 19.7 L26.4 19.6 L26.7 19.6' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body><nav class="site-nav"><div class="inner">
+  <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="map.html">Map</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html" aria-current="page">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+</div></nav>
+<main class="page methods">
+  <h1>Methods and provenance</h1>
+  <p class="lede">Where each dataset comes from, what was done to it, the choices that were made along the way, and what was checked. Anyone using results from this site should be able to trace them back to their source.</p>
+
+  <p class="stamp" id="stamp"></p>
+
+  <h2 id="how-to-trace">How to trace a result</h2>
+  <p>Every published file is listed below with a checksum. If the checksum of a file you hold matches, it is the file described here. The same record is available in machine-readable form as <a href="data/provenance.json">data/provenance.json</a>, and the complete history of every change is in the <a href="https://github.com/TRG-UCLA/ShakeReady/commits/main" rel="noopener">project repository</a>. Each choice has an identifier, such as HZ-07, that can be quoted alongside a result.</p>
+
+  <h2 id="datasets">Datasets and their sources</h2>
+  <div id="datasets-out"></div>
+
+  <h2 id="hazus">HAZUS fragilities for bridges</h2>
+  <p>Each bridge in the National Bridge Inventory is assigned one of the 28 highway bridge classes of FEMA's Hazus Earthquake Model, using the classification scheme in Table 7-1 of the technical manual. A class gives four median values of spectral acceleration at a period of 1.0 second, one each for slight, moderate, extensive and complete damage (Table 7-6). Each fragility curve is lognormal with a dispersion of 0.6.</p>
+  <p>The medians are then adjusted for the individual bridge, following the manual:</p>
+  <ul>
+    <li><b>Skew:</b> K<sub>skew</sub> = √sin(90° − α), where α is the skew angle (Equation 7-1).</li>
+    <li><b>Number of spans:</b> K<sub>3D</sub> = 1 + A / (N − B), with A and B from Table 7-2.</li>
+    <li><b>Spectral shape:</b> K<sub>shape</sub> = 2.5 × Sa(1.0 s) / Sa(0.3 s) (Equation 7-2), used only for classes flagged in Table 7-1.</li>
+    <li>The slight median is multiplied by the smaller of 1 and K<sub>shape</sub> where that factor applies. The moderate, extensive and complete medians are multiplied by K<sub>skew</sub> × K<sub>3D</sub>.</li>
+  </ul>
+  <p>The values shown in a bridge's popup on the map are these adjusted medians. The full set is published as <a href="data/fragility/hazus_highway_bridges.json">hazus_highway_bridges.json</a>, and the code is <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/hazus_bridges.py" rel="noopener">tools/hazus_bridges.py</a>.</p>
+
+  <h3 id="hazus-decisions">Choices made in applying HAZUS</h3>
+  <p>The manual is silent or inconsistent on several points. Each choice made is recorded here with its basis and the number of bridges it affects, so that it can be reviewed and, if need be, changed.</p>
+  <div id="hz-decisions-out"></div>
+
+  <h3 id="hazus-classes">Bridges in each class</h3>
+  <div id="hz-classes-out"></div>
+
+  <h2 id="inventory-decisions">Choices made in preparing the inventories</h2>
+  <div id="inv-decisions-out"></div>
+
+  <h2 id="checks">What was checked</h2>
+  <div id="checks-out"></div>
+
+  <h2 id="limits">Limits</h2>
+  <ul id="limits-out"></ul>
+
+  <h2 id="who">Who prepared this</h2>
+  <p id="who-out"></p>
+
+  <noscript><p>This page fills its tables from <a href="data/provenance.json">data/provenance.json</a>, which needs JavaScript. The file itself holds the complete record.</p></noscript>
+</main>
+<script>
+"use strict";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => Number(n).toLocaleString("en-US");
+const link = u => /^https?:/.test(u) ? `<a href="${esc(u)}" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>` : esc(u);
+function decisionTable(list){
+  return `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Id</th><th>Topic</th><th>Choice</th><th>Basis</th><th>Effect</th></tr>`
+    + list.map(d => `<tr id="${esc(d.id)}"><td>${esc(d.id)}</td><td>${esc(d.topic)}</td><td>${esc(d.choice)}</td><td>${esc(d.basis)}</td><td>${esc(d.effect || "")}</td></tr>`).join("")
+    + `</table></div>`;
+}
+Promise.all([
+  fetch("data/provenance.json").then(r => r.json()),
+  fetch("data/fragility/hazus_highway_bridges.json").then(r => r.json())
+]).then(([P, HZ]) => {
+  document.getElementById("stamp").textContent = `Data release ${P.release}. This record was generated ${P.generated_utc.replace("T", " ").replace("Z", " UTC")}.`;
+
+  document.getElementById("datasets-out").innerHTML = P.datasets.map(ds => {
+    const s = P.sources[ds.source];
+    return `<section class="prov-ds" id="ds-${esc(ds.id)}"><h3>${esc(ds.title)}</h3>
+      <dl class="prov-dl">
+        <dt>Source</dt><dd>${esc(s.title)}. ${esc(s.publisher)}. ${link(s.url)}${s.file_url ? `, <a href="${esc(s.file_url)}" rel="noopener">source file</a>` : ""}</dd>
+        <dt>Retrieved</dt><dd>${esc(s.retrieved_utc)}</dd>
+        <dt>Source checksum</dt><dd><code>${esc(s.sha256)}</code> (SHA-256, ${fmt(s.bytes)} bytes)</dd>
+        <dt>Note</dt><dd>${esc(s.note)}</dd>
+        <dt>Processing</dt><dd><ol>${ds.processing.map(p => `<li>${esc(p)}</li>`).join("")}</ol>Done by: ${ds.script.startsWith("tools/") ? `<a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/${esc(ds.script)}" rel="noopener">${esc(ds.script)}</a>` : esc(ds.script)}</dd>
+        <dt>Published files</dt><dd>${ds.published_files.map(f => `<a href="${esc(f.path)}">${esc(f.path)}</a>: ${fmt(f.records)} records, ${fmt(f.bytes)} bytes<br><code>${esc(f.sha256)}</code>`).join("<br>")}</dd>
+      </dl></section>`;
+  }).join("");
+
+  document.getElementById("hz-decisions-out").innerHTML = decisionTable(P.fragility_decisions);
+  document.getElementById("inv-decisions-out").innerHTML = decisionTable(P.inventory_decisions);
+
+  document.getElementById("hz-classes-out").innerHTML = `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Class</th><th>Bridges</th><th>Design</th><th>Description</th><th>Median Sa(1.0 s), g: slight, moderate, extensive, complete</th></tr>`
+    + Object.entries(P.hazus_class_counts).map(([k, n]) => { const c = HZ.classes[k]; return `<tr><td>${esc(k)}</td><td>${fmt(n)}</td><td>${esc(c.design)}</td><td>${esc(c.description)}</td><td>${c.medians.map(v => v.toFixed(2)).join(", ")}</td></tr>`; }).join("")
+    + `</table></div>`;
+
+  document.getElementById("checks-out").innerHTML = `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Check</th><th>Result</th></tr>`
+    + P.verification.map(v => `<tr><td>${esc(v.check)}</td><td>${esc(v.result)}</td></tr>`).join("") + `</table></div>`;
+  document.getElementById("limits-out").innerHTML = P.limits.map(l => `<li>${esc(l)}</li>`).join("");
+  document.getElementById("who-out").textContent = P.prepared_by;
+  if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
+}).catch(() => {
+  document.getElementById("datasets-out").innerHTML = '<p>The provenance record could not be loaded. It is available directly as <a href="data/provenance.json">data/provenance.json</a>.</p>';
+});
+</script>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers.</div></footer>
+</body>
+</html>

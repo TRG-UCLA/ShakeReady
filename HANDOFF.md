@@ -88,6 +88,23 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
+## Provenance: keep results traceable
+
+The owner's rule: anyone using results from this site must be able to tell where they came from.
+
+- `methods.html` is the public record. Its tables are drawn from `data/provenance.json` and the fragility
+  file, so the page cannot drift from the data.
+- `data/provenance.json` lists every published file with its source, retrieval date, processing steps and
+  SHA-256 checksum, plus every recorded decision and check. `data/bridges.json` also carries its own
+  provenance stamp.
+- Every choice made where a source is silent or inconsistent gets an identifier (HZ-01 ... for HAZUS,
+  NBI-01 ... and BLD-01 ... for the inventories), its basis, and a measured effect. HAZUS decisions live in
+  `tools/hazus_bridges.py`; the others and all static facts live in `tools/provenance_sources.json`.
+- **Whenever a data file is rebuilt, or a decision is added or changed, run
+  `python3 tools/build_provenance.py`** and commit the result. New derived results (hazard layers,
+  damage estimates) must be added to this record, and downloads of results should cite it.
+- Do not put numbers into the site from memory. Take them from a cited source and check the transcription.
+
 ## Fragilities and the planned map restructure
 
 - **Done:** every bridge has a HAZUS highway bridge class, assigned by `tools/hazus_bridges.py` from

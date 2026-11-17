@@ -121,3 +121,21 @@ footer.site-foot .inner{max-width:var(--maxw);margin:0 auto;padding:22px}
   .hero-plate{display:block;max-width:none;background:none;border:0;padding:0}
   .hero-chip{width:36px;height:36px;flex-basis:36px}
 }
+
+/* ---------- methods and provenance ---------- */
+.methods h2{margin-top:44px}
+.methods h3{margin:26px 0 8px;font-size:17px}
+.methods ul,.methods ol{max-width:75ch;padding-left:22px}
+.methods li{margin:4px 0}
+.stamp{color:var(--muted);font-size:14px;margin:0 0 6px}
+.prov-ds{border-top:1px solid var(--line);padding:6px 0 14px}
+.prov-dl{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;margin:0;font-size:14.5px}
+.prov-dl dt{font-weight:600}
+.prov-dl dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.prov-dl ol{margin:0 0 6px}
+.methods code{font-size:12.5px;background:#EEF2F5;padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+.table-scroll{overflow-x:auto}
+.prov-table{font-size:14px;min-width:720px}
+.prov-table td:first-child{white-space:nowrap}
+.prov-table tr:target td{background:#FFF4E2}
+@media (max-width:640px){.prov-dl{grid-template-columns:1fr;gap:2px 0}.prov-dl dt{margin-top:8px}}
