@@ -44,7 +44,7 @@ several (data, code, publications, people, projects).
 - Footer: "An international collaboration of universities and research centers."
 - Hero tagline: "From rupture to rafters." (the phrase comes from the group's own work)
 - No participating-institutions banner on the home page.
-- People tiers, in order: Faculty / Senior Researchers, Postdoctoral researchers,
+- People tiers, in order: Faculty & Senior Researchers, Postdoctoral researchers,
   Graduate students, Undergraduate students, Industry collaborators, Alumni.
 - Co-founders (shown with a badge): Ertugrul Taciroglu, Aysegul Askan, Pedro Arduino.
 - Ertugrul Taciroglu is listed as Professor (no longer department chair).
