@@ -20,8 +20,8 @@
   <p class="lede">Datasets published by the project in open formats, starting with the structure inventory that powers the map. All files live in this site's public repository, so links are stable and versioned; new datasets will be added here as they are released.</p>
   <table class="dl-table">
     <tr><th>Dataset</th><th>Records</th><th>Description</th><th>Download</th></tr>
-    <tr><td>NBI bridges</td><td class="count">25,371</td>
-        <td>California highway bridges from the FHWA National Bridge Inventory (~2016 snapshot): year built and reconstructed, traffic lanes, ADT, construction type, and longest span. A further 60 records without coordinates are included in the CSV only.</td>
+    <tr><td>NBI bridges</td><td class="count">25,975</td>
+        <td>California highway bridges from the FHWA National Bridge Inventory, 2025: location, county, facility carried and feature crossed, year built and reconstructed, lanes, traffic, construction type, span count and lengths, and condition ratings for deck, superstructure, substructure, channel and culvert. The map shows 25,974; one record has no usable coordinates and appears in the CSV only.</td>
         <td><a href="data/bridges.json" download>JSON</a> · <a href="data/nbi_bridges.csv" download>CSV</a></td></tr>
     <tr><td>Instrumented buildings</td><td class="count">55</td>
         <td>Buildings with CESMD strong-motion instrumentation: station, stories, plan shape, dimensions, design date, and sensor layout, with links to station pages.</td>
@@ -34,7 +34,7 @@
         <td><a href="data/latimes_concrete_buildings.geojson" download>GeoJSON</a></td></tr>
   </table>
   <h2>Sources and currency</h2>
-  <p>Bridge records derive from the <a href="https://www.fhwa.dot.gov/bridge/nbi.cfm" rel="noopener">FHWA National Bridge Inventory</a>, which publishes updated state files annually; the snapshot here dates from roughly 2016. Building instrumentation details come from the <a href="https://www.strongmotioncenter.org/" rel="noopener">Center for Engineering Strong Motion Data</a>. Please cite the original sources alongside this site when using the data.</p>
+  <p>Bridge records come from the <a href="https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm" rel="noopener">FHWA National Bridge Inventory</a>. This site uses the 2025 California file, the final year published in the long-standing Coding Guide format; later submissions follow the newer Specifications for the National Bridge Inventory. The script that converts the FHWA file into the map layer is in this site's repository, so the layer can be rebuilt from the source. Building instrumentation details come from the <a href="https://www.strongmotioncenter.org/" rel="noopener">Center for Engineering Strong Motion Data</a>. Please cite the original sources alongside this site when using the data.</p>
 </main>
 <footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers.</div></footer>
 </body>

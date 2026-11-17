@@ -19,6 +19,7 @@ several (data, code, publications, people, projects).
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html`
 - `assets/style.css` — shared styles and design tokens
 - `data/` — all content data (see below)
+- `tools/build_bridges.py` — builds the bridge layer from the FHWA file
 - `images/people/`, `images/institutions/` — photos and logos, named by slug
 - `CNAME` — intentionally absent for now (see Open items); when present it binds
   GitHub Pages to shakeready.org
@@ -32,9 +33,8 @@ several (data, code, publications, people, projects).
 - **Institutions:** a participating-institutions banner was built and then removed from the
   home page at the owner's request. `data/institutions.json`, the `.inst-*` styles and
   `images/institutions/` are kept so it can be restored; nothing on the site uses them now.
-- **Bridges:** `data/bridges.json` is a compact row format; `fields` gives the column
-  order, and `kind_i` / `type_i` / `appr_kind_i` / `appr_type_i` index into `kinds` and
-  `types`. `year_recon = 0` means never reconstructed.
+- **Bridges:** `data/bridges.json` is generated, not hand-edited. Rebuild it with
+  `python3 tools/build_bridges.py <FHWA state file>`; the README describes the format.
 
 ## Decisions already made
 
@@ -73,19 +73,18 @@ several (data, code, publications, people, projects).
 
 ## Data provenance
 
-All datasets were rescued in November 2026 from the original WordPress site before its
-server was retired: 25,431 California bridge records from the FHWA National Bridge
-Inventory (about a 2016 snapshot) and three building layers (55 instrumented buildings,
-6 instrumented non-ductile buildings, 1,451 LA Times concrete buildings).
-
-- 60 bridge records have no coordinates in the source. They are in `data/nbi_bridges.csv`
-  but not on the map.
-- The old site's search form offered span count and condition ratings, but its database
-  never sent those fields to the map, so they were not recoverable. To restore them or
-  refresh the data, rebuild from the current FHWA NBI California file.
-- The six non-ductile buildings had no stored coordinates; their positions come from the
-  latitude and longitude in their attribute tables.
-- Raw originals (KMZ files, XML dump) are archived in Google Drive under
+- **Bridges:** FHWA National Bridge Inventory, California, 2025 (file `CA25.txt`, 25,975
+  records), converted with `tools/build_bridges.py`. 25,974 are on the map; one record
+  (37C0440) has no usable coordinates and is in `data/nbi_bridges.csv` only. 2025 is the last
+  year FHWA published in the Coding Guide format; newer data follows the SNBI specification.
+  This replaced a snapshot of about 2016 that had been rescued from the original WordPress
+  site. The update added span counts, county, names of the facility carried and feature
+  crossed, total length, and condition ratings, which the map can now filter on.
+- **Buildings:** three layers rescued in November 2026 from the original WordPress site before
+  its server was retired: 55 instrumented buildings, 6 instrumented non-ductile buildings, and
+  1,451 LA Times concrete buildings. The six non-ductile buildings had no stored coordinates;
+  their positions come from the latitude and longitude in their attribute tables.
+- Raw originals (KMZ files and the old site's XML dump) are archived in Google Drive under
   `TRGWeb / ShakeReady / ShakeReady site data (archived)`.
 
 ## Local preview

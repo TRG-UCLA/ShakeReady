@@ -8,8 +8,9 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `map.html` — the interactive map application (Leaflet + OpenStreetMap, no API keys required)
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html` — site sections
 - `assets/style.css` — shared styles
-- `data/nbi_bridges.csv` — all 25,431 bridge records as a spreadsheet-friendly table
-- `data/bridges.json` — 25,371 California bridges from the FHWA National Bridge Inventory (~2016 snapshot), compact row format
+- `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `data/nbi_bridges.csv` — all 25,975 bridge records as a labeled, spreadsheet-friendly table
+- `data/bridges.json` — 25,974 California bridges from the FHWA National Bridge Inventory (2025), compact row format
 - `data/instrumented_buildings.geojson` — 55 CESMD instrumented buildings
 - `data/instrumented_nonductile_buildings.geojson` — 6 instrumented non-ductile buildings
 - `data/latimes_concrete_buildings.geojson` — 1,451 buildings from the LA Times concrete-building survey
@@ -17,13 +18,19 @@ Interactive map of California bridges and seismically instrumented buildings —
 
 ## Data notes
 
-- 60 additional NBI records have no coordinates in the source data; they are preserved in the
-  project archive (Google Drive: "ShakeReady site data") but excluded from the map file.
-- `bridges.json` format: `fields` lists the column order of each entry in `rows`;
-  `kind_i` / `type_i` / `appr_kind_i` / `appr_type_i` index into the `kinds` / `types` lookup tables.
-  `year_recon = 0` means the bridge has never been reconstructed.
-- To refresh bridge data, download the current California file from the FHWA NBI
-  (https://www.fhwa.dot.gov/bridge/nbi.cfm) and regenerate `bridges.json`.
+- One NBI record has no usable coordinates; it is in the CSV but not on the map.
+- `bridges.json` format: `fields` lists the column order of each entry in `rows`.
+  `kind_i` / `type_i` / `appr_kind_i` / `appr_type_i` index into `kinds` / `types`, and
+  `county_i` into `counties`. `year_recon = 0` means never reconstructed. Condition ratings
+  (`deck`, `superstructure`, `substructure`, `channel`, `culvert`) are 0 to 9, with -1 where the
+  component does not apply. `cond` is the overall condition: Good, Fair or Poor.
+- To rebuild the bridge layer, download the California delimited file from the FHWA NBI
+  (https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm) and run, from the repository root:
+
+      python3 tools/build_bridges.py CA25.txt
+
+  2025 is the last year FHWA published in this format; later data uses the newer SNBI
+  specification and will need a revised script.
 
 ## Local development
 
