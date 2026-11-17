@@ -112,6 +112,8 @@ footer.site-foot .inner{max-width:var(--maxw);margin:0 auto;padding:22px}
 .hero-plate h1{display:flex;align-items:center;gap:14px}
 .hero-chip{width:46px;height:46px;flex:0 0 46px}
 .hero-plate p{margin:14px 0 22px;font-size:17px}
+.hero-plate p.hero-tag{margin:12px 0 0;font-size:21px;font-weight:600;color:#EFF3F6}
+.hero-plate p.hero-tag + p{margin-top:8px}
 @media (max-width:720px){
   .hero-scene{display:flex;flex-direction:column;min-height:0}
   .hero-art{position:static;order:2;height:300px}

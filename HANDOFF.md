@@ -14,7 +14,7 @@ several (data, code, publications, people, projects).
 
 ## Layout
 
-- `index.html` — home: hero, participating-institutions banner, section grid
+- `index.html` — home: hero (rupture-to-rafters scene and tagline), section grid
 - `map.html` — interactive map (Leaflet + OpenStreetMap, no API keys)
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html`
 - `assets/style.css` — shared styles and design tokens
@@ -29,8 +29,9 @@ several (data, code, publications, people, projects).
   `slug`, `name`, `tier`, `title`, `affiliation`, `focus`, optional `link`, optional
   `badge`. Empty tiers are hidden automatically. A photo at `images/people/<slug>.jpg`
   replaces the initials badge.
-- **Institutions:** `data/institutions.json`. A logo at `images/institutions/<slug>.svg`
-  (or `.png`) replaces the name tile on the home page.
+- **Institutions:** a participating-institutions banner was built and then removed from the
+  home page at the owner's request. `data/institutions.json`, the `.inst-*` styles and
+  `images/institutions/` are kept so it can be restored; nothing on the site uses them now.
 - **Bridges:** `data/bridges.json` is a compact row format; `fields` gives the column
   order, and `kind_i` / `type_i` / `appr_kind_i` / `appr_type_i` index into `kinds` and
   `types`. `year_recon = 0` means never reconstructed.
@@ -40,6 +41,8 @@ several (data, code, publications, people, projects).
 - Mission line (hero): "Disseminating tools and data that contribute to quantifying and
   improving seismic resilience, worldwide."
 - Footer: "An international collaboration of universities and research centers."
+- Hero tagline: "From rupture to rafters." (the phrase comes from the group's own work)
+- No participating-institutions banner on the home page.
 - People tiers, in order: Faculty / Senior Researchers, Postdoctoral researchers,
   Graduate students, Undergraduate students, Industry collaborators, Alumni.
 - Co-founders (shown with a badge): Ertugrul Taciroglu, Aysegul Askan, Pedro Arduino.
@@ -59,12 +62,9 @@ several (data, code, publications, people, projects).
    Until DNS is switched, GitHub reports the custom domain as improperly configured;
    that is expected. The old WordPress server goes offline once the records change.
 2. **Headshots** for the eight people in `data/people.json`.
-3. **Institution logos**, obtained from each institution's brand office and used under
-   its guidelines. Do not redraw or scrape them.
-4. **Confirm the institution list** (derived from the roster's affiliations).
-5. **Content** for Publications, Projects (only the UC ITS bridge-repository project is
+3. **Content** for Publications, Projects (only the UC ITS bridge-repository project is
    listed), and Code; members for the remaining People tiers.
-6. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
+4. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
    wordmark with trace underline; epicenter mark), plus a hero illustration showing a
    topographic map, a fault rupture with radiating waves, and silhouettes of a tunnel,
    viaduct, buildings and a suspension bridge. The hero illustration is now on the home

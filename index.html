@@ -124,6 +124,7 @@
   <div class="inner">
     <div class="hero-plate">
       <h1><svg class="hero-chip" viewBox="0 0 40 40" aria-hidden="true"><rect x="0" y="0" width="40" height="40" rx="9" fill="#223040"></rect><path d="M7 23 h6 l2 -6 3 12 3 -17 3 13 2 -7 1 3 h6" fill="none" stroke="#E8A33D" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Shake<span class="ready">Ready</span></span></h1>
+      <p class="hero-tag">From rupture to rafters.</p>
       <p>Disseminating tools and data that contribute to quantifying and improving seismic resilience, worldwide.</p>
       <div class="actions">
         <a class="btn" href="map.html">Explore the map</a>
@@ -132,30 +133,6 @@
     </div>
   </div>
 </div>
-<section class="inst-band" aria-labelledby="inst-h">
-  <div class="inner">
-    <h2 id="inst-h">Participating institutions</h2>
-    <div class="inst-grid" id="inst-grid"></div>
-  </div>
-</section>
-<script>
-fetch("data/institutions.json").then(r=>r.json()).then(list=>{
-  const grid=document.getElementById("inst-grid");
-  list.forEach(i=>{
-    const a=document.createElement("a");
-    a.className="inst-tile"; a.href=i.url; a.rel="noopener"; a.title=i.name;
-    const text=`<span class="inst-name">${i.name}</span><span class="inst-loc">${i.location}</span>`;
-    const img=new Image();
-    img.alt=i.name; img.className="inst-logo";
-    // official logo file, if present: images/institutions/<slug>.svg, then .png; otherwise the name tile
-    img.onload=()=>{a.innerHTML="";a.appendChild(img);};
-    img.onerror=()=>{ if(!img.dataset.png){img.dataset.png="1";img.src="images/institutions/"+i.slug+".png";} };
-    a.innerHTML=text;
-    img.src="images/institutions/"+i.slug+".svg";
-    grid.appendChild(a);
-  });
-}).catch(()=>{});
-</script>
 <div class="sections">
   <h2>On this site</h2>
   <div class="secgrid">
