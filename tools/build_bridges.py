@@ -9,9 +9,14 @@ Input:  the comma-delimited state file from https://www.fhwa.dot.gov/bridge/nbi/
 Output: data/bridges.json   compact row format read by map.html
         data/nbi_bridges.csv  the same records as a labeled table for download
 
+Each bridge is also assigned its HAZUS highway bridge class (see hazus_bridges.py).
+
 Only Python's standard library is used.
 """
 import csv, json, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import hazus_bridges
 
 SOURCE_YEAR_RE = re.compile(r'(\d{2})\.txt$', re.I)
 
@@ -96,7 +101,7 @@ def main(path):
     fields = ['lat', 'lng', 'structure_num', 'year_built', 'year_recon', 'lanes_on', 'lanes_und',
               'adt', 'adt_year', 'adt_future', 'adt_year_future', 'kind_i', 'type_i', 'appr_kind_i',
               'appr_type_i', 'max_span', 'spans_main', 'spans_appr', 'length', 'deck', 'superstructure',
-              'substructure', 'channel', 'culvert', 'cond', 'county_i', 'feature', 'facility']
+              'substructure', 'channel', 'culvert', 'cond', 'county_i', 'feature', 'facility', 'skew', 'hazus']
 
     for r in records:
         if r['RECORD_TYPE_005A'].strip() != '1':      # keep the route carried on the structure
@@ -121,6 +126,12 @@ def main(path):
         feature = ' '.join(r['FEATURES_DESC_006A'].split())
         facility = ' '.join(r['FACILITY_CARRIED_007'].split())
         year_recon = to_int(r['YEAR_RECONSTRUCTED_106'])
+        skew = to_int(r['DEGREES_SKEW_034'])
+        k43a, k43b = r['STRUCTURE_KIND_043A'].strip(), r['STRUCTURE_TYPE_043B'].strip()
+        hazus = hazus_bridges.classify(
+            r['STATE_CODE_001'].strip() == '06', to_int(r['YEAR_BUILT_027']),
+            int(k43a) if k43a.isdigit() else 0, int(k43b) if k43b.isdigit() else 0,
+            to_int(r['MAIN_UNIT_SPANS_045']), to_float(r['MAX_SPAN_LEN_MT_048']), to_float(r['STRUCTURE_LEN_MT_049']))
 
         table.append({
             'structure_number': snum,
@@ -139,6 +150,7 @@ def main(path):
             'deck_condition': r['DECK_COND_058'].strip(), 'superstructure_condition': r['SUPERSTRUCTURE_COND_059'].strip(),
             'substructure_condition': r['SUBSTRUCTURE_COND_060'].strip(), 'channel_condition': r['CHANNEL_COND_061'].strip(),
             'culvert_condition': r['CULVERT_COND_062'].strip(), 'overall_condition': cond,
+            'skew_deg': skew, 'hazus_class': f'HWB{hazus}',
         })
         if not located:
             no_location += 1
@@ -153,7 +165,7 @@ def main(path):
             to_float(r['STRUCTURE_LEN_MT_049']),
             rating(r['DECK_COND_058']), rating(r['SUPERSTRUCTURE_COND_059']), rating(r['SUBSTRUCTURE_COND_060']),
             rating(r['CHANNEL_COND_061']), rating(r['CULVERT_COND_062']),
-            cond, index(counties, county), feature, facility,
+            cond, index(counties, county), feature, facility, skew, hazus,
         ])
 
     out = {'source': 'FHWA National Bridge Inventory', 'source_year': source_year, 'state': 'California',

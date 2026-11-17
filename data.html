@@ -21,7 +21,7 @@
   <table class="dl-table">
     <tr><th>Dataset</th><th>Records</th><th>Description</th><th>Download</th></tr>
     <tr><td>NBI bridges</td><td class="count">25,975</td>
-        <td>California highway bridges from the FHWA National Bridge Inventory, 2025: location, county, facility carried and feature crossed, year built and reconstructed, lanes, traffic, construction type, span count and lengths, and condition ratings for deck, superstructure, substructure, channel and culvert. The map shows 25,974; one record has no usable coordinates and appears in the CSV only.</td>
+        <td>California highway bridges from the FHWA National Bridge Inventory, 2025: location, county, facility carried and feature crossed, year built and reconstructed, lanes, traffic, construction type, span count and lengths, skew, condition ratings for deck, superstructure, substructure, channel and culvert, and each bridge's HAZUS fragility class. The map shows 25,974; one record has no usable coordinates and appears in the CSV only.</td>
         <td><a href="data/bridges.json" download>JSON</a> · <a href="data/nbi_bridges.csv" download>CSV</a></td></tr>
     <tr><td>Instrumented buildings</td><td class="count">55</td>
         <td>Buildings with CESMD strong-motion instrumentation: station, stories, plan shape, dimensions, design date, and sensor layout, with links to station pages.</td>
@@ -32,6 +32,14 @@
     <tr><td>LA Times concrete buildings</td><td class="count">1,451</td>
         <td>Pre-1976 concrete buildings in Los Angeles identified by the LA Times survey, with addresses and building names.</td>
         <td><a href="data/latimes_concrete_buildings.geojson" download>GeoJSON</a></td></tr>
+  </table>
+  <h2>Fragility sets</h2>
+  <p>A fragility set gives, for each class of structure, the ground motion at which damage becomes likely. Sets are published as data files so the curves and the assumptions behind them can be inspected.</p>
+  <table class="dl-table">
+    <tr><th>Set</th><th>Applies to</th><th>Description</th><th>Download</th></tr>
+    <tr><td>HAZUS highway bridges</td><td>NBI bridges</td>
+        <td>The 28 highway bridge classes of FEMA's Hazus Earthquake Model (Technical Manual, Hazus 6.1, Section 7.1): median spectral acceleration at 1.0 second for slight, moderate, extensive and complete damage, lognormal with a dispersion of 0.6, with the manual's adjustments for skew and number of spans. Every bridge is assigned a class from its NBI fields. These are generic curves for screening an inventory. They do not reflect seismic retrofits, which the NBI does not record, and 3,571 of the records are culverts, for which bridge curves are a rough fit at best.</td>
+        <td><a href="data/fragility/hazus_highway_bridges.json" download>JSON</a></td></tr>
   </table>
   <h2>Sources and currency</h2>
   <p>Bridge records come from the <a href="https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm" rel="noopener">FHWA National Bridge Inventory</a>. This site uses the 2025 California file, the final year published in the long-standing Coding Guide format; later submissions follow the newer Specifications for the National Bridge Inventory. The script that converts the FHWA file into the map layer is in this site's repository, so the layer can be rebuilt from the source. Building instrumentation details come from the <a href="https://www.strongmotioncenter.org/" rel="noopener">Center for Engineering Strong Motion Data</a>. Please cite the original sources alongside this site when using the data.</p>

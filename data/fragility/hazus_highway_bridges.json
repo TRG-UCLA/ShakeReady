@@ -1,0 +1,403 @@
+{
+ "id": "hazus-highway-bridges",
+ "name": "HAZUS highway bridges",
+ "source": "FEMA, Hazus Earthquake Model Technical Manual, Hazus 6.1, July 2024, Section 7.1 (Tables 7-1, 7-2 and 7-6; Equations 7-1 to 7-4)",
+ "source_url": "https://www.fema.gov/sites/default/files/documents/fema_hazus-earthquake-model-technical-manual-6-1.pdf",
+ "applies_to": "nbi-bridges",
+ "intensity_measure": "SA(1.0)",
+ "intensity_measure_also_needed": "SA(0.3) for the Kshape factor, classes with ishape = 1",
+ "units": "g",
+ "distribution": "lognormal",
+ "beta": 0.6,
+ "damage_states": [
+  "Slight",
+  "Moderate",
+  "Extensive",
+  "Complete"
+ ],
+ "k3d_coefficients": {
+  "EQ1": {
+   "A": 0.25,
+   "B": 1
+  },
+  "EQ2": {
+   "A": 0.33,
+   "B": 0
+  },
+  "EQ3": {
+   "A": 0.33,
+   "B": 1
+  },
+  "EQ4": {
+   "A": 0.09,
+   "B": 1
+  },
+  "EQ5": {
+   "A": 0.05,
+   "B": 0
+  },
+  "EQ6": {
+   "A": 0.2,
+   "B": 1
+  },
+  "EQ7": {
+   "A": 0.1,
+   "B": 0
+  }
+ },
+ "adjustments": {
+  "k_skew": "sqrt(sin(90 - skew))",
+  "k_3d": "1 + A / (N - B), N = number of spans",
+  "k_shape": "2.5 * Sa(1.0) / Sa(0.3)",
+  "slight": "median * min(1, k_shape) if ishape = 1, else median",
+  "moderate_extensive_complete": "median * k_skew * k_3d"
+ },
+ "assumptions": [
+  "Seismic design cutoff: Table 7-1 is followed (1975 in California, 1990 elsewhere). The sentence above the table in the Hazus 6.1 manual states the two years the other way round; the table matches earlier Hazus documentation.",
+  "K3D = 1 + A / (N - B), as given in Table 7-2 and the text. Equation 7-3 is typeset as (1 + A) / (N - B), but the manual's worked example evaluates it to 1.125 for A = 0.25, B = 1, N = 3, which is the Table 7-2 form.",
+  "Where N - B is zero or negative (a single-span bridge with an equation that has B = 1), K3D is taken as 1. The manual does not say what to do in this case.",
+  "HWB28 has no K3D equation or Ishape entry in Table 7-1; K3D is taken as 1 and Kshape is not applied.",
+  "Number of spans N is NBI Item 45 (main unit spans), as in the manual's example.",
+  "'Length less than 20 m' is evaluated on NBI Item 49 (structure length).",
+  "A skew coded 99 in the NBI (skew varies along the bridge) is evaluated as 45 degrees. The manual does not address this code. A value of 90 or more is otherwise treated as 0.",
+  "Only ground shaking is evaluated. Ground-failure (permanent ground deformation) damage needs a displacement hazard layer."
+ ],
+ "classes": {
+  "HWB1": {
+   "medians": [
+    0.4,
+    0.5,
+    0.7,
+    0.9
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Major bridge, maximum span over 150 m"
+  },
+  "HWB2": {
+   "medians": [
+    0.6,
+    0.9,
+    1.1,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Major bridge, maximum span over 150 m"
+  },
+  "HWB3": {
+   "medians": [
+    0.8,
+    1.0,
+    1.2,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Single span"
+  },
+  "HWB4": {
+   "medians": [
+    0.8,
+    1.0,
+    1.2,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 1,
+   "design": "Seismic",
+   "description": "Single span"
+  },
+  "HWB5": {
+   "medians": [
+    0.25,
+    0.35,
+    0.45,
+    0.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, concrete (outside California)"
+  },
+  "HWB6": {
+   "medians": [
+    0.3,
+    0.5,
+    0.6,
+    0.9
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, concrete (California)"
+  },
+  "HWB7": {
+   "medians": [
+    0.5,
+    0.8,
+    1.1,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Multi-column bent, simple support, concrete"
+  },
+  "HWB8": {
+   "medians": [
+    0.35,
+    0.45,
+    0.55,
+    0.8
+   ],
+   "k3d": "EQ2",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Single column, box girder, continuous concrete (California)"
+  },
+  "HWB9": {
+   "medians": [
+    0.6,
+    0.9,
+    1.3,
+    1.6
+   ],
+   "k3d": "EQ3",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Single column, box girder, continuous concrete (California)"
+  },
+  "HWB10": {
+   "medians": [
+    0.6,
+    0.9,
+    1.1,
+    1.5
+   ],
+   "k3d": "EQ2",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Continuous concrete"
+  },
+  "HWB11": {
+   "medians": [
+    0.9,
+    0.9,
+    1.1,
+    1.5
+   ],
+   "k3d": "EQ3",
+   "ishape": 1,
+   "design": "Seismic",
+   "description": "Continuous concrete"
+  },
+  "HWB12": {
+   "medians": [
+    0.25,
+    0.35,
+    0.45,
+    0.7
+   ],
+   "k3d": "EQ4",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, steel (outside California)"
+  },
+  "HWB13": {
+   "medians": [
+    0.3,
+    0.5,
+    0.6,
+    0.9
+   ],
+   "k3d": "EQ4",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, steel (California)"
+  },
+  "HWB14": {
+   "medians": [
+    0.5,
+    0.8,
+    1.1,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Multi-column bent, simple support, steel"
+  },
+  "HWB15": {
+   "medians": [
+    0.75,
+    0.75,
+    0.75,
+    1.1
+   ],
+   "k3d": "EQ5",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Continuous steel"
+  },
+  "HWB16": {
+   "medians": [
+    0.9,
+    0.9,
+    1.1,
+    1.5
+   ],
+   "k3d": "EQ3",
+   "ishape": 1,
+   "design": "Seismic",
+   "description": "Continuous steel"
+  },
+  "HWB17": {
+   "medians": [
+    0.25,
+    0.35,
+    0.45,
+    0.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, prestressed concrete (outside California)"
+  },
+  "HWB18": {
+   "medians": [
+    0.3,
+    0.5,
+    0.6,
+    0.9
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, prestressed concrete (California)"
+  },
+  "HWB19": {
+   "medians": [
+    0.5,
+    0.8,
+    1.1,
+    1.7
+   ],
+   "k3d": "EQ1",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Multi-column bent, simple support, prestressed concrete"
+  },
+  "HWB20": {
+   "medians": [
+    0.35,
+    0.45,
+    0.55,
+    0.8
+   ],
+   "k3d": "EQ2",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Single column, box girder, prestressed continuous concrete (California)"
+  },
+  "HWB21": {
+   "medians": [
+    0.6,
+    0.9,
+    1.3,
+    1.6
+   ],
+   "k3d": "EQ3",
+   "ishape": 0,
+   "design": "Seismic",
+   "description": "Single column, box girder, prestressed continuous concrete (California)"
+  },
+  "HWB22": {
+   "medians": [
+    0.6,
+    0.9,
+    1.1,
+    1.5
+   ],
+   "k3d": "EQ2",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Continuous concrete (prestressed)"
+  },
+  "HWB23": {
+   "medians": [
+    0.9,
+    0.9,
+    1.1,
+    1.5
+   ],
+   "k3d": "EQ3",
+   "ishape": 1,
+   "design": "Seismic",
+   "description": "Continuous concrete (prestressed)"
+  },
+  "HWB24": {
+   "medians": [
+    0.25,
+    0.35,
+    0.45,
+    0.7
+   ],
+   "k3d": "EQ6",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, steel, under 20 m long (outside California)"
+  },
+  "HWB25": {
+   "medians": [
+    0.3,
+    0.5,
+    0.6,
+    0.9
+   ],
+   "k3d": "EQ6",
+   "ishape": 0,
+   "design": "Conventional",
+   "description": "Multi-column bent, simple support, steel, under 20 m long (California)"
+  },
+  "HWB26": {
+   "medians": [
+    0.75,
+    0.75,
+    0.75,
+    1.1
+   ],
+   "k3d": "EQ7",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Continuous steel, under 20 m long (outside California)"
+  },
+  "HWB27": {
+   "medians": [
+    0.75,
+    0.75,
+    0.75,
+    1.1
+   ],
+   "k3d": "EQ7",
+   "ishape": 1,
+   "design": "Conventional",
+   "description": "Continuous steel, under 20 m long (California)"
+  },
+  "HWB28": {
+   "medians": [
+    0.8,
+    1.0,
+    1.2,
+    1.7
+   ],
+   "k3d": null,
+   "ishape": 0,
+   "design": "Not classified",
+   "description": "All other bridges that are not classified"
+  }
+ }
+}

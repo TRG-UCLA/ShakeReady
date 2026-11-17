@@ -9,6 +9,8 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html` — site sections
 - `assets/style.css` — shared styles
 - `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `tools/hazus_bridges.py` — HAZUS highway bridge classes and fragility curves; run it to self-test and write the fragility file
+- `data/fragility/hazus_highway_bridges.json` — the HAZUS fragility set, with its source and assumptions
 - `tools/build_hero.py` — draws the home-page hero artwork into `index.html` (needs numpy, scipy, contourpy)
 - `data/nbi_bridges.csv` — all 25,975 bridge records as a labeled, spreadsheet-friendly table
 - `data/bridges.json` — 25,974 California bridges from the FHWA National Bridge Inventory (2025), compact row format
@@ -25,6 +27,8 @@ Interactive map of California bridges and seismically instrumented buildings —
   `county_i` into `counties`. `year_recon = 0` means never reconstructed. Condition ratings
   (`deck`, `superstructure`, `substructure`, `channel`, `culvert`) are 0 to 9, with -1 where the
   component does not apply. `cond` is the overall condition: Good, Fair or Poor.
+  `skew` is the NBI skew angle in degrees (99 means it varies along the bridge), and `hazus` is the
+  HAZUS highway bridge class number, 1 to 28.
 - To rebuild the bridge layer, download the California delimited file from the FHWA NBI
   (https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm) and run, from the repository root:
 

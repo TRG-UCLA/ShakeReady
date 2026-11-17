@@ -20,6 +20,8 @@ several (data, code, publications, people, projects).
 - `assets/style.css` — shared styles and design tokens
 - `data/` — all content data (see below)
 - `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `tools/hazus_bridges.py` — HAZUS bridge classes and fragility curves, with a self-test
+- `data/fragility/` — fragility sets; currently `hazus_highway_bridges.json`
 - `tools/build_hero.py` — draws the home-page hero artwork into `index.html`
 - `images/people/`, `images/institutions/` — photos and logos, named by slug
 - `CNAME` — intentionally absent for now (see Open items); when present it binds
@@ -85,6 +87,25 @@ several (data, code, publications, people, projects).
    listed), and Code; members for the remaining People tiers.
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
+
+## Fragilities and the planned map restructure
+
+- **Done:** every bridge has a HAZUS highway bridge class, assigned by `tools/hazus_bridges.py` from
+  FEMA's Hazus Earthquake Model Technical Manual, Hazus 6.1 (Tables 7-1, 7-2, 7-6; Equations 7-1 to 7-4).
+  The tables were transcribed from the manual and checked against its text; the code reproduces the
+  manual's worked example. Choices made where the manual is silent or inconsistent are listed under
+  `assumptions` in the fragility file and in the script. The map shows each bridge's class and adjusted
+  medians and can filter by class.
+- **Limits to keep visible:** the curves are generic; the NBI does not record retrofits, so pre-1975
+  California bridges are treated as unretrofitted; 3,571 records are culverts; a skew coded 99 is
+  evaluated as 45 degrees (1,706 bridges).
+- **Planned by the owner, not yet built:** restructure the map around three registries (inventories,
+  hazards, fragilities). Inventories can be added and removed. Hazard layers are selectable, with the US
+  national hazard map as default and a scenario repository that others submit computed or recorded
+  events to. Where an inventory has a fragility set, the map computes expected damage per asset,
+  displays it, and offers an asset-by-asset download. The HAZUS set needs Sa(1.0 s), and Sa(0.3 s) for
+  the shape factor, from the hazard layer. Results from a probabilistic hazard map are per-site and
+  should not be summed across assets the way scenario results can.
 
 ## Data provenance
 

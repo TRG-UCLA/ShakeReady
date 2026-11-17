@@ -91,6 +91,8 @@ footer a{color:var(--muted)}
 .pop-kv b{font-weight:600}
 .pop-img{max-width:230px;border-radius:6px;margin-top:8px;display:block}
 .pop-link{display:inline-block;margin-top:6px}
+.pop-frag{margin-top:9px;padding-top:8px;border-top:1px solid #D8E0E7}
+.pop-note{color:#5F7183;font-size:12px}
 .sv-link{display:block;margin-top:9px;font-weight:600}
 .sv-control a{display:flex;align-items:center;justify-content:center;color:#2B3B4E}
 .sv-control a.active{background:#F9A03F;color:#1C1507}
@@ -147,6 +149,8 @@ footer a{color:var(--muted)}
         <div class="pair"><input id="ns1" type="number" min="0" placeholder="min"><input id="ns2" type="number" min="0" placeholder="max"></div></div>
       <div class="frow"><label for="county">County</label>
         <select id="county"><option value="">Any county</option></select></div>
+      <div class="frow"><label for="hazus">HAZUS fragility class</label>
+        <select id="hazus"><option value="">Any class</option></select></div>
       <div class="frow"><label>Overall condition</label>
         <div id="conds" class="checks">
           <label><input type="checkbox" value="Good"> Good</label>
@@ -240,6 +244,31 @@ const streetViewLink = (lat, lng) => `<a class="pop-link sv-link" href="${street
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const rate = v => v < 0 ? "n/a" : v;
 
+/* HAZUS highway bridge fragilities (FEMA Hazus 6.1 Technical Manual, Section 7.1); mirrors tools/hazus_bridges.py */
+let HZ = null;
+const hzSkew = a => a === 99 ? 45 : (a < 0 || a >= 90 ? 0 : a);
+const hzKskew = a => Math.sqrt(Math.sin((90 - hzSkew(a)) * Math.PI / 180));
+function hzK3d(cls, n){
+  const eq = HZ.classes[cls].k3d; if (!eq) return 1;
+  const {A, B} = HZ.k3d_coefficients[eq];
+  return n - B > 0 ? 1 + A / (n - B) : 1;
+}
+function hzMedians(cls, n, skew){             // slight is left at the class value: its Kshape factor needs the ground motion
+  const med = HZ.classes[cls].medians, k = hzKskew(skew) * hzK3d(cls, n);
+  return [med[0], med[1] * k, med[2] * k, med[3] * k];
+}
+function hazusBlock(r){
+  if (!HZ || F.hazus === undefined) return "";
+  const cls = "HWB" + r[F.hazus], c = HZ.classes[cls];
+  const adj = hzMedians(cls, r[F.spans_main], r[F.skew]).map(v => v.toFixed(2));
+  const skewTxt = r[F.skew] === 99 ? "skew varies, taken as 45°" : `skew ${r[F.skew]}°`;
+  return `<div class="pop-frag"><b>HAZUS class:</b> ${cls}, ${c.design.toLowerCase()} design<br>`
+    + `<span class="pop-note">${c.description}</span><br>`
+    + `<b>Median Sa(1.0 s), g:</b> slight ${adj[0]}, moderate ${adj[1]}, extensive ${adj[2]}, complete ${adj[3]}<br>`
+    + `<span class="pop-note">Class values ${c.medians.map(v => v.toFixed(2)).join(", ")}, adjusted for ${skewTxt} and ${r[F.spans_main]} span${r[F.spans_main] === 1 ? "" : "s"}.`
+    + (c.ishape ? " The slight value can be lower, depending on the shape of the ground-motion spectrum." : "") + `</span></div>`;
+}
+
 function bridgePopup(r){
   const recon = r[F.year_recon] ? r[F.year_recon] : "None";
   const carries = r[F.facility], over = r[F.feature];
@@ -261,6 +290,7 @@ function bridgePopup(r){
     + `<b>Future ADT:</b> ${fmt(r[F.adt_future])} (${r[F.adt_year_future]})<br>`
     + `<b>Overall condition:</b> ${r[F.cond]}<br>`
     + `<b>Ratings:</b> deck ${rate(r[F.deck])}, superstructure ${rate(r[F.superstructure])}, substructure ${rate(r[F.substructure])}, channel ${rate(r[F.channel])}, culvert ${rate(r[F.culvert])}</div>`
+    + hazusBlock(r)
     + streetViewLink(r[F.lat], r[F.lng]);
 }
 
@@ -278,6 +308,8 @@ function filterRows(){
         sp1=num("sp1"), sp2=num("sp2"), ns1=num("ns1"), ns2=num("ns2"), mats=activeMaterials();
   const countySel = document.getElementById("county").value;
   const county = countySel === "" ? null : Number(countySel);
+  const hazusSel = document.getElementById("hazus").value;
+  const hazus = hazusSel === "" ? null : Number(hazusSel);
   const conds = [...document.querySelectorAll("#conds input")].filter(b => b.checked).map(b => b.value);
   // component ratings: [field, min, max]; a bridge where the component does not apply (n/a) fails a set bound
   const ratings = [["deck","dk1","dk2"],["superstructure","su1","su2"],["substructure","sb1","sb2"],["channel","ch1","ch2"],["culvert","cv1","cv2"]]
@@ -299,6 +331,7 @@ function filterRows(){
     if (ns1!==null && r[F.spans_main] < ns1) return false;
     if (ns2!==null && r[F.spans_main] > ns2) return false;
     if (county!==null && r[F.county_i] !== county) return false;
+    if (hazus!==null && r[F.hazus] !== hazus) return false;
     if (conds.length && !conds.includes(r[F.cond])) return false;
     for (const [fi,lo,hi] of ratings){
       const v = r[fi];
@@ -330,8 +363,11 @@ function renderBridges(){
   document.getElementById("cnt-bridge").textContent = fmt(rows.length);
 }
 
-fetch("data/bridges.json").then(r => r.json()).then(data => {
-  B = data;
+Promise.all([
+  fetch("data/bridges.json").then(r => r.json()),
+  fetch("data/fragility/hazus_highway_bridges.json").then(r => r.json()).catch(() => null)   // the map still works without it
+]).then(([data, frag]) => {
+  B = data; HZ = frag;
   data.fields.forEach((f,i) => F[f] = i);
   const matBox = document.getElementById("materials");
   data.kinds.forEach((k,i) => {
@@ -340,6 +376,15 @@ fetch("data/bridges.json").then(r => r.json()).then(data => {
     lab.innerHTML = `<input type="checkbox" value="${i}"> ${k}`;
     matBox.appendChild(lab);
   });
+  const hsel = document.getElementById("hazus");
+  if (HZ && F.hazus !== undefined){
+    const counts = {};
+    data.rows.forEach(r => counts[r[F.hazus]] = (counts[r[F.hazus]] || 0) + 1);
+    Object.keys(counts).map(Number).sort((a, b) => a - b).forEach(n => {
+      const c = HZ.classes["HWB" + n], o = document.createElement("option");
+      o.value = n; o.textContent = `HWB${n} (${fmt(counts[n])}): ${c.description}`; hsel.appendChild(o);
+    });
+  } else { hsel.closest(".frow").style.display = "none"; }
   const sel = document.getElementById("county");
   data.counties.map((c,i) => [c,i]).sort((a,b) => a[0].localeCompare(b[0])).forEach(([c,i]) => {
     const o = document.createElement("option"); o.value = i; o.textContent = c; sel.appendChild(o);
@@ -351,7 +396,7 @@ fetch("data/bridges.json").then(r => r.json()).then(data => {
 
 document.getElementById("apply").addEventListener("click", renderBridges);
 document.getElementById("reset").addEventListener("click", () => {
-  ["yb1","yb2","yr1","yr2","ln1","ln2","adt1","adt2","sp1","sp2","ns1","ns2","dk1","dk2","su1","su2","sb1","sb2","ch1","ch2","cv1","cv2","county"].forEach(id => document.getElementById(id).value = "");
+  ["yb1","yb2","yr1","yr2","ln1","ln2","adt1","adt2","sp1","sp2","ns1","ns2","dk1","dk2","su1","su2","sb1","sb2","ch1","ch2","cv1","cv2","county","hazus"].forEach(id => document.getElementById(id).value = "");
   document.querySelectorAll("#materials input, #conds input").forEach(b => b.checked = false);
   renderBridges();
 });
