@@ -51,7 +51,10 @@ several (data, code, publications, people, projects).
 - Okan Ilhan and Rafet Sisman are Associate Professors.
 - Wenyang Zhang (Research Associate, TACC) stays in the top tier.
 - Photos are wanted for everyone on the People page.
-- Visual identity: navy `#0F1A2B`, orange `#F9A03F`, Archivo typeface, seismic-trace motif.
+- Visual identity: navy `#0F1A2B`, orange `#F9A03F`, Archivo typeface.
+- Logo: the ShakeReady wordmark with a Ricker pulse, the wavelet (1 - 2a^2) exp(-a^2), as its mark.
+  The owner asked for this. It appears beside the wordmark in the navigation, as the browser tab
+  icon, as the badge on the home page, and as the divider on the map panel.
   The home hero shows shaking intensity as bands of color, red near the fault through orange,
   yellow, green and cyan to blue (`#D7263D #F46036 #F9A03F #F2D16B #7BD389 #38B6C9 #3D7DD8 #5B6FD6`).
   This was chosen by the owner from four drafted alternatives.
@@ -73,12 +76,8 @@ several (data, code, publications, people, projects).
 2. **Headshots** for the eight people in `data/people.json`.
 3. **Content** for Publications, Projects (only the UC ITS bridge-repository project is
    listed), and Code; members for the remaining People tiers.
-4. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
-   wordmark with trace underline; epicenter mark), plus a hero illustration showing a
-   fault rupture with radiating waves, and silhouettes of a tunnel,
-   viaduct, buildings and a suspension bridge. The hero illustration is on the home
-   page, in the intensity-spectrum treatment the owner chose. No logo direction has been chosen yet; the navigation uses the wordmark with trace
-   underline, and the hero pairs it with the small trace badge.
+4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
+   concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
 ## Data provenance
 

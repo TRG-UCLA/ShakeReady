@@ -26,7 +26,7 @@ body{margin:0;font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-seri
 .brand{display:flex;align-items:baseline;gap:10px;color:#EFF3F6;text-decoration:none;font-weight:700;font-size:18px;letter-spacing:.01em}
 .brand .ready{color:var(--amber)}
 .brand svg{width:54px;height:16px;align-self:center}
-.brand svg path{stroke:var(--amber);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.brand svg path{stroke:var(--amber);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .site-nav ul{display:flex;gap:4px;list-style:none;margin:0 0 0 auto;padding:0;flex-wrap:wrap}
 .site-nav a.navlink{display:block;color:#AEBDCB;text-decoration:none;font-size:14px;padding:7px 11px;border-radius:6px}
 .site-nav a.navlink:hover{color:#EFF3F6;background:var(--ink-2)}
