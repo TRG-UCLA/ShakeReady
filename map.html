@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map — ShakeReady</title>
+<meta name="description" content="Interactive map of California bridges and seismically instrumented buildings. National Bridge Inventory data with filters for year built, traffic, span length, and construction material.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2319242F'/%3E%3Cpath d='M4 20 l5 0 2-9 3 14 3-18 3 13 2-5 6 0' stroke='%23E8A33D' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css">
+<style>
+:root{
+  --ink:#19242F;        /* panel ground: deep steel blue */
+  --ink-2:#223040;      /* raised rows */
+  --line:#32425A;       /* hairlines on ink */
+  --paper:#EFF3F6;      /* text on ink */
+  --muted:#8FA1B5;
+  --amber:#E8A33D;      /* seismic accent — actions only */
+  --c-instr:#3D9BE9;    /* instrumented buildings */
+  --c-nond:#9B6DE0;     /* non-ductile buildings */
+  --c-lat:#E05252;      /* LA Times concrete */
+  --c-bridge:#E8A33D;   /* bridges */
+  --radius:8px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--paper);background:var(--ink);display:flex;flex-direction:column}
+#app{display:flex;flex:1;min-height:0;position:relative}
+
+/* ---------- control rail ---------- */
+#panel{width:344px;flex:0 0 344px;background:var(--ink);display:flex;flex-direction:column;overflow-y:auto;border-right:1px solid var(--line)}
+header{padding:22px 22px 14px}
+.wordmark{font-size:26px;font-weight:700;letter-spacing:.01em;line-height:1}
+.wordmark .ready{color:var(--amber)}
+.tagline{margin:7px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.trace{display:block;margin-top:14px;width:100%;height:30px}
+.trace path{stroke:var(--amber);stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+
+section{padding:16px 22px;border-top:1px solid var(--line)}
+h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 12px}
+
+/* layer toggles */
+.layer{display:flex;align-items:center;gap:10px;padding:9px 10px;margin:0 -10px;border-radius:var(--radius);cursor:pointer;user-select:none}
+.layer:hover{background:var(--ink-2)}
+.layer input{accent-color:var(--amber);width:15px;height:15px;cursor:pointer}
+.chip{width:11px;height:11px;border-radius:50%;flex:0 0 11px}
+.layer .lname{font-size:14px;flex:1}
+.layer .lcount{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* filter form */
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.pair{display:flex;gap:8px}
+.pair input{width:100%;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;color:var(--paper);padding:7px 9px;font:inherit;font-size:13.5px}
+.pair input::placeholder{color:#5B6E83}
+.pair input:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:transparent}
+#materials{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:4px}
+#materials label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--paper);padding:4px 0;cursor:pointer}
+#materials input{accent-color:var(--amber);cursor:pointer}
+.actions{display:flex;gap:10px;margin-top:14px}
+button{font:inherit;cursor:pointer;border-radius:var(--radius);padding:9px 14px;border:1px solid transparent}
+.btn-apply{background:var(--amber);color:#1C1507;font-weight:600;flex:1}
+.btn-apply:hover{background:#F2B255}
+.btn-reset{background:none;border-color:var(--line);color:var(--muted)}
+.btn-reset:hover{color:var(--paper);border-color:var(--muted)}
+#bridgecount{margin-top:12px;font-size:13px;color:var(--muted)}
+#bridgecount strong{color:var(--paper);font-variant-numeric:tabular-nums}
+
+footer{margin-top:auto;padding:16px 22px 20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6}
+footer a{color:var(--muted)}
+
+/* ---------- map ---------- */
+#map{flex:1;min-width:0;background:#CAD2D9}
+.leaflet-popup-content-wrapper{border-radius:var(--radius);font-family:'Archivo',system-ui,sans-serif}
+.leaflet-popup-content{margin:14px 16px;font-size:13px;line-height:1.55}
+.pop-title{font-weight:700;font-size:14px;margin-bottom:6px}
+.pop-kv b{font-weight:600}
+.pop-img{max-width:230px;border-radius:6px;margin-top:8px;display:block}
+.pop-link{display:inline-block;margin-top:6px}
+
+/* mobile: panel slides over the map */
+#panel-toggle{display:none;position:absolute;top:12px;left:12px;z-index:1100;background:var(--ink);color:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:9px 13px;font-weight:600;box-shadow:0 2px 10px rgba(10,16,22,.35)}
+@media (max-width:860px){
+  #panel{position:absolute;inset:0 auto 0 0;z-index:1000;max-width:86vw;transform:translateX(-102%);transition:transform .25s ease;box-shadow:0 0 30px rgba(10,16,22,.45)}
+  #panel.open{transform:none}
+  #panel-toggle{display:block}
+}
+@media (prefers-reduced-motion:reduce){#panel{transition:none}}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="inner">
+  <a class="brand" href="index.html">Shake<span class="ready">Ready</span><svg viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 15 h28 l4-4 5 8 4-6 3 3 h14 l3-10 5 22 5-26 4 21 4-13 3 6 h18 l3-3 4 5 3-4 h30 l2-6 4 12 3-8 2 3 h32 l3 4 4-9 4 7 3-3 h40 l2-3 3 5 3-4 h55"/></svg></a>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="map.html" aria-current="page">Map</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+</div></nav>
+<div id="app">
+  <nav id="panel" aria-label="Map controls">
+    <header>
+      <p class="tagline" style="margin-top:0">The ShakeReady structure inventory: California bridges and seismically instrumented buildings, on one map.</p>
+      <svg class="trace" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 15 h28 l4-4 5 8 4-6 3 3 h14 l3-10 5 22 5-26 4 21 4-13 3 6 h18 l3-3 4 5 3-4 h30 l2-6 4 12 3-8 2 3 h32 l3 4 4-9 4 7 3-3 h40 l2-3 3 5 3-4 h55"/>
+      </svg>
+    </header>
+
+    <section>
+      <h2>Layers</h2>
+      <label class="layer"><input type="checkbox" id="lyr-bridge" checked><span class="chip" style="background:var(--c-bridge)"></span><span class="lname">NBI bridges</span><span class="lcount" id="cnt-bridge">…</span></label>
+      <label class="layer"><input type="checkbox" id="lyr-instr"><span class="chip" style="background:var(--c-instr)"></span><span class="lname">Instrumented buildings</span><span class="lcount" id="cnt-instr">…</span></label>
+      <label class="layer"><input type="checkbox" id="lyr-nond"><span class="chip" style="background:var(--c-nond)"></span><span class="lname">Instrumented non-ductile</span><span class="lcount" id="cnt-nond">…</span></label>
+      <label class="layer"><input type="checkbox" id="lyr-lat"><span class="chip" style="background:var(--c-lat)"></span><span class="lname">LA Times concrete buildings</span><span class="lcount" id="cnt-lat">…</span></label>
+    </section>
+
+    <section>
+      <h2>Filter bridges</h2>
+      <div class="frow"><label for="yb1">Year built</label>
+        <div class="pair"><input id="yb1" type="number" min="1800" max="2030" placeholder="from"><input id="yb2" type="number" min="1800" max="2030" placeholder="to"></div></div>
+      <div class="frow"><label for="yr1">Year reconstructed</label>
+        <div class="pair"><input id="yr1" type="number" min="1800" max="2030" placeholder="from"><input id="yr2" type="number" min="1800" max="2030" placeholder="to"></div></div>
+      <div class="frow"><label for="ln1">Traffic lanes on bridge</label>
+        <div class="pair"><input id="ln1" type="number" min="0" placeholder="min"><input id="ln2" type="number" min="0" placeholder="max"></div></div>
+      <div class="frow"><label for="adt1">Average daily traffic</label>
+        <div class="pair"><input id="adt1" type="number" min="0" placeholder="min"><input id="adt2" type="number" min="0" placeholder="max"></div></div>
+      <div class="frow"><label for="sp1">Longest span, meters</label>
+        <div class="pair"><input id="sp1" type="number" min="0" step="0.1" placeholder="min"><input id="sp2" type="number" min="0" step="0.1" placeholder="max"></div></div>
+      <div class="frow"><label>Main structure material</label>
+        <div id="materials"></div></div>
+      <div class="actions">
+        <button class="btn-apply" id="apply">Apply filters</button>
+        <button class="btn-reset" id="reset">Reset</button>
+      </div>
+      <p id="bridgecount"></p>
+    </section>
+
+    <footer>
+      Bridge records from the FHWA National Bridge Inventory (California, ~2016 snapshot). Building layers compiled from CESMD strong-motion stations and the LA Times concrete-building survey. A UCLA research project.
+    </footer>
+  </nav>
+
+  <button id="panel-toggle" aria-label="Show map controls">Menu</button>
+  <div id="map"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<script>
+"use strict";
+const fmt = n => Number(n).toLocaleString("en-US");
+
+/* ---------- map ---------- */
+const map = L.map("map", {preferCanvas:true}).setView([36.75, -119.52], 6);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+/* ---------- bridges ---------- */
+let B = null;                 // bridges dataset
+let bridgeCluster = null;     // current cluster layer
+const F = {};                 // field index lookup
+
+function bridgePopup(r){
+  const recon = r[F.year_recon] ? r[F.year_recon] : "None";
+  return `<div class="pop-title">Structure ${r[F.structure_num]}</div><div class="pop-kv">`
+    + `<b>Year built:</b> ${r[F.year_built]}<br>`
+    + `<b>Year reconstructed:</b> ${recon}<br>`
+    + `<b>Lanes on / under:</b> ${r[F.lanes_on]} / ${r[F.lanes_und]}<br>`
+    + `<b>ADT:</b> ${fmt(r[F.adt])} (${r[F.adt_year]})<br>`
+    + `<b>Future ADT:</b> ${fmt(r[F.adt_future])} (${r[F.adt_year_future]})<br>`
+    + `<b>Main structure:</b> ${B.kinds[r[F.kind_i]]} — ${B.types[r[F.type_i]]}<br>`
+    + `<b>Approach spans:</b> ${B.kinds[r[F.appr_kind_i]]} — ${B.types[r[F.appr_type_i]]}<br>`
+    + `<b>Longest span:</b> ${r[F.max_span]} m</div>`;
+}
+
+function num(id){ const v = document.getElementById(id).value.trim(); return v === "" ? null : Number(v); }
+
+function activeMaterials(){
+  const boxes = document.querySelectorAll("#materials input");
+  const on = [...boxes].filter(b => b.checked).map(b => Number(b.value));
+  return on.length ? new Set(on) : null;   // none checked = no material filter
+}
+
+function filterRows(){
+  const yb1=num("yb1"), yb2=num("yb2"), yr1=num("yr1"), yr2=num("yr2"),
+        ln1=num("ln1"), ln2=num("ln2"), adt1=num("adt1"), adt2=num("adt2"),
+        sp1=num("sp1"), sp2=num("sp2"), mats=activeMaterials();
+  return B.rows.filter(r => {
+    if (yb1!==null && r[F.year_built] < yb1) return false;
+    if (yb2!==null && r[F.year_built] > yb2) return false;
+    if (yr1!==null || yr2!==null){
+      if (!r[F.year_recon]) return false;               // never reconstructed
+      if (yr1!==null && r[F.year_recon] < yr1) return false;
+      if (yr2!==null && r[F.year_recon] > yr2) return false;
+    }
+    if (ln1!==null && r[F.lanes_on] < ln1) return false;
+    if (ln2!==null && r[F.lanes_on] > ln2) return false;
+    if (adt1!==null && r[F.adt] < adt1) return false;
+    if (adt2!==null && r[F.adt] > adt2) return false;
+    if (sp1!==null && r[F.max_span] < sp1) return false;
+    if (sp2!==null && r[F.max_span] > sp2) return false;
+    if (mats && !mats.has(r[F.kind_i])) return false;
+    return true;
+  });
+}
+
+function renderBridges(){
+  if (!B) return;
+  const rows = filterRows();
+  if (bridgeCluster){ map.removeLayer(bridgeCluster); }
+  bridgeCluster = L.markerClusterGroup({chunkedLoading:true, disableClusteringAtZoom:15, spiderfyOnMaxZoom:true});
+  const markers = rows.map(r => {
+    const mk = L.circleMarker([r[F.lat], r[F.lng]], {
+      radius:6, color:"#8A5E16", weight:1, fillColor:"#E8A33D", fillOpacity:.85
+    });
+    mk.bindPopup(() => bridgePopup(r));
+    return mk;
+  });
+  bridgeCluster.addLayers(markers);
+  if (document.getElementById("lyr-bridge").checked) map.addLayer(bridgeCluster);
+  document.getElementById("bridgecount").innerHTML =
+    `Showing <strong>${fmt(rows.length)}</strong> of ${fmt(B.rows.length)} bridges`;
+  document.getElementById("cnt-bridge").textContent = fmt(rows.length);
+}
+
+fetch("data/bridges.json").then(r => r.json()).then(data => {
+  B = data;
+  data.fields.forEach((f,i) => F[f] = i);
+  const matBox = document.getElementById("materials");
+  data.kinds.forEach((k,i) => {
+    if (k === "Unclassified Material") return;
+    const lab = document.createElement("label");
+    lab.innerHTML = `<input type="checkbox" value="${i}"> ${k}`;
+    matBox.appendChild(lab);
+  });
+  renderBridges();
+}).catch(() => {
+  document.getElementById("bridgecount").textContent = "Bridge data failed to load. Refresh to retry.";
+});
+
+document.getElementById("apply").addEventListener("click", renderBridges);
+document.getElementById("reset").addEventListener("click", () => {
+  ["yb1","yb2","yr1","yr2","ln1","ln2","adt1","adt2","sp1","sp2"].forEach(id => document.getElementById(id).value = "");
+  document.querySelectorAll("#materials input").forEach(b => b.checked = false);
+  renderBridges();
+});
+document.getElementById("lyr-bridge").addEventListener("change", e => {
+  if (!bridgeCluster) return;
+  e.target.checked ? map.addLayer(bridgeCluster) : map.removeLayer(bridgeCluster);
+});
+
+/* ---------- building layers ---------- */
+const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num"]);
+function buildingPopup(props){
+  let html = `<div class="pop-title">${props.name || "Structure"}</div><div class="pop-kv">`;
+  for (const [k,v] of Object.entries(props)){
+    if (SKIP_PROPS.has(k) || v === null || v === "" || v === undefined) continue;
+    if (String(v).startsWith("http")){
+      html += `<b>${k}:</b> <a class="pop-link" href="${v}" target="_blank" rel="noopener">link</a><br>`;
+    } else {
+      html += `<b>${k}:</b> ${v}<br>`;
+    }
+  }
+  html += "</div>";
+  if (props.images && props.images.length){
+    html += `<img class="pop-img" src="${props.images[0]}" alt="" onerror="this.remove()">`;
+  }
+  return html;
+}
+
+function loadBuildingLayer(file, color, checkboxId, countId){
+  const layer = L.geoJSON(null, {
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius:7, color:"#13202E", weight:1.5, fillColor:color, fillOpacity:.9}),
+    onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties), {maxWidth:280})
+  });
+  fetch("data/" + file).then(r => r.json()).then(gj => {
+    layer.addData(gj);
+    document.getElementById(countId).textContent = fmt(gj.features.filter(f => f.geometry).length);
+  }).catch(() => { document.getElementById(countId).textContent = "—"; });
+  document.getElementById(checkboxId).addEventListener("change", e => {
+    e.target.checked ? map.addLayer(layer) : map.removeLayer(layer);
+  });
+  return layer;
+}
+loadBuildingLayer("instrumented_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-instr").trim(), "lyr-instr", "cnt-instr");
+loadBuildingLayer("instrumented_nonductile_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-nond").trim(), "lyr-nond", "cnt-nond");
+loadBuildingLayer("latimes_concrete_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-lat").trim(), "lyr-lat", "cnt-lat");
+
+/* ---------- mobile panel ---------- */
+const panel = document.getElementById("panel");
+document.getElementById("panel-toggle").addEventListener("click", () => panel.classList.toggle("open"));
+map.on("click", () => panel.classList.remove("open"));
+</script>
+</body>
+</html>

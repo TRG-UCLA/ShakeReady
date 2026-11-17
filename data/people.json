@@ -1,0 +1,105 @@
+{
+ "tiers": [
+  {
+   "id": "faculty",
+   "title": "Faculty / Senior Researchers"
+  },
+  {
+   "id": "postdoc",
+   "title": "Postdoctoral researchers"
+  },
+  {
+   "id": "grad",
+   "title": "Graduate students"
+  },
+  {
+   "id": "undergrad",
+   "title": "Undergraduate students"
+  },
+  {
+   "id": "industry",
+   "title": "Industry collaborators"
+  },
+  {
+   "id": "alumni",
+   "title": "Alumni"
+  }
+ ],
+ "people": [
+  {
+   "slug": "ertugrul-taciroglu",
+   "name": "Ertugrul Taciroglu",
+   "tier": "faculty",
+   "title": "Professor, Civil & Environmental Engineering",
+   "affiliation": "UCLA",
+   "focus": "Computational mechanics; structural and geotechnical earthquake engineering; regional seismic risk assessment.",
+   "link": "https://samueli.ucla.edu/people/ertugrul-taciroglu/",
+   "badge": "Co-founder"
+  },
+  {
+   "slug": "aysegul-askan",
+   "name": "Aysegul Askan",
+   "tier": "faculty",
+   "title": "Professor, Civil Engineering & Earthquake Studies",
+   "affiliation": "Middle East Technical University, Türkiye",
+   "focus": "Engineering seismology; ground-motion simulation; regional seismic hazard and loss estimation.",
+   "link": "https://avesis.metu.edu.tr/aaskan",
+   "badge": "Co-founder"
+  },
+  {
+   "slug": "pedro-arduino",
+   "name": "Pedro Arduino",
+   "tier": "faculty",
+   "title": "Henry Roy Berg Endowed Professor, Civil & Environmental Engineering",
+   "affiliation": "University of Washington",
+   "focus": "Computational geomechanics; constitutive modeling of soils; OpenSees and Material Point Method development.",
+   "link": "https://ce.washington.edu/people/faculty/arduinop",
+   "badge": "Co-founder"
+  },
+  {
+   "slug": "jorge-crempien",
+   "name": "Jorge De La Crempien",
+   "tier": "faculty",
+   "title": "Assistant Professor, Structural & Geotechnical Engineering",
+   "affiliation": "Pontificia Universidad Católica de Chile",
+   "focus": "Earthquake source physics; physics-based ground-motion simulation; subduction-zone seismic cycles.",
+   "link": "https://central.scec.org/user/crempien"
+  },
+  {
+   "slug": "okan-ilhan",
+   "name": "Okan Ilhan",
+   "tier": "faculty",
+   "title": "Associate Professor, Civil Engineering",
+   "affiliation": "Ankara Yıldırım Beyazıt University, Türkiye",
+   "focus": "Site response analysis; conventional and deep-learning-based site amplification models.",
+   "link": null
+  },
+  {
+   "slug": "gamze-dogan",
+   "name": "Gamze Dogan",
+   "tier": "faculty",
+   "title": "Faculty, Civil Engineering",
+   "affiliation": "Konya Technical University, Türkiye · UCLA",
+   "focus": "Deep learning for post-earthquake damage detection and assessment of reinforced-concrete buildings.",
+   "link": null
+  },
+  {
+   "slug": "rafet-sisman",
+   "name": "Rafet Sisman",
+   "tier": "faculty",
+   "title": "Associate Professor, Civil Engineering",
+   "affiliation": "Yıldız Technical University, Türkiye",
+   "focus": "Soil–structure interaction of buried structures; torsional ground motions.",
+   "link": null
+  },
+  {
+   "slug": "wenyang-zhang",
+   "name": "Wenyang Zhang",
+   "tier": "faculty",
+   "title": "Research Associate",
+   "affiliation": "Texas Advanced Computing Center, UT Austin",
+   "focus": "Large-scale physics-based ground-motion simulation (Hercules); seismic assessment of buried infrastructure.",
+   "link": "https://sites.google.com/tacc.utexas.edu/wenyangzhang"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data — ShakeReady</title>
+<meta name="description" content="Download ShakeReady datasets: California NBI bridges, instrumented buildings, and LA Times concrete buildings, in GeoJSON and CSV.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2319242F'/%3E%3Cpath d='M4 20 l5 0 2-9 3 14 3-18 3 13 2-5 6 0' stroke='%23E8A33D' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body><nav class="site-nav"><div class="inner">
+  <a class="brand" href="index.html">Shake<span class="ready">Ready</span><svg class="brand-trace" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 15 h28 l4-4 5 8 4-6 3 3 h14 l3-10 5 22 5-26 4 21 4-13 3 6 h18 l3-3 4 5 3-4 h30 l2-6 4 12 3-8 2 3 h32 l3 4 4-9 4 7 3-3 h40 l2-3 3 5 3-4 h55"/></svg></a>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="map.html">Map</a></li><li><a class="navlink" href="data.html" aria-current="page">Data</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+</div></nav>
+<main class="page">
+  <h1>Data</h1>
+  <p class="lede">Datasets published by the project in open formats, starting with the structure inventory that powers the map. All files live in this site's public repository, so links are stable and versioned; new datasets will be added here as they are released.</p>
+  <table class="dl-table">
+    <tr><th>Dataset</th><th>Records</th><th>Description</th><th>Download</th></tr>
+    <tr><td>NBI bridges</td><td class="count">25,371</td>
+        <td>California highway bridges from the FHWA National Bridge Inventory (~2016 snapshot): year built and reconstructed, traffic lanes, ADT, construction type, and longest span. A further 60 records without coordinates are included in the CSV only.</td>
+        <td><a href="data/bridges.json" download>JSON</a> · <a href="data/nbi_bridges.csv" download>CSV</a></td></tr>
+    <tr><td>Instrumented buildings</td><td class="count">55</td>
+        <td>Buildings with CESMD strong-motion instrumentation: station, stories, plan shape, dimensions, design date, and sensor layout, with links to station pages.</td>
+        <td><a href="data/instrumented_buildings.geojson" download>GeoJSON</a></td></tr>
+    <tr><td>Instrumented non-ductile buildings</td><td class="count">6</td>
+        <td>Instrumented buildings of non-ductile concrete construction in Los Angeles, with structural details and instrumentation history.</td>
+        <td><a href="data/instrumented_nonductile_buildings.geojson" download>GeoJSON</a></td></tr>
+    <tr><td>LA Times concrete buildings</td><td class="count">1,451</td>
+        <td>Pre-1976 concrete buildings in Los Angeles identified by the LA Times survey, with addresses and building names.</td>
+        <td><a href="data/latimes_concrete_buildings.geojson" download>GeoJSON</a></td></tr>
+  </table>
+  <h2>Sources and currency</h2>
+  <p>Bridge records derive from the <a href="https://www.fhwa.dot.gov/bridge/nbi.cfm" rel="noopener">FHWA National Bridge Inventory</a>, which publishes updated state files annually; the snapshot here dates from roughly 2016. Building instrumentation details come from the <a href="https://www.strongmotioncenter.org/" rel="noopener">Center for Engineering Strong Motion Data</a>. Please cite the original sources alongside this site when using the data.</p>
+</main>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. A UCLA research project.</div></footer>
+</body>
+</html>
