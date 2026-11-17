@@ -48,7 +48,8 @@ several (data, code, publications, people, projects).
   Graduate students, Undergraduate students, Industry collaborators, Alumni.
 - Co-founders (shown with a badge): Ertugrul Taciroglu, Aysegul Askan, Pedro Arduino.
 - Ertugrul Taciroglu is listed as Professor (no longer department chair).
-- Okan Ilhan and Rafet Sisman are Associate Professors.
+- Okan Ilhan, Rafet Sisman and Jorge De La Crempien are Associate Professors (per the owner;
+  some public pages still show an older rank for Jorge).
 - Wenyang Zhang (Research Associate, TACC) stays in the top tier.
 - Photos are wanted for everyone on the People page.
 - Visual identity: navy `#0F1A2B`, orange `#F9A03F`, Archivo typeface.
