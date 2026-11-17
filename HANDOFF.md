@@ -67,8 +67,9 @@ several (data, code, publications, people, projects).
 6. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
    wordmark with trace underline; epicenter mark), plus a hero illustration showing a
    topographic map, a fault rupture with radiating waves, and silhouettes of a tunnel,
-   viaduct, buildings and a suspension bridge. No direction has been chosen yet. The site
-   currently uses the wordmark with trace underline.
+   viaduct, buildings and a suspension bridge. The hero illustration is now on the home
+   page. No logo direction has been chosen yet; the navigation uses the wordmark with trace
+   underline, and the hero pairs it with the small trace badge.
 
 ## Data provenance
 
