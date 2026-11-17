@@ -114,9 +114,6 @@ footer.site-foot .inner{max-width:var(--maxw);margin:0 auto;padding:22px}
 .hero-plate p{margin:14px 0 22px;font-size:17px}
 .hero-plate p.hero-tag{margin:12px 0 0;font-size:21px;font-weight:600;color:#EFF3F6}
 .hero-plate p.hero-tag + p{margin-top:8px}
-.hero-legend{margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#AEBBD0}
-.hero-legend .ramp{display:flex;gap:4px}
-.hero-legend .ramp i{display:block;width:30px;height:10px;border-radius:3px}
 @media (max-width:720px){
   .hero-scene{display:flex;flex-direction:column;min-height:0}
   .hero-art{position:static;order:2;height:300px}
