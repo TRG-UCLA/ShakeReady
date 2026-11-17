@@ -75,7 +75,7 @@ several (data, code, publications, people, projects).
    CNAME `www` -> `trg-ucla.github.io`. Then enable "Enforce HTTPS" in Settings > Pages.
    Until DNS is switched, GitHub reports the custom domain as improperly configured;
    that is expected. The old WordPress server goes offline once the records change.
-2. **Headshots** for the eight people in `data/people.json`.
+2. **Headshots** for everyone in `data/people.json`.
 3. **Content** for Publications, Projects (only the UC ITS bridge-repository project is
    listed), and Code; members for the remaining People tiers.
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo

@@ -93,6 +93,15 @@
    "link": null
   },
   {
+   "slug": "zeynep-tuna-deger",
+   "name": "Zeynep Tuna Deger",
+   "tier": "faculty",
+   "title": "Associate Professor, Earthquake Engineering and Disaster Management Institute",
+   "affiliation": "Istanbul Technical University, Türkiye",
+   "focus": "Seismic behavior and modeling of reinforced-concrete shear walls; machine learning for structural response; regional earthquake risk assessment.",
+   "link": null
+  },
+  {
    "slug": "wenyang-zhang",
    "name": "Wenyang Zhang",
    "tier": "faculty",

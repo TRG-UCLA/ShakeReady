@@ -54,5 +54,12 @@
   "short": "YTU",
   "location": "Türkiye",
   "url": "https://www.yildiz.edu.tr/"
+ },
+ {
+  "slug": "itu",
+  "name": "Istanbul Technical University",
+  "short": "ITU",
+  "location": "Türkiye",
+  "url": "https://www.itu.edu.tr/"
  }
 ]
