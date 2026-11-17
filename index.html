@@ -24,6 +24,30 @@
     <a class="btn ghost" href="data.html">Browse the data</a>
   </div>
 </div></div>
+<section class="inst-band" aria-labelledby="inst-h">
+  <div class="inner">
+    <h2 id="inst-h">Participating institutions</h2>
+    <div class="inst-grid" id="inst-grid"></div>
+  </div>
+</section>
+<script>
+fetch("data/institutions.json").then(r=>r.json()).then(list=>{
+  const grid=document.getElementById("inst-grid");
+  list.forEach(i=>{
+    const a=document.createElement("a");
+    a.className="inst-tile"; a.href=i.url; a.rel="noopener"; a.title=i.name;
+    const text=`<span class="inst-name">${i.name}</span><span class="inst-loc">${i.location}</span>`;
+    const img=new Image();
+    img.alt=i.name; img.className="inst-logo";
+    // official logo file, if present: images/institutions/<slug>.svg, then .png; otherwise the name tile
+    img.onload=()=>{a.innerHTML="";a.appendChild(img);};
+    img.onerror=()=>{ if(!img.dataset.png){img.dataset.png="1";img.src="images/institutions/"+i.slug+".png";} };
+    a.innerHTML=text;
+    img.src="images/institutions/"+i.slug+".svg";
+    grid.appendChild(a);
+  });
+}).catch(()=>{});
+</script>
 <div class="sections">
   <h2>On this site</h2>
   <div class="secgrid">
@@ -35,6 +59,6 @@
     <a class="sec" href="map.html"><h3>Structure inventory map</h3><p>The founding archive: 26,883 California bridges and buildings, filterable and interactive.</p></a>
   </div>
 </div>
-<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. A UCLA research project.</div></footer>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers.</div></footer>
 </body>
 </html>

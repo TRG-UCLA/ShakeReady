@@ -1,0 +1,58 @@
+[
+ {
+  "slug": "ucla",
+  "name": "University of California, Los Angeles",
+  "short": "UCLA",
+  "location": "United States",
+  "url": "https://www.ucla.edu/"
+ },
+ {
+  "slug": "metu",
+  "name": "Middle East Technical University",
+  "short": "METU",
+  "location": "Türkiye",
+  "url": "https://www.metu.edu.tr/"
+ },
+ {
+  "slug": "uw",
+  "name": "University of Washington",
+  "short": "UW",
+  "location": "United States",
+  "url": "https://www.washington.edu/"
+ },
+ {
+  "slug": "puc-chile",
+  "name": "Pontificia Universidad Católica de Chile",
+  "short": "UC Chile",
+  "location": "Chile",
+  "url": "https://www.uc.cl/"
+ },
+ {
+  "slug": "tacc",
+  "name": "Texas Advanced Computing Center, UT Austin",
+  "short": "TACC",
+  "location": "United States",
+  "url": "https://tacc.utexas.edu/"
+ },
+ {
+  "slug": "aybu",
+  "name": "Ankara Yıldırım Beyazıt University",
+  "short": "AYBU",
+  "location": "Türkiye",
+  "url": "https://aybu.edu.tr/"
+ },
+ {
+  "slug": "ktun",
+  "name": "Konya Technical University",
+  "short": "KTUN",
+  "location": "Türkiye",
+  "url": "https://www.ktun.edu.tr/"
+ },
+ {
+  "slug": "ytu",
+  "name": "Yıldız Technical University",
+  "short": "YTU",
+  "location": "Türkiye",
+  "url": "https://www.yildiz.edu.tr/"
+ }
+]
