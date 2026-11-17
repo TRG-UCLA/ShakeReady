@@ -9,6 +9,7 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html` — site sections
 - `assets/style.css` — shared styles
 - `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `tools/build_hero.py` — draws the home-page hero artwork into `index.html` (needs numpy, scipy, contourpy)
 - `data/nbi_bridges.csv` — all 25,975 bridge records as a labeled, spreadsheet-friendly table
 - `data/bridges.json` — 25,974 California bridges from the FHWA National Bridge Inventory (2025), compact row format
 - `data/instrumented_buildings.geojson` — 55 CESMD instrumented buildings

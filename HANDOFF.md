@@ -20,6 +20,7 @@ several (data, code, publications, people, projects).
 - `assets/style.css` — shared styles and design tokens
 - `data/` — all content data (see below)
 - `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `tools/build_hero.py` — draws the home-page hero artwork into `index.html`
 - `images/people/`, `images/institutions/` — photos and logos, named by slug
 - `CNAME` — intentionally absent for now (see Open items); when present it binds
   GitHub Pages to shakeready.org
@@ -54,6 +55,11 @@ several (data, code, publications, people, projects).
   The home hero shows shaking intensity as bands of color, red near the fault through orange,
   yellow, green and cyan to blue (`#D7263D #F46036 #F9A03F #F2D16B #7BD389 #38B6C9 #3D7DD8 #5B6FD6`).
   This was chosen by the owner from four drafted alternatives.
+  The bands are contours of a simple intensity model (distance to the rupture, directivity,
+  uneven slip, and site variation including a soft-soil basin), so they are deliberately
+  non-circular. The fault is drawn straight, with no background linework, and the artwork is
+  kept small with fine lines, all at the owner's request. To change it, edit the parameters in
+  `tools/build_hero.py` and run it; do not hand-edit the SVG in `index.html`.
 
 ## Open items
 
