@@ -69,7 +69,7 @@ several (data, code, publications, people, projects).
    listed), and Code; members for the remaining People tiers.
 4. **Logo and hero artwork:** three logo concepts were drafted (trace monogram badge;
    wordmark with trace underline; epicenter mark), plus a hero illustration showing a
-   topographic map, a fault rupture with radiating waves, and silhouettes of a tunnel,
+   fault rupture with radiating waves, and silhouettes of a tunnel,
    viaduct, buildings and a suspension bridge. The hero illustration is on the home
    page, in the intensity-spectrum treatment the owner chose. No logo direction has been chosen yet; the navigation uses the wordmark with trace
    underline, and the hero pairs it with the small trace badge.
