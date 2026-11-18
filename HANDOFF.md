@@ -122,27 +122,37 @@ The owner's rule: anyone using results from this site must be able to tell where
   probabilities, colors the bridges, shows expected counts, and offers the asset-by-asset table for
   download with its provenance in the header. `tools/damage_reference.py` is an independent
   implementation; the map's table matched it exactly for all bridges on made-up test layers.
-- **HazardMaker** (`hazardmaker/`) is a sub-app that makes hazard layers in the browser. Converters:
-  USGS hazard-model files (an archive or its `map.csv` tables; reads only the members it needs from a
-  large zip, ZIP64 included), USGS ShakeMap `grid.xml` (units read from the file), and tables of points on
-  a regular grid. It requires a stated source, checks and previews the layer, downloads the layer file and
-  its index entry, and can keep a layer in the browser (IndexedDB) for use on the map as an unpublished,
-  clearly marked local layer. `assets/hazard-common.js` holds the code shared with the map.
-  `hazardmaker.js` mirrors `tools/build_hazard_nshm.py`: the two were checked to produce identical layers,
-  so change them together. **Next for HazardMaker, as agreed with the owner: a scenario builder** that
-  computes shaking from an earthquake description with a ground-motion model. Models must be implemented
-  from published coefficients and checked against an established implementation, and the owner chooses
-  which models.
+- **SR-HazardMaker is its own tool, in its own repository:** <https://github.com/TRG-UCLA/SR-HazardMaker>
+  (public; web page at <https://trg-ucla.github.io/SR-HazardMaker/>). The owner wants it as a GitHub tool
+  that is used in this project and shared with the public. It has a browser app (`docs/`), a Python
+  package and command line (`src/sr_hazardmaker`, command `sr-hazardmaker`), the format specification,
+  and a test suite that requires the browser and Python converters to produce the same layers. Tests run
+  automatically on every push.
+  - **This site does not keep its own copy of the code.** `hazardmaker/lib/` (browser files) and
+    `tools/vendor/sr_hazardmaker/` (Python) are copied from a tagged release by
+    `tools/sync_hazardmaker.py`, which records the release and checksums in `hazardmaker/lib/VERSION.json`.
+    `tools/build_provenance.py` refuses to run if a copied file has been edited. To change the tool:
+    change it in its repository, run its tests, tag a release, sync, re-run this site's checks.
+  - **How Claude uses it in a session:** clone the repository, then
+    `PYTHONPATH=src python3 -m sr_hazardmaker nshm|shakemap|table|check ...` on the files the owner provides.
+  - Converters: USGS hazard-model files (an archive or its `map.csv` tables), USGS ShakeMap `grid.xml`
+    (units read from the file), tables of points on a regular grid. A source is required.
+  - The map can use an unpublished layer two ways: kept in the browser by the site's SR-HazardMaker page,
+    or opened from a file ("Use a layer file from my computer"). Both are marked as the user's own.
+  - **Open with the owner:** the license and citation for SR-HazardMaker (none set yet; the README says
+    so), and which ground-motion models the scenario builder should offer. **Next, as agreed: the
+    scenario builder**, with models implemented from published coefficients and checked against an
+    established implementation.
 - **Never publish a made-up hazard layer.** Test layers are generated in a scratch copy of the site and
   thrown away. Anything in `hazards/` is public and will be taken as real.
 - **To add the first real layer (USGS National Seismic Hazard Model, CONUS 2023.R2, doi:10.5066/P14VGAV4):**
-  the owner downloads the site class BC archive (about 1.9 GB) and drops it on HazardMaker, which reads the
-  three tables it needs and produces the layer file and index entry. Add both to `hazards/`, run
-  `tools/validate_hazard.py`, then `tools/build_provenance.py`. The converter was tested on files of the expected shape, not yet on
+  the owner downloads the site class BC archive (about 1.9 GB) and drops it on SR-HazardMaker, which reads
+  the three tables it needs and produces the layer file and index entry. Add both to `hazards/`, run
+  `sr-hazardmaker check`, then `tools/build_provenance.py`. The converter was tested on files of the expected shape, not yet on
   the real ones: check the column names when they arrive.
 - **Open choices for the owner:** start with the reference site condition (Vs30 = 760 m/s) or go straight
   to site-specific values; which hazard level loads by default (975 years was suggested).
-- **Still to build:** HazardMaker's scenario builder; site amplification from a Vs30 map;
+- **Still to build:** SR-HazardMaker's scenario builder; site amplification from a Vs30 map;
   fragility sets for the building inventories; ground-failure damage.
 - Results from a probabilistic hazard map are per-site and must not be presented as the loss from one
   earthquake. The map and the download both say so.

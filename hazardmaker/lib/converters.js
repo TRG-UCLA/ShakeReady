@@ -1,21 +1,24 @@
-/* HazardMaker: turn ground-motion files into ShakeReady hazard layers, in the browser.
-   Nothing is uploaded anywhere: files are read on the person's own computer.
-   The USGS hazard-model converter mirrors tools/build_hazard_nshm.py; keep the two in step. */
+/* SR-HazardMaker: the converters, as they run in the browser.
+   Files are read on the person's own computer; nothing is uploaded.
+   Each converter here has a twin in src/sr_hazardmaker/ and the two are tested to give identical layers.
+   Change them together. */
 "use strict";
-const HM = (() => {
-  const {SCALE, NODATA, FORMAT} = SRHazard;
+const SRConvert = (() => {
+  const H = typeof SRHazard !== "undefined" ? SRHazard : require("./sr-hazard.js");
+  const {SCALE, NODATA, FORMAT, rnd, toInt} = H;
   const BOUNDS = {lat_min: 32.0, lat_max: 42.5, lon_min: -125.0, lon_max: -113.5};     // California with a margin
   const LEVEL_INFO = {475: "10% probability of exceedance in 50 years", 975: "5% probability of exceedance in 50 years",
                       2475: "2% probability of exceedance in 50 years", 10000: "1% probability of exceedance in 100 years"};
-  const toInt = g => Math.floor(g / SCALE + 0.5);                                         // a half rounds up
-  const r4 = v => Math.round(v * 1e4) / 1e4;
+  const r4 = v => rnd(v * 1e4) / 1e4;
   const nowUtc = () => new Date().toISOString().replace(/\.\d+Z$/, "Z");
+  const isNum = s => { const c = String(s).trim(); return c !== "" && isFinite(Number(c)); };
+  const slug = s => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").slice(0, 60).replace(/^-+|-+$/g, "");
+  const gen = what => `SR-HazardMaker ${H.VERSION}, browser (${what})`;
 
   /* ---------- zip archives: read the directory and single members without loading the whole file ---------- */
   async function zipEntries(file){
     const tailSize = Math.min(file.size, 65557 + 76);
-    const tailStart = file.size - tailSize;
-    const tail = new DataView(await file.slice(tailStart).arrayBuffer());
+    const tail = new DataView(await file.slice(file.size - tailSize).arrayBuffer());
     let eocd = -1;
     for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
     if (eocd < 0) throw new Error("This does not look like a zip archive.");
@@ -58,24 +61,24 @@ const HM = (() => {
     if (lh.getUint32(0, true) !== 0x04034b50) throw new Error(`"${entry.name}" could not be located in the archive.`);
     const start = entry.offset + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
     const blob = file.slice(start, start + entry.csize);
-    if (entry.method === 0) return blob.text();
+    const strip = t => t.replace(/^\uFEFF/, "");
+    if (entry.method === 0) return strip(await blob.text());
     if (entry.method === 8){
       if (typeof DecompressionStream === "undefined") throw new Error("This browser cannot unpack archives. Unzip the file yourself and add the files inside it.");
-      return new Response(blob.stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      return strip(await new Response(blob.stream().pipeThrough(new DecompressionStream("deflate-raw"))).text());
     }
     throw new Error(`"${entry.name}" is packed in a way this page cannot read. Unzip the archive yourself and add the files inside it.`);
   }
   const isZip = f => /\.zip$/i.test(f.name);
 
-  /* ---------- USGS National Seismic Hazard Model: uniform-hazard map files ---------- */
+  /* ---------- USGS National Seismic Hazard Model: uniform-hazard map tables ---------- */
   const NSHM_KEYS = {SA1P0: /(^|[^a-z0-9])sa1p0([^a-z0-9]|$)/i, SA0P3: /(^|[^a-z0-9])sa0p3([^a-z0-9]|$)/i, PGA: /(^|[^a-z0-9])pga([^a-z0-9]|$)/i};
   const measureFromName = name => Object.keys(NSHM_KEYS).find(k => NSHM_KEYS[k].test(name)) || null;
 
   /* From the files a person adds, find one table per measure. An archive may hold several site conditions. */
   async function nshmFind(files){
-    const groups = {};                                   // group label -> {measure: {name, read()}}
+    const groups = {}, notes = [];
     const put = (group, measure, item) => { (groups[group] = groups[group] || {})[measure] = item; };
-    const notes = [];
     for (const f of files){
       if (isZip(f)){
         const entries = await zipEntries(f);
@@ -88,7 +91,7 @@ const HM = (() => {
         notes.push(`${f.name}: ${entries.length.toLocaleString("en-US")} files inside, ${maps.length} of them hazard-map tables.`);
       } else {
         const m = measureFromName(f.name);
-        if (m) put("the files you added", m, {name: f.name, read: () => f.text(), bytes: f.size});
+        if (m) put("the files you added", m, {name: f.name, read: async () => (await f.text()).replace(/^\uFEFF/, ""), bytes: f.size});
         else notes.push(`${f.name}: the name does not say which measure it holds. Rename it to include SA1P0, SA0P3 or PGA.`);
       }
     }
@@ -102,11 +105,11 @@ const HM = (() => {
     const ilon = low.findIndex(c => ["lon", "longitude", "long", "x"].includes(c)), ilat = low.findIndex(c => ["lat", "latitude", "y"].includes(c));
     if (ilon < 0 || ilat < 0) throw new Error(`${name}: no longitude and latitude columns. The columns are: ${header.join(", ")}.`);
     const periods = {};
-    header.forEach((c, i) => { const rp = Number(c); if (c !== "" && isFinite(rp) && rp >= 50) periods[Math.round(rp)] = i; });
+    header.forEach((c, i) => { const rp = Number(c); if (c !== "" && isFinite(rp) && rp >= 50) periods[rnd(rp)] = i; });
     if (!Object.keys(periods).length) throw new Error(`${name}: no return-period columns. The columns are: ${header.join(", ")}.`);
     const out = {}; for (const rp in periods) out[rp] = new Map();
     let pos = nl + 1, rows = 0;
-    const N = text.length;
+    const N = nl < 0 ? 0 : text.length;
     while (pos < N){
       let end = text.indexOf("\n", pos); if (end < 0) end = N;
       const line = text.slice(pos, end); pos = end + 1;
@@ -121,6 +124,20 @@ const HM = (() => {
       }
     }
     return {periods: out, header, rows};
+  }
+
+  /* Details that can be read off the file names: release, site condition, source. */
+  function nshmDefaults(groupLabel, names){
+    const all = names.join(" ");
+    const r2 = /2023[._-]?r2/i.test(all), vs = (groupLabel.match(/Vs30 = (\d+)/) || [])[1], sc = (all.match(/-sc([A-E]{1,2})-/) || [])[1];
+    return {
+      id: "usgs-nshm" + (r2 ? "-2023r2" : "") + (vs ? `-vs${vs}` : ""),
+      title: "USGS National Seismic Hazard Model" + (r2 ? " 2023, revision 2" : "") + (vs ? `, Vs30 ${vs} m/s` : ""),
+      site_condition: vs ? `The same ground condition everywhere: Vs30 = ${vs} m/s` + (sc ? ` (site class ${sc})` : "") + ". Local soil is not accounted for" : "",
+      description: "Uniform-hazard ground motions: at each place, the shaking with the stated chance of being exceeded. Not a single earthquake.",
+      source: {title: r2 ? "Mean Seismic Hazard Curves and Uniform-Hazard Ground Motion Values from the Revised 2023 US 50-state National Seismic Hazard Model (CONUS.2023.R2)" : "",
+               publisher: "U.S. Geological Survey", version: r2 ? "CONUS.2023.R2" : "", doi: r2 ? "10.5066/P14VGAV4" : "", url: r2 ? "https://doi.org/10.5066/P14VGAV4" : ""},
+    };
   }
 
   async function nshmBuild(items, meta, onStep){
@@ -141,50 +158,52 @@ const HM = (() => {
     const lats = [...latSet].sort((a, b) => a - b), lons = [...lonSet].sort((a, b) => a - b);
     const minStep = a => { let d = Infinity; for (let i = 1; i < a.length; i++) d = Math.min(d, a[i] - a[i - 1]); return r4(d); };
     const dlat = minStep(lats), dlon = minStep(lons);
-    const nlat = Math.round((lats[lats.length - 1] - lats[0]) / dlat) + 1, nlon = Math.round((lons[lons.length - 1] - lons[0]) / dlon) + 1;
-    const onGrid = (a, d) => a.every(v => Math.abs((v - a[0]) / d - Math.round((v - a[0]) / d)) <= 1e-3);
+    const nlat = rnd((lats[lats.length - 1] - lats[0]) / dlat) + 1, nlon = rnd((lons[lons.length - 1] - lons[0]) / dlon) + 1;
+    const onGrid = (a, d) => a.every(v => Math.abs((v - a[0]) / d - rnd((v - a[0]) / d)) <= 1e-3);
     if (!onGrid(lats, dlat) || !onGrid(lons, dlon)) throw new Error("The points do not lie on a regular grid.");
     const levels = periods.map(rp => {
       const measures = {};
       for (const m in data){
         const arr = new Array(nlat * nlon).fill(NODATA);
         for (const [key, v] of data[m].periods[rp]){
-          const c = key.split(","), j = Math.round((Number(c[0]) - lats[0]) / dlat), i = Math.round((Number(c[1]) - lons[0]) / dlon);
-          arr[j * nlon + i] = toInt(v);
+          const c = key.split(",");
+          arr[rnd((Number(c[0]) - lats[0]) / dlat) * nlon + rnd((Number(c[1]) - lons[0]) / dlon)] = toInt(v);
         }
         measures[m] = arr;
       }
       return {id: "rp" + rp, label: rp.toLocaleString("en-US") + "-year return period" + (LEVEL_INFO[rp] ? ` (${LEVEL_INFO[rp]})` : ""), return_period_years: rp, measures};
     });
-    const def = meta.default_level && levels.some(l => l.id === meta.default_level) ? meta.default_level : levels[0].id;
+    const ids = levels.map(l => l.id);
+    const def = ids.includes(meta.default_level) ? meta.default_level : ids.includes("rp975") ? "rp975" : ids[0];
     return {
       format: FORMAT, id: meta.id, title: meta.title, kind: "probabilistic", description: meta.description || "", site_condition: meta.site_condition,
       units: "g", scale: SCALE, nodata: NODATA,
       grid: {lat_min: lats[0], lon_min: lons[0], dlat, dlon, nlat, nlon},
       default_level: def, levels,
       source: Object.assign({}, meta.source, {input_files: Object.keys(data).map(m => ({measure: m, file: items[m].name, bytes: items[m].bytes, rows: data[m].rows}))}),
-      provenance: {generator: "HazardMaker (USGS hazard-model files)", generated_utc: nowUtc(), cropped_to: BOUNDS, stored_precision_g: SCALE},
+      provenance: {generator: gen("USGS hazard-model files"), generated_utc: nowUtc(), cropped_to: BOUNDS, stored_precision_g: SCALE},
     };
   }
 
   /* ---------- USGS ShakeMap: grid.xml ---------- */
   const UNIT_TO_G = {"pctg": 0.01, "%g": 0.01, "g": 1};
   async function shakemapText(file){
-    if (!isZip(file)) return {text: await file.text(), name: file.name};
+    if (!isZip(file)) return {text: (await file.text()).replace(/^\uFEFF/, ""), name: file.name};
     const entries = await zipEntries(file);
     const e = entries.find(x => /(^|\/)grid\.xml$/i.test(x.name)) || entries.find(x => /grid.*\.xml$/i.test(x.name) && !/uncertainty/i.test(x.name));
     if (!e) throw new Error(`${file.name} has no grid.xml inside.`);
     return {text: await zipText(file, e), name: `${file.name} → ${e.name}`};
   }
+  const unescapeXml = s => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+  const pairs = s => { const o = {}; s.replace(/([\w:.-]+)\s*=\s*"([^"]*)"/g, (_, k, v) => { o[k] = unescapeXml(v); return ""; }); return o; };
+  const tagAttrs = (head, tag) => { const m = head.match(new RegExp("<" + tag + "(?=[\\s/>])([^>]*)>")); return m ? pairs(m[1]) : {}; };
+
   function shakemapParse(text, name){
     const a = text.indexOf("<grid_data>"), b = text.indexOf("</grid_data>");
     if (a < 0 || b < 0 || !/<shakemap_grid[\s>]/.test(text.slice(0, 2000))) throw new Error(`${name} is not a ShakeMap grid file. Look for the file named grid.xml among the ShakeMap's downloads.`);
-    const head = new DOMParser().parseFromString(text.slice(0, a) + "</shakemap_grid>", "application/xml");
-    if (head.querySelector("parsererror")) throw new Error(`${name}: the file's header could not be read.`);
-    const root = head.documentElement, attrs = el => el ? Object.fromEntries([...el.attributes].map(x => [x.name, x.value])) : {};
-    const byTag = t => [...root.children].filter(c => c.localName === t);
-    const spec = attrs(byTag("grid_specification")[0]), event = attrs(byTag("event")[0]), top = attrs(root);
-    const fields = byTag("grid_field").map(attrs).map(f => ({index: Number(f.index), name: f.name, units: (f.units || "").trim()}));
+    const head = text.slice(0, a);
+    const top = tagAttrs(head, "shakemap_grid"), event = tagAttrs(head, "event"), spec = tagAttrs(head, "grid_specification");
+    const fields = [...head.matchAll(/<grid_field(?=[\s/>])([^>]*)>/g)].map(m => pairs(m[1])).map(f => ({index: Number(f.index), name: f.name, units: (f.units || "").trim()}));
     const col = n => fields.find(f => f.name.toUpperCase() === n);
     const fLon = col("LON"), fLat = col("LAT");
     if (!fLon || !fLat || !spec.nlon) throw new Error(`${name}: the grid description is incomplete.`);
@@ -194,7 +213,7 @@ const HM = (() => {
     for (const m in want){
       if (!want[m]){ delete want[m]; continue; }
       const u = want[m].units.toLowerCase().replace(/\s+/g, "");
-      if (!(u in UNIT_TO_G)) throw new Error(`${name}: ${want[m].name} is in units of "${want[m].units}", which this page does not know how to convert to g.`);
+      if (!(u in UNIT_TO_G)) throw new Error(`${name}: ${want[m].name} is in units of "${want[m].units}", which cannot be converted to g.`);
       factor[m] = UNIT_TO_G[u];
     }
     const nlon = Number(spec.nlon), nlat = Number(spec.nlat), lon_min = Number(spec.lon_min), lat_min = Number(spec.lat_min);
@@ -206,10 +225,10 @@ const HM = (() => {
       let end = text.indexOf("\n", pos); if (end < 0 || end > b) end = b;
       const line = text.slice(pos, end).trim(); pos = end + 1;
       if (!line) continue;
-      const r = line.split(/\s+/), i = Math.round((Number(r[iLon]) - lon_min) / dlon), j = Math.round((Number(r[iLat]) - lat_min) / dlat);
+      const r = line.split(/\s+/), i = rnd((Number(r[iLon]) - lon_min) / dlon), j = rnd((Number(r[iLat]) - lat_min) / dlat);
       rows++;
       if (i < 0 || j < 0 || i >= nlon || j >= nlat){ off++; continue; }
-      for (const [m, c, k] of cols){ const v = Number(r[c]); if (isFinite(v)) measures[m][j * nlon + i] = toInt(v * k); }
+      for (const [m, c, k] of cols){ if (r[c] !== undefined && isNum(r[c])) measures[m][j * nlon + i] = toInt(Number(r[c]) * k); }
     }
     return {top, event, spec, fields, measures, grid: {lat_min, lon_min, dlat: Number(dlat.toFixed(8)), dlon: Number(dlon.toFixed(8)), nlat, nlon}, rows, off, expected: nlat * nlon,
             units: Object.fromEntries(Object.keys(want).map(m => [m, want[m].units]))};
@@ -228,6 +247,7 @@ const HM = (() => {
                version: `ShakeMap version ${top.shakemap_version || "?"}, software ${top.code_version || "?"}, processed ${top.process_timestamp || "?"}, status ${top.map_status || "?"}`},
     };
   }
+  const num = s => (s !== undefined && s !== null && isNum(s)) ? Number(s) : null;
   function shakemapBuild(p, meta, fileName){
     const ev = p.event;
     return {
@@ -235,10 +255,11 @@ const HM = (() => {
       units: "g", scale: SCALE, nodata: NODATA, grid: p.grid, default_level: "event",
       levels: [{id: "event", label: "Event", measures: p.measures}],
       source: Object.assign({}, meta.source, {
-        event: {id: ev.event_id, magnitude: Number(ev.magnitude), depth_km: Number(ev.depth), latitude: Number(ev.lat), longitude: Number(ev.lon), time: ev.event_timestamp, description: ev.event_description,
+        event: {id: ev.event_id === undefined ? null : ev.event_id, magnitude: num(ev.magnitude), depth_km: num(ev.depth), latitude: num(ev.lat), longitude: num(ev.lon),
+                time: ev.event_timestamp === undefined ? null : ev.event_timestamp, description: ev.event_description === undefined ? null : ev.event_description,
                 type: (p.top.shakemap_event_type || "").toUpperCase() === "SCENARIO" ? "scenario" : "recorded"},
         input_files: [{file: fileName, rows: p.rows, units_in_file: p.units}]}),
-      provenance: {generator: "HazardMaker (USGS ShakeMap grid)", generated_utc: nowUtc(), stored_precision_g: SCALE,
+      provenance: {generator: gen("USGS ShakeMap grid"), generated_utc: nowUtc(), stored_precision_g: SCALE,
                    note: "Values converted to g from the units stated in the file. The whole ShakeMap grid is kept."},
     };
   }
@@ -250,7 +271,7 @@ const HM = (() => {
     if (lines.length < 5) throw new Error("The table has too few rows.");
     const delim = [",", "\t", ";"].map(d => [d, lines[0].split(d).length]).sort((a, b) => b[1] - a[1])[0][0];
     const first = lines[0].split(delim).map(c => c.trim().replace(/^"|"$/g, ""));
-    const hasHeader = first.some(c => c !== "" && !isFinite(Number(c)));
+    const hasHeader = first.some(c => c !== "" && !isNum(c));
     const header = hasHeader ? first : first.map((_, i) => "column " + (i + 1));
     const rows = (hasHeader ? lines.slice(1) : lines).map(l => l.split(delim));
     const low = header.map(c => c.toLowerCase().replace(/[\s_()]/g, ""));
@@ -264,51 +285,48 @@ const HM = (() => {
   }
   function tableBuild(t, map, unit, meta){
     const k = TABLE_UNITS[unit];
-    if (map.lon < 0 || map.lat < 0 || map.SA1P0 < 0) throw new Error("Choose the longitude, latitude and Sa(1.0 s) columns.");
+    if (k === undefined) throw new Error(`Unknown unit "${unit}".`);
+    if (!(map.lon >= 0) || !(map.lat >= 0) || !(map.SA1P0 >= 0)) throw new Error("Choose the longitude, latitude and Sa(1.0 s) columns.");
     const pts = [];
-    for (const r of t.rows){ const lon = Number(r[map.lon]), lat = Number(r[map.lat]); if (isFinite(lon) && isFinite(lat) && String(r[map.lon]).trim() !== "") pts.push([lat, lon, r]); }
+    for (const r of t.rows){
+      if (map.lon >= r.length || map.lat >= r.length || r[map.lon].trim() === "") continue;
+      if (isNum(r[map.lon]) && isNum(r[map.lat])) pts.push([Number(r[map.lat]), Number(r[map.lon]), r]);
+    }
     if (pts.length < 4) throw new Error("Fewer than four rows have usable coordinates.");
-    const r6 = v => Math.round(v * 1e6) / 1e6;
+    const r6 = v => rnd(v * 1e6) / 1e6;
     const lats = [...new Set(pts.map(p => r6(p[0])))].sort((a, b) => a - b), lons = [...new Set(pts.map(p => r6(p[1])))].sort((a, b) => a - b);
     if (lats.length < 2 || lons.length < 2) throw new Error("The points lie on a single line, not a grid.");
     const step = a => { let d = Infinity; for (let i = 1; i < a.length; i++) d = Math.min(d, a[i] - a[i - 1]); return d; };
-    const nlat = Math.round((lats[lats.length - 1] - lats[0]) / step(lats)) + 1, nlon = Math.round((lons[lons.length - 1] - lons[0]) / step(lons)) + 1;
+    const nlat = rnd((lats[lats.length - 1] - lats[0]) / step(lats)) + 1, nlon = rnd((lons[lons.length - 1] - lons[0]) / step(lons)) + 1;
     const dlat = (lats[lats.length - 1] - lats[0]) / (nlat - 1), dlon = (lons[lons.length - 1] - lons[0]) / (nlon - 1);
-    const onGrid = (a, d) => a.every(v => Math.abs((v - a[0]) / d - Math.round((v - a[0]) / d)) <= 0.02);
+    const onGrid = (a, d) => a.every(v => Math.abs((v - a[0]) / d - rnd((v - a[0]) / d)) <= 0.02);
     if (!onGrid(lats, dlat) || !onGrid(lons, dlon) || nlat * nlon > 4e6)
-      throw new Error("The points do not lie on a regular grid of latitude and longitude. HazardMaker needs evenly spaced rows and columns; scattered points are not supported yet.");
+      throw new Error("The points do not lie on a regular grid of latitude and longitude. SR-HazardMaker needs evenly spaced rows and columns; scattered points are not supported yet.");
     const measures = {};
     for (const m of ["SA1P0", "SA0P3", "PGA"]){
-      if (map[m] === undefined || map[m] < 0) continue;
+      const c = map[m];
+      if (c === undefined || c === null || c < 0) continue;
       const arr = new Array(nlat * nlon).fill(NODATA);
       for (const [lat, lon, r] of pts){
-        const cell = String(r[map[m]] === undefined ? "" : r[map[m]]).trim(), v = Number(cell);
-        if (cell === "" || !isFinite(v)) continue;
-        arr[Math.round((lat - lats[0]) / dlat) * nlon + Math.round((lon - lons[0]) / dlon)] = toInt(v * k);
+        const cell = c < r.length ? r[c].trim() : "";
+        if (cell === "" || !isNum(cell)) continue;
+        arr[rnd((lat - lats[0]) / dlat) * nlon + rnd((lon - lons[0]) / dlon)] = toInt(Number(cell) * k);
       }
       measures[m] = arr;
     }
+    const kind = meta.kind || "scenario";
     return {
-      format: FORMAT, id: meta.id, title: meta.title, kind: meta.kind, description: meta.description || "", site_condition: meta.site_condition,
+      format: FORMAT, id: meta.id, title: meta.title, kind, description: meta.description || "", site_condition: meta.site_condition,
       units: "g", scale: SCALE, nodata: NODATA,
       grid: {lat_min: lats[0], lon_min: lons[0], dlat: Number(dlat.toFixed(8)), dlon: Number(dlon.toFixed(8)), nlat, nlon},
-      default_level: "level", levels: [{id: "level", label: meta.level_label || (meta.kind === "scenario" ? "Event" : "Hazard level"), measures}],
-      source: Object.assign({}, meta.source, {input_files: [{file: meta.file_name, rows: t.rows.length, units_in_file: unit,
-              columns: Object.fromEntries(Object.entries(map).filter(e => e[1] >= 0).map(e => [e[0], t.header[e[1]]]))}]}),
-      provenance: {generator: "HazardMaker (table of points)", generated_utc: nowUtc(), stored_precision_g: SCALE,
+      default_level: "level", levels: [{id: "level", label: meta.level_label || (kind === "scenario" ? "Event" : "Hazard level"), measures}],
+      source: Object.assign({}, meta.source, {input_files: [{file: meta.file_name === undefined ? null : meta.file_name, rows: t.rows.length, units_in_file: unit,
+              columns: Object.fromEntries(Object.entries(map).filter(e => e[1] !== null && e[1] >= 0).map(e => [e[0], t.header[e[1]]]))}]}),
+      provenance: {generator: gen("table of points"), generated_utc: nowUtc(), stored_precision_g: SCALE,
                    note: `Values converted to g from ${unit}. ${pts.length.toLocaleString("en-US")} points placed on a ${nlat} by ${nlon} grid.`},
     };
   }
 
-  /* ---------- what a finished layer needs to be listed in hazards/index.json ---------- */
-  function indexEntry(layer, sha256, bytes){
-    const s = layer.source || {};
-    const e = {id: layer.id, title: layer.title, kind: layer.kind, file: `hazards/${layer.id}.json`, site_condition: layer.site_condition, description: layer.description,
-               measures: Object.keys(layer.levels[0].measures).sort(), levels: layer.levels.map(l => ({id: l.id, label: l.label})),
-               source: Object.fromEntries(["title", "publisher", "url", "doi", "version", "retrieved_utc"].filter(k => s[k]).map(k => [k, s[k]])), sha256, bytes};
-    return e;
-  }
-  const serialize = layer => JSON.stringify(layer);
-
-  return {BOUNDS, zipEntries, zipText, nshmFind, parseMapCsv, nshmBuild, shakemapText, shakemapParse, shakemapDefaults, shakemapBuild, tableRead, tableBuild, TABLE_UNITS, indexEntry, serialize, isZip, nowUtc};
+  return {BOUNDS, slug, nowUtc, isZip, zipEntries, zipText, nshmFind, parseMapCsv, nshmDefaults, nshmBuild, shakemapText, shakemapParse, shakemapDefaults, shakemapBuild, tableRead, tableBuild, TABLE_UNITS};
 })();
+if (typeof module !== "undefined" && module.exports) module.exports = SRConvert;

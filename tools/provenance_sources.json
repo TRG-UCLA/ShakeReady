@@ -215,20 +215,24 @@
    "result": "The expected counts shown on the map equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
   },
   {
-   "check": "HazardMaker against the command-line converter",
-   "result": "From the same USGS-style tables (made-up values), the two converters produce the same grid and the same 438,669 stored values. The result is the same whether the tables are given separately, inside an archive laid out like the USGS one, inside a ZIP64 archive, or inside a 290 MB archive, from which only the three tables needed are read."
-  },
-  {
-   "check": "HazardMaker against ShakeMap files",
+   "check": "SR-HazardMaker against ShakeMap files",
    "result": "Seven real USGS ShakeMap grid files (shortened samples from the OpenQuake engine's test data, three versions of the ShakeMap software, both unit spellings): every row read lands on the right grid node with the right value. For a full grid in the same layout, all 81,993 values match the source after conversion from percent of g, zipped or not."
   },
   {
-   "check": "HazardMaker with a plain table",
+   "check": "SR-HazardMaker with a plain table",
    "result": "A table in cm/s² with its own column names and rows in random order is placed correctly on its grid and converted to g."
   },
   {
-   "check": "A HazardMaker layer on the map",
-   "result": "A layer made in HazardMaker and opened on the map gives a damage table identical, for all 25,974 bridges, to the reference code run on the same layer file. The checksum shown equals the file's."
+   "check": "An SR-HazardMaker layer on the map",
+   "result": "A layer made in SR-HazardMaker and opened on the map gives a damage table identical, for all 25,974 bridges, to the reference code run on the same layer file. The checksum shown equals the file's."
+  },
+  {
+   "check": "SR-HazardMaker: browser and command line against each other",
+   "result": "The tool's own test suite (21 tests, run automatically on every change) builds the same inputs with the Python converters and with the browser converters and requires the same layer from both: USGS-style tables given separately, in an archive and in a ZIP64 archive; ShakeMap grids with either unit spelling, any field order and any row order, zipped or not; and a plain table in cm/s². Reading a value at a point must agree exactly at 4,000 random points. On this site, a 290 MB archive gave the same layer, with only the three tables needed read from it."
+  },
+  {
+   "check": "A layer file opened on the map",
+   "result": "A layer file opened from the computer on the map gives the same damage table as the reference code for all 25,974 bridges. A file that is not a layer is refused."
   }
  ],
  "limits": [
@@ -329,14 +333,20 @@
   {
    "id": "HM-07",
    "topic": "A layer's source",
-   "choice": "HazardMaker will not build a layer without a title, a ground condition, a source title, a publisher or author, and a date. It fills these in only when the file itself identifies them.",
+   "choice": "SR-HazardMaker will not build a layer without a title, a ground condition, a source title, a publisher or author, and a date. It fills these in only when the file itself identifies them.",
    "basis": "A layer whose origin is unknown cannot support a traceable result."
   },
   {
    "id": "HM-08",
    "topic": "Layers kept in a browser",
-   "choice": "A layer made with HazardMaker can be used on the map without being published. It is marked as the user's own, and any damage table made from it states that it is not part of the ShakeReady repository and gives its checksum.",
+   "choice": "A layer made with SR-HazardMaker, or opened from a file on the user's computer, can be used on the map without being published. It is marked as the user's own, and any damage table made from it states that it is not part of the ShakeReady repository and gives its checksum.",
    "basis": "Lets people work with their own ground motions at once, without letting an unreviewed layer pass for a published one."
+  },
+  {
+   "id": "HM-09",
+   "topic": "One tool, used unchanged",
+   "choice": "SR-HazardMaker is kept in its own repository. This site copies a tagged release of it without changes and records the release, the commit and a checksum of each copied file.",
+   "basis": "A single source for the converters, in the browser and on the command line, so that the public tool and the one this site uses cannot drift apart."
   }
  ]
 }

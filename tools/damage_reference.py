@@ -13,7 +13,8 @@ import csv, json, os, sys
 from decimal import Decimal, ROUND_HALF_UP
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import hazard_grid
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vendor'))
+from sr_hazardmaker import grid as hazard_grid      # SR-HazardMaker's own package, copied in by tools/sync_hazardmaker.py
 import hazus_bridges as hz
 
 COLUMNS = ['structure_number', 'latitude', 'longitude', 'county', 'year_built', 'hazus_class', 'design', 'main_spans', 'skew_deg',

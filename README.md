@@ -13,10 +13,9 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `data/fragility/hazus_highway_bridges.json` — the HAZUS fragility set, with its source and recorded decisions
 - `methods.html` — methods and provenance, drawn from `data/provenance.json`
 - `data/registry.json` — the inventories and fragility sets the map offers; edit it to add or remove an inventory
-- `hazardmaker/` — HazardMaker, the sub-app that converts ground-motion files into hazard layers (`index.html`, `hazardmaker.js`)
-- `assets/hazard-common.js` — hazard-layer code shared by the map and HazardMaker
+- `hazardmaker/` — the site's page for SR-HazardMaker. The tool itself lives in <https://github.com/TRG-UCLA/SR-HazardMaker>; `hazardmaker/lib/` and `tools/vendor/sr_hazardmaker/` are an unchanged copy of a tagged release (see `hazardmaker/lib/VERSION.json`). Do not edit the copies: change the tool, release it, and run `tools/sync_hazardmaker.py`
 - `hazards/` — the hazard-layer repository: `index.json`, one file per layer, and a README with the format and how to submit
-- `tools/hazard_grid.py`, `tools/build_hazard_nshm.py`, `tools/validate_hazard.py` — the hazard file format, the USGS converter, and the checker
+- `tools/sync_hazardmaker.py` — copies a release of SR-HazardMaker into this site
 - `tools/damage_reference.py` — independent reference calculation of the bridge damage table
 - `tools/build_provenance.py` and `tools/provenance_sources.json` — write the provenance record; rerun after rebuilding any data file
 - `tools/build_hero.py` — draws the home-page hero artwork into `index.html` (needs numpy, scipy, contourpy)

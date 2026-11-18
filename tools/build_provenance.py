@@ -76,6 +76,18 @@ def hazard_layers():
     return out
 
 
+def tools():
+    """Outside tools this site uses unchanged, with the release in use."""
+    path = 'hazardmaker/lib/VERSION.json'
+    if not os.path.exists(path):
+        return {}
+    v = json.load(open(path, encoding='utf-8'))
+    for f, digest in v['files'].items():
+        if sha256(f) != digest:
+            raise SystemExit(f'{f} differs from the SR-HazardMaker release it was copied from. Run tools/sync_hazardmaker.py; do not edit the copy.')
+    return {v['tool']: {k: v[k] for k in ('repository', 'tag', 'commit', 'synced_utc', 'files')}}
+
+
 def main():
     src = json.load(open('tools/provenance_sources.json', encoding='utf-8'))
     effects, extra = decision_effects()
@@ -104,6 +116,7 @@ def main():
         'damage_decisions': src.get('damage_decisions', []),
         'hazard_decisions': src.get('hazard_decisions', []),
         'hazard_layers': hazard_layers(),
+        'tools': tools(),
         'hazus_class_counts': extra['class_counts'],
         'verification': src['verification'],
         'limits': src['limits'],

@@ -1,14 +1,17 @@
-/* ShakeReady hazard layers: code shared by the map and HazardMaker.
-   The file format is described in tools/hazard_grid.py and hazards/README.md.
-   valueAt() mirrors tools/hazard_grid.py value_at(): keep the two in step. */
+/* SR-HazardMaker: the ShakeReady hazard-layer format in the browser.
+   Reading a value at a site, checking and summarizing a layer, drawing it, keeping layers locally.
+   This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
+  const VERSION = "0.1.0";
   const FORMAT = "shakeready-hazard-grid/1";
   const MEASURES = ["SA1P0", "SA0P3", "PGA"];
   const MEASURE_NAMES = {SA1P0: "Sa(1.0 s)", SA0P3: "Sa(0.3 s)", PGA: "PGA"};
   const SCALE = 0.001, NODATA = -1;
   const CALIFORNIA = {lat_min: 32.5, lat_max: 42.0, lon_min: -124.5, lon_max: -114.1};
   const SHAKE_STOPS = [[0.02, "#5B6FD6"], [0.05, "#3D7DD8"], [0.1, "#38B6C9"], [0.2, "#7BD389"], [0.4, "#F2D16B"], [0.8, "#F9A03F"], [1.5, "#F46036"], [3, "#D7263D"]];
+  const rnd = x => Math.floor(x + 0.5);            // nearest integer, an exact half upward
+  const toInt = g => rnd(g / SCALE);
 
   /* Ground motion in g at a point: bilinear between the four surrounding nodes.
      Nodes without a value are left out and the remaining weights rescaled. Null outside the grid. */
@@ -20,6 +23,18 @@ const SRHazard = (() => {
     const add = (dj, di, w) => { const v = values[(j0 + dj) * g.nlon + i0 + di]; if (v !== h.nodata && w > 0){ total += w * v; weight += w; } };
     add(0, 0, (1 - fx) * (1 - fy)); add(0, 1, fx * (1 - fy)); add(1, 0, (1 - fx) * fy); add(1, 1, fx * fy);
     return weight > 0 ? total / weight * h.scale : null;
+  }
+
+  /* Range and coverage of each measure at each level. */
+  function summary(h){
+    const out = [];
+    for (const lv of h.levels) for (const m of MEASURES){
+      const arr = lv.measures[m]; if (!arr) continue;
+      let min = Infinity, max = -Infinity, count = 0;
+      for (let i = 0; i < arr.length; i++){ const v = arr[i]; if (v !== h.nodata){ count++; if (v < min) min = v; if (v > max) max = v; } }
+      out.push({level: lv.id, label: lv.label, measure: m, count, total: arr.length, min: count ? min * h.scale : null, max: count ? max * h.scale : null});
+    }
+    return out;
   }
 
   /* Problems that make a layer unusable (errors) and things worth a second look (warnings). */
@@ -55,16 +70,12 @@ const SRHazard = (() => {
     return {errors, warnings};
   }
 
-  /* Range and coverage of each measure at each level. */
-  function summary(h){
-    const out = [];
-    for (const lv of h.levels) for (const m of MEASURES){
-      const arr = lv.measures[m]; if (!arr) continue;
-      let min = Infinity, max = -Infinity, count = 0;
-      for (let i = 0; i < arr.length; i++){ const v = arr[i]; if (v !== h.nodata){ count++; if (v < min) min = v; if (v > max) max = v; } }
-      out.push({level: lv.id, label: lv.label, measure: m, count, total: arr.length, min: count ? min * h.scale : null, max: count ? max * h.scale : null});
-    }
-    return out;
+  const serialize = layer => JSON.stringify(layer);
+  function indexEntry(layer, sha256, bytes){
+    const s = layer.source || {};
+    return {id: layer.id, title: layer.title, kind: layer.kind, file: `hazards/${layer.id}.json`, site_condition: layer.site_condition, description: layer.description || "",
+            measures: Object.keys(layer.levels[0].measures).sort(), levels: layer.levels.map(l => ({id: l.id, label: l.label})),
+            source: Object.fromEntries(["title", "publisher", "url", "doi", "version", "retrieved_utc"].filter(k => s[k]).map(k => [k, s[k]])), sha256, bytes};
   }
 
   const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -76,8 +87,7 @@ const SRHazard = (() => {
     const t = Math.log(v / S[i][0]) / Math.log(S[i + 1][0] / S[i][0]), a = hexRgb(S[i][1]), b = hexRgb(S[i + 1][1]);
     return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
   }
-
-  /* The shaking as an image, resampled to the map's projection so that it lines up with what is drawn on top. */
+  /* The shaking as an image, resampled to the web-map projection so that it lines up with what is drawn on top. */
   function overlayCanvas(h, values){
     const g = h.grid, south = g.lat_min, north = g.lat_min + (g.nlat - 1) * g.dlat, west = g.lon_min, east = g.lon_min + (g.nlon - 1) * g.dlon;
     const my = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)), myN = my(north), myS = my(south);
@@ -106,7 +116,7 @@ const SRHazard = (() => {
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
   }
 
-  /* Layers a person has made with HazardMaker and kept in this browser. They are not published. */
+  /* Layers a person has made or opened and kept in this browser. They are not published. */
   const DB = "shakeready", STORE = "local-hazards";
   function open(){
     return new Promise((res, rej) => {
@@ -128,7 +138,15 @@ const SRHazard = (() => {
     get: id => tx("readonly", s => s.get(id)).catch(() => null),
     put: rec => tx("readwrite", s => s.put(rec)),
     remove: id => tx("readwrite", s => s.delete(id)),
+    /* keep a layer given as the text of its file; returns the stored record */
+    async putText(text){
+      const layer = JSON.parse(text), c = check(layer);
+      if (c.errors.length) throw new Error(c.errors.join(" "));
+      const rec = {id: layer.id, title: layer.title, kind: layer.kind, saved_utc: new Date().toISOString().replace(/\.\d+Z$/, "Z"), sha256: await sha256Hex(text), bytes: new Blob([text]).size, layer};
+      await store.put(rec); return rec;
+    },
   };
 
-  return {FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, valueAt, check, summary, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
+  return {VERSION, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
 })();
+if (typeof module !== "undefined" && module.exports) module.exports = SRHazard;
