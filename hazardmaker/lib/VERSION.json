@@ -1,20 +1,20 @@
 {
  "tool": "SR-HazardMaker",
  "repository": "https://github.com/TRG-UCLA/SR-HazardMaker",
- "tag": "v0.1.0",
- "commit": "96c106bed17d558bd2e8d65c39dcd1c50d5f9885",
- "synced_utc": "2026-11-18T23:23:05Z",
+ "tag": "v0.1.1",
+ "commit": "31a9ff247a8525ed0d507a1b28499632fd6ebf78",
+ "synced_utc": "2026-11-18T23:34:14Z",
  "files": {
-  "hazardmaker/lib/sr-hazard.js": "ce183bd1f4b1ffeb6a2f384458ed359efa7f2214b711bca8bfb254ebcd7473da",
-  "hazardmaker/lib/converters.js": "8ff55e58c57b5777b68b152b735cc20940fd23b0bb13ed0c60d50fcd18bfe52e",
+  "hazardmaker/lib/sr-hazard.js": "929d19931f43cf8aa9c4f7517454b85539e510d3685c10445df63a34476532ec",
+  "hazardmaker/lib/converters.js": "137af5cd24d5e768704c93886a1abe3981df34fd0e92f6e33cbd84d66d2fc5da",
   "hazardmaker/lib/app.js": "94f9c653df3e7f5ac6d1069d3b048cdd299b66daacff8081e7ee39bbcea79f83",
   "hazardmaker/lib/app.css": "56b8a270461c1749f1f788407142af19459e26674502b82dce0184a1fea96a16",
-  "tools/vendor/sr_hazardmaker/__init__.py": "8b04de6796a3491b2b8ef5411418d487ef72fcd691e01039c225a7ec2eb65758",
+  "tools/vendor/sr_hazardmaker/__init__.py": "65a8ecc4513deb180be66272d8b3447026b6508ab7c7118fe13d6d47106c451a",
   "tools/vendor/sr_hazardmaker/__main__.py": "f35124e530c67e144b61bdfca212301084982fc1408a2315f382617faa6e920f",
-  "tools/vendor/sr_hazardmaker/cli.py": "09538e475ec75246e768946f08f36bebd7efc702dd54346322591387ea9a4330",
-  "tools/vendor/sr_hazardmaker/grid.py": "cccc8a5636bf607d0b27539702de26f2d91f547cf4bf8b8c71ccded9f4a329e0",
-  "tools/vendor/sr_hazardmaker/nshm.py": "db56f2748e17fecf8053cc0b1cf06db73c5d88dcf410746fe057d503050cb20e",
-  "tools/vendor/sr_hazardmaker/shakemap.py": "c85f50d4f300bc3a48728f9d5baa3e5b25f395ca66ddd5eeb1dfc8f19c52a547",
-  "tools/vendor/sr_hazardmaker/table.py": "1e8d8918909c4f0f4295cc70decd4832be2c3b2d941980d23abd2ddb10ab5a89"
+  "tools/vendor/sr_hazardmaker/cli.py": "3940213d2164b519aca2a51ee31ce6cad6ed11e60a0d006797fd09afeaf212a7",
+  "tools/vendor/sr_hazardmaker/grid.py": "6ce8c64cf5e6fd169d6defd3139faf055ca537418661c76a6ac10829650e154e",
+  "tools/vendor/sr_hazardmaker/nshm.py": "7a269aa175324bf25bdcf62ab5bebfc4ce5624e045a5825fb04e159e313bc878",
+  "tools/vendor/sr_hazardmaker/shakemap.py": "31f0ca21ee8875ec50d9500142a10484d0c79f15edf79d2c471fc31cbead3102",
+  "tools/vendor/sr_hazardmaker/table.py": "2050177f8581cc3540b8a94cf6bf278f1f7df9a895193844a4b003cf4a56e613"
  }
 }

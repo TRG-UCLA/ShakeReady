@@ -40,6 +40,8 @@ body{margin:0;font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-seri
 main.page{max-width:var(--maxw);margin:0 auto;padding:44px 22px 70px}
 main.page h1{font-size:34px;font-weight:700;margin:0 0 8px;letter-spacing:-.01em}
 .lede{font-size:17px;color:var(--muted);margin:0 0 36px;max-width:62ch}
+.lede:has(+ .byline){margin-bottom:10px}
+.byline{font-size:14.5px;color:var(--muted);margin:0 0 34px}
 main.page h2{font-size:21px;font-weight:700;margin:40px 0 12px}
 main.page p{max-width:70ch}
 main.page a{color:#1C6DB5}

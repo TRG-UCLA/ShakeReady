@@ -2,7 +2,7 @@
 import datetime
 import re
 
-from .grid import FORMAT, NODATA, SCALE, rnd, to_int
+from .grid import FORMAT, MADE_WITH, NODATA, SCALE, rnd, to_int
 
 UNITS = {"g": 1, "%g": 0.01, "cm/s²": 1 / 980.665, "m/s²": 1 / 9.80665}
 UNIT_ALIASES = {"cm/s2": "cm/s²", "cm/s^2": "cm/s²", "gal": "cm/s²", "m/s2": "m/s²", "m/s^2": "m/s²", "pctg": "%g", "percent-g": "%g"}
@@ -108,6 +108,6 @@ def build(t, mapping, unit, meta, generator="SR-HazardMaker (table of points)"):
         "default_level": "level",
         "levels": [{"id": "level", "label": meta.get("level_label") or ("Event" if kind == "scenario" else "Hazard level"), "measures": measures}],
         "source": source,
-        "provenance": {"generator": generator, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "provenance": {"generator": generator, "made_with": MADE_WITH, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                        "stored_precision_g": SCALE, "note": f"Values converted to g from {unit}. {len(pts):,} points placed on a {nlat} by {nlon} grid."},
     }

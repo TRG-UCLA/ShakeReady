@@ -10,7 +10,7 @@ import os
 import re
 import zipfile
 
-from .grid import FORMAT, NODATA, SCALE, rnd, to_int
+from .grid import FORMAT, MADE_WITH, NODATA, SCALE, rnd, to_int
 
 BOUNDS = dict(lat_min=32.0, lat_max=42.5, lon_min=-125.0, lon_max=-113.5)     # California with a margin
 LEVEL_INFO = {475: "10% probability of exceedance in 50 years", 975: "5% probability of exceedance in 50 years",
@@ -184,6 +184,6 @@ def build(items, meta, generator="SR-HazardMaker (USGS hazard-model files)"):
         "site_condition": meta["site_condition"], "units": "g", "scale": SCALE, "nodata": NODATA,
         "grid": {"lat_min": lats[0], "lon_min": lons[0], "dlat": dlat, "dlon": dlon, "nlat": nlat, "nlon": nlon},
         "default_level": default, "levels": levels, "source": source,
-        "provenance": {"generator": generator, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "provenance": {"generator": generator, "made_with": MADE_WITH, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                        "cropped_to": BOUNDS, "stored_precision_g": SCALE},
     }

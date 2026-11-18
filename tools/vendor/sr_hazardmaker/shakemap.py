@@ -7,7 +7,7 @@ import datetime
 import re
 import zipfile
 
-from .grid import FORMAT, NODATA, SCALE, rnd, to_int
+from .grid import FORMAT, MADE_WITH, NODATA, SCALE, rnd, to_int
 
 UNIT_TO_G = {"pctg": 0.01, "%g": 0.01, "g": 1}
 
@@ -132,6 +132,6 @@ def build(p, meta, file_name, generator="SR-HazardMaker (USGS ShakeMap grid)"):
         "format": FORMAT, "id": meta["id"], "title": meta["title"], "kind": "scenario", "description": meta.get("description", ""),
         "site_condition": meta["site_condition"], "units": "g", "scale": SCALE, "nodata": NODATA, "grid": p["grid"],
         "default_level": "event", "levels": [{"id": "event", "label": "Event", "measures": p["measures"]}], "source": source,
-        "provenance": {"generator": generator, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "provenance": {"generator": generator, "made_with": MADE_WITH, "generated_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                        "stored_precision_g": SCALE, "note": "Values converted to g from the units stated in the file. The whole ShakeMap grid is kept."},
     }

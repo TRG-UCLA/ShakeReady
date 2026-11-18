@@ -122,7 +122,9 @@ The owner's rule: anyone using results from this site must be able to tell where
   probabilities, colors the bridges, shows expected counts, and offers the asset-by-asset table for
   download with its provenance in the header. `tools/damage_reference.py` is an independent
   implementation; the map's table matched it exactly for all bridges on made-up test layers.
-- **SR-HazardMaker is its own tool, in its own repository:** <https://github.com/TRG-UCLA/SR-HazardMaker>
+- **SR-HazardMaker is its own tool, in its own repository:** <https://github.com/TRG-UCLA/SR-HazardMaker>.
+  **Its maker is E. Taciroglu, and he asked to be named as such:** keep his name in the guide, the
+  citation file, the pages, and the `made_with` field of every layer.
   (public; web page at <https://trg-ucla.github.io/SR-HazardMaker/>). The owner wants it as a GitHub tool
   that is used in this project and shared with the public. It has a browser app (`docs/`), a Python
   package and command line (`src/sr_hazardmaker`, command `sr-hazardmaker`), the format specification,

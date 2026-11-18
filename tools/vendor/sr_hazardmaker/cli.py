@@ -16,7 +16,7 @@ import re
 import sys
 import unicodedata
 
-from . import __version__, grid, nshm, shakemap, table
+from . import __author__, __version__, grid, nshm, shakemap, table
 
 
 def slug(s):
@@ -134,7 +134,7 @@ def cmd_check(a):
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="sr-hazardmaker", description="Turn ground-motion data into hazard layers for the ShakeReady map.")
-    p.add_argument("--version", action="version", version="SR-HazardMaker " + __version__)
+    p.add_argument("--version", action="version", version=f"SR-HazardMaker {__version__}, made by {__author__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     def common(sp):

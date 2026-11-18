@@ -3,7 +3,9 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.1.0";
+  const VERSION = "0.1.1";
+  const MAKER = "E. Taciroglu";
+  const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://github.com/TRG-UCLA/SR-HazardMaker)";     // written into every layer
   const FORMAT = "shakeready-hazard-grid/1";
   const MEASURES = ["SA1P0", "SA0P3", "PGA"];
   const MEASURE_NAMES = {SA1P0: "Sa(1.0 s)", SA0P3: "Sa(0.3 s)", PGA: "PGA"};
@@ -147,6 +149,6 @@ const SRHazard = (() => {
     },
   };
 
-  return {VERSION, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
+  return {VERSION, MAKER, MADE_WITH, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = SRHazard;

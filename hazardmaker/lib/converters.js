@@ -181,7 +181,7 @@ const SRConvert = (() => {
       grid: {lat_min: lats[0], lon_min: lons[0], dlat, dlon, nlat, nlon},
       default_level: def, levels,
       source: Object.assign({}, meta.source, {input_files: Object.keys(data).map(m => ({measure: m, file: items[m].name, bytes: items[m].bytes, rows: data[m].rows}))}),
-      provenance: {generator: gen("USGS hazard-model files"), generated_utc: nowUtc(), cropped_to: BOUNDS, stored_precision_g: SCALE},
+      provenance: {generator: gen("USGS hazard-model files"), made_with: H.MADE_WITH, generated_utc: nowUtc(), cropped_to: BOUNDS, stored_precision_g: SCALE},
     };
   }
 
@@ -259,7 +259,7 @@ const SRConvert = (() => {
                 time: ev.event_timestamp === undefined ? null : ev.event_timestamp, description: ev.event_description === undefined ? null : ev.event_description,
                 type: (p.top.shakemap_event_type || "").toUpperCase() === "SCENARIO" ? "scenario" : "recorded"},
         input_files: [{file: fileName, rows: p.rows, units_in_file: p.units}]}),
-      provenance: {generator: gen("USGS ShakeMap grid"), generated_utc: nowUtc(), stored_precision_g: SCALE,
+      provenance: {generator: gen("USGS ShakeMap grid"), made_with: H.MADE_WITH, generated_utc: nowUtc(), stored_precision_g: SCALE,
                    note: "Values converted to g from the units stated in the file. The whole ShakeMap grid is kept."},
     };
   }
@@ -322,7 +322,7 @@ const SRConvert = (() => {
       default_level: "level", levels: [{id: "level", label: meta.level_label || (kind === "scenario" ? "Event" : "Hazard level"), measures}],
       source: Object.assign({}, meta.source, {input_files: [{file: meta.file_name === undefined ? null : meta.file_name, rows: t.rows.length, units_in_file: unit,
               columns: Object.fromEntries(Object.entries(map).filter(e => e[1] !== null && e[1] >= 0).map(e => [e[0], t.header[e[1]]]))}]}),
-      provenance: {generator: gen("table of points"), generated_utc: nowUtc(), stored_precision_g: SCALE,
+      provenance: {generator: gen("table of points"), made_with: H.MADE_WITH, generated_utc: nowUtc(), stored_precision_g: SCALE,
                    note: `Values converted to g from ${unit}. ${pts.length.toLocaleString("en-US")} points placed on a ${nlat} by ${nlon} grid.`},
     };
   }

@@ -28,6 +28,7 @@ MEASURE_NAMES = {"SA1P0": "Sa(1.0 s)", "SA0P3": "Sa(0.3 s)", "PGA": "PGA"}
 SCALE = 0.001          # values are stored in thousandths of g
 NODATA = -1
 CALIFORNIA = dict(lat_min=32.5, lat_max=42.0, lon_min=-124.5, lon_max=-114.1)
+MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://github.com/TRG-UCLA/SR-HazardMaker)"   # written into every layer
 
 
 def rnd(x):
