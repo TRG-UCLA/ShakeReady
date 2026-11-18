@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-18T23:34:14Z",
+ "generated_utc": "2026-11-18T23:38:09Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "314627e1aaa386d0f723544a8f24b2c3ada541b3",
+ "code_version": "60f36456e6e455db1e9589730d9b2ad558c9a602",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
@@ -408,21 +408,23 @@
  "tools": {
   "SR-HazardMaker": {
    "repository": "https://github.com/TRG-UCLA/SR-HazardMaker",
-   "tag": "v0.1.1",
-   "commit": "31a9ff247a8525ed0d507a1b28499632fd6ebf78",
-   "synced_utc": "2026-11-18T23:34:14Z",
+   "tag": "v0.2.0",
+   "commit": "0b7ba0f255eef68ff87a9821a367bc7e98f3a6c4",
+   "synced_utc": "2026-11-18T23:38:09Z",
    "files": {
-    "hazardmaker/lib/sr-hazard.js": "929d19931f43cf8aa9c4f7517454b85539e510d3685c10445df63a34476532ec",
-    "hazardmaker/lib/converters.js": "137af5cd24d5e768704c93886a1abe3981df34fd0e92f6e33cbd84d66d2fc5da",
-    "hazardmaker/lib/app.js": "94f9c653df3e7f5ac6d1069d3b048cdd299b66daacff8081e7ee39bbcea79f83",
-    "hazardmaker/lib/app.css": "56b8a270461c1749f1f788407142af19459e26674502b82dce0184a1fea96a16",
-    "tools/vendor/sr_hazardmaker/__init__.py": "65a8ecc4513deb180be66272d8b3447026b6508ab7c7118fe13d6d47106c451a",
-    "tools/vendor/sr_hazardmaker/__main__.py": "f35124e530c67e144b61bdfca212301084982fc1408a2315f382617faa6e920f",
-    "tools/vendor/sr_hazardmaker/cli.py": "3940213d2164b519aca2a51ee31ce6cad6ed11e60a0d006797fd09afeaf212a7",
-    "tools/vendor/sr_hazardmaker/grid.py": "6ce8c64cf5e6fd169d6defd3139faf055ca537418661c76a6ac10829650e154e",
-    "tools/vendor/sr_hazardmaker/nshm.py": "7a269aa175324bf25bdcf62ab5bebfc4ce5624e045a5825fb04e159e313bc878",
-    "tools/vendor/sr_hazardmaker/shakemap.py": "31f0ca21ee8875ec50d9500142a10484d0c79f15edf79d2c471fc31cbead3102",
-    "tools/vendor/sr_hazardmaker/table.py": "2050177f8581cc3540b8a94cf6bf278f1f7df9a895193844a4b003cf4a56e613"
+    "hazardmaker/lib/sr-hazard.js": "b7ba3dceef4b28581bdbeb66ad154df4ba864ab1c9db2a6cf1e7df021067ef1c",
+    "hazardmaker/lib/converters.js": "7d8918065ebff2d0ec6fcef29d9816442a7234296e0368e44daa44fdae678ba4",
+    "hazardmaker/lib/app.js": "40095e74a3ea5535d0b0439364961c72f58c1339b83791a6c6894970cab80ce1",
+    "hazardmaker/lib/app.css": "af5f9ddea1fedfe1e960b9d22dae0664cea7424d9e6ac183e68c5586247cb2c3",
+    "tools/vendor/sr_hazardmaker/__init__.py": "fecf58e29284c596c15470256546e48101168871c099146cab6199162b3b2928",
+    "tools/vendor/sr_hazardmaker/__main__.py": "1cdea0dae8cf695aaf088eeec687ec3da945152585078a8b5baa83d515d8a01a",
+    "tools/vendor/sr_hazardmaker/cli.py": "947cf978952c8573bfef14775f0866be5e9944e592be8817256cbe976dab2c96",
+    "tools/vendor/sr_hazardmaker/grid.py": "18e3e75ea326bfda70279282ed880f2bf3f3f360013d28fc813056c46346e1bc",
+    "tools/vendor/sr_hazardmaker/nshm.py": "88456c0034cae85fcae5732840c813fce45792752cff59690156a9049f0c2399",
+    "tools/vendor/sr_hazardmaker/shakemap.py": "85fefb9046fa1ac9119700a6497eb97b76ebfb050d0720f5edc2cbf0c8bb3853",
+    "tools/vendor/sr_hazardmaker/table.py": "be2952588574a298f80e0c1607a468c1bdd3cadaee87aca55d20a7ac9ca85662",
+    "hazardmaker/lib/LICENSE": "b8a41c4112bb6f79acc46fbbc3187874231b94f7c83943c1616514aa09eb6507",
+    "tools/vendor/sr_hazardmaker/LICENSE": "b8a41c4112bb6f79acc46fbbc3187874231b94f7c83943c1616514aa09eb6507"
    }
   }
  },

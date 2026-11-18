@@ -1,10 +1,13 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+   Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE. */
 /* SR-HazardMaker: the ShakeReady hazard-layer format in the browser.
    Reading a value at a site, checking and summarizing a layer, drawing it, keeping layers locally.
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.1.1";
-  const MAKER = "E. Taciroglu";
+  const VERSION = "0.2.0";
+  const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
+  const DOI = "";            // set once a DOI has been issued for the tool
   const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://github.com/TRG-UCLA/SR-HazardMaker)";     // written into every layer
   const FORMAT = "shakeready-hazard-grid/1";
   const MEASURES = ["SA1P0", "SA0P3", "PGA"];
@@ -70,6 +73,15 @@ const SRHazard = (() => {
       else if (row.min < 0 || row.max > 10) warnings.push(`Level "${row.level}", ${MEASURE_NAMES[row.measure]}: values run from ${row.min.toFixed(3)} to ${row.max.toFixed(3)} g. Check the units.`);
     }
     return {errors, warnings};
+  }
+
+  /* How to cite the tool. src/sr_hazardmaker/__init__.py gives the same. */
+  function citation(){
+    const where = DOI ? "https://doi.org/" + DOI : URL;
+    const lines = ["@software{taciroglu_sr_hazardmaker,", "  author  = {Taciroglu, E.},", "  title   = {{SR-HazardMaker}},", `  year    = {${YEAR}},`, `  version = {${VERSION}},`];
+    if (DOI) lines.push(`  doi     = {${DOI}},`);
+    lines.push(`  url     = {${URL}}`, "}");
+    return {text: `Taciroglu, E. (${YEAR}). SR-HazardMaker (Version ${VERSION}) [Computer software]. ${where}`, bibtex: lines.join("\n")};
   }
 
   const serialize = layer => JSON.stringify(layer);
@@ -149,6 +161,6 @@ const SRHazard = (() => {
     },
   };
 
-  return {VERSION, MAKER, MADE_WITH, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
+  return {VERSION, MAKER, YEAR, LICENSE, URL, DOI, MADE_WITH, citation, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = SRHazard;

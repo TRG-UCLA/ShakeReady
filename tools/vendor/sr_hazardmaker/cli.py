@@ -1,9 +1,12 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE.
 """Command line for SR-HazardMaker.
 
     sr-hazardmaker nshm ARCHIVE.zip                      a USGS hazard-model archive, or its map.csv tables
     sr-hazardmaker shakemap grid.xml                     a USGS ShakeMap grid, zipped or not
     sr-hazardmaker table points.csv --sa10 "SA(1.0)" --units g --title ... --site ... --source-title ... --publisher ...
     sr-hazardmaker check layer.json                      check a layer and print its summary
+    sr-hazardmaker cite                                  how to cite SR-HazardMaker
 
 Each conversion writes <id>.json (the layer) and <id>.index-entry.json (its entry for a hazard
 repository's index) to the output folder, and prints the checks and the checksum.
@@ -16,7 +19,7 @@ import re
 import sys
 import unicodedata
 
-from . import __author__, __version__, grid, nshm, shakemap, table
+from . import __author__, __version__, citation, grid, nshm, shakemap, table
 
 
 def slug(s):
@@ -81,6 +84,7 @@ def write(layer, out_dir):
         f.write(json.dumps(grid.index_entry(layer, sha, nbytes), indent=1, ensure_ascii=False) + "\n")
     print(f"  wrote {path} ({nbytes / 1e6:.2f} MB) and its index entry")
     print(f"  sha256 {sha}")
+    print("  Made with SR-HazardMaker. If you use this layer in your work, please cite the tool: sr-hazardmaker cite")
     return 0
 
 
@@ -132,6 +136,14 @@ def cmd_check(a):
     return 1 if errors else 0
 
 
+def cmd_cite(a):
+    c = citation()
+    print("If you use SR-HazardMaker, please cite it:\n")
+    print(c["text"] + "\n")
+    print(c["bibtex"])
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="sr-hazardmaker", description="Turn ground-motion data into hazard layers for the ShakeReady map.")
     p.add_argument("--version", action="version", version=f"SR-HazardMaker {__version__}, made by {__author__}")
@@ -163,6 +175,8 @@ def main(argv=None):
     common(s); s.set_defaults(func=cmd_table)
     s = sub.add_parser("check", help="check a layer file and print its summary")
     s.add_argument("file"); s.set_defaults(func=cmd_check)
+    s = sub.add_parser("cite", help="how to cite SR-HazardMaker")
+    s.set_defaults(func=cmd_cite)
 
     a = p.parse_args(argv)
     try:

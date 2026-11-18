@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE.
 """USGS ShakeMap: grid.xml to a hazard layer.
 
 The field names and units are read from each file. USGS has written percent of g as "pctg" and as

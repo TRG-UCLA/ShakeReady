@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE.
 """A table of points on a regular grid (for example the output of a simulation) to a hazard layer."""
 import datetime
 import re

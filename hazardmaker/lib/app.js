@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+   Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE. */
 /* SR-HazardMaker: the page. SRHazardMakerApp.mount(element, options) builds the tool inside an element.
    options.mapUrl   address of a ShakeReady map on the same site, for "open the map" (optional)
    Needs sr-hazard.js and converters.js; uses Leaflet for the preview if the page has loaded it. */
@@ -72,6 +74,12 @@ const SRHazardMakerApp = (() => {
   <section class="hm-saved">
     <h2>Layers kept in this browser</h2>
     <div id="saved-out"><p class="hm-none">None yet.</p></div>
+  </section>
+  <section class="hm-saved" id="cite">
+    <h2>Free to use. Please cite it.</h2>
+    <p>SR-HazardMaker is free for anyone to use, change and share, under the <a href="https://github.com/TRG-UCLA/SR-HazardMaker/blob/main/LICENSE" rel="noopener">BSD 3-Clause license</a>. If it helps your work, please cite it:</p>
+    <p class="hm-cite" id="cite-text"></p>
+    <p class="hm-actions"><button class="btn ghost small" id="copy-cite">Copy the citation</button><button class="btn ghost small" id="copy-bib">Copy as BibTeX</button><span class="hm-status" id="copy-status" role="status"></span></p>
   </section>`;
 
   function mount(root, options){
@@ -273,6 +281,11 @@ const SRHazardMakerApp = (() => {
       $("saved-out").querySelectorAll("[data-remove]").forEach(b => b.addEventListener("click", async () => { await SRHazard.store.remove(b.dataset.remove); listSaved(); }));
     }
     listSaved();
+    const cite = SRHazard.citation();
+    $("cite-text").textContent = cite.text;
+    const copy = text => (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => { $("copy-status").textContent = "Copied."; }, () => { $("copy-status").textContent = text; });
+    $("copy-cite").addEventListener("click", () => copy(cite.text));
+    $("copy-bib").addEventListener("click", () => copy(cite.bibtex));
     return {state: S};
   }
   return {mount, state: null};

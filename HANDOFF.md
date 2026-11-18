@@ -141,8 +141,16 @@ The owner's rule: anyone using results from this site must be able to tell where
     (units read from the file), tables of points on a regular grid. A source is required.
   - The map can use an unpublished layer two ways: kept in the browser by the site's SR-HazardMaker page,
     or opened from a file ("Use a layer file from my computer"). Both are marked as the user's own.
-  - **Open with the owner:** the license and citation for SR-HazardMaker (none set yet; the README says
-    so), and which ground-motion models the scenario builder should offer. **Next, as agreed: the
+  - **License and citation:** the owner wants people to use it freely and cite it. License: BSD 3-Clause,
+    copyright E. Taciroglu (he was asked to confirm the copyright holder against UC policy). Citation:
+    `CITATION.cff`, `sr-hazardmaker cite`, a block on the page, and the guide; tests keep the version,
+    citation and license consistent. **Still to do for citation:** a DOI through Zenodo. The owner must
+    switch the repository on at zenodo.org (signing in with GitHub and granting access to the TRG-UCLA
+    organization); the next GitHub Release then gets a DOI. Put that DOI in `__doi__`
+    (`src/sr_hazardmaker/__init__.py`), `DOI` (`docs/sr-hazard.js`), `CITATION.cff` and the README, and
+    release again. His ORCID iD, once given, goes in `CITATION.cff`.
+  - **Open with the owner:** which ground-motion models the scenario builder should offer. The ShakeReady
+    site and its data have no license of their own yet. **Next, as agreed: the
     scenario builder**, with models implemented from published coefficients and checked against an
     established implementation.
 - **Never publish a made-up hazard layer.** Test layers are generated in a scratch copy of the site and

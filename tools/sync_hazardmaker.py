@@ -41,6 +41,11 @@ def main(src, ref="HEAD"):
             with open(os.path.join(dest, name), "w", encoding="utf-8", newline="") as f:
                 f.write(text)
             files[f"{dest}/{name}"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    license_text = git(src, "show", f"{commit}:LICENSE") + "\n"
+    for path in ("hazardmaker/lib/LICENSE", f"{dest}/LICENSE"):
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(license_text)
+        files[path] = hashlib.sha256(license_text.encode("utf-8")).hexdigest()
     version = {"tool": "SR-HazardMaker", "repository": "https://github.com/TRG-UCLA/SR-HazardMaker", "tag": tags[0] if tags else None, "commit": commit,
                "synced_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "files": files}
     with open("hazardmaker/lib/VERSION.json", "w", encoding="utf-8") as f:

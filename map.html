@@ -597,6 +597,7 @@ function damageCsv(rows, prov){
     `Site condition of the hazard values: ${HAZ.site_condition}`,
     src.title ? `Hazard source: ${src.title}${src.publisher ? ". " + src.publisher : ""}${src.doi ? ". doi:" + src.doi : ""}${src.url ? ". " + src.url : ""}` : null,
     HAZ.entry && HAZ.entry.sha256 ? `Hazard file checksum (SHA-256): ${HAZ.entry.sha256}` : null,
+    HAZ.provenance && HAZ.provenance.made_with ? `Hazard layer prepared with ${HAZ.provenance.made_with}. If you use these results, please cite the tool as well as the hazard source` : null,
     HAZ.entry && HAZ.entry.local ? "Hazard layer status: a local file, made with SR-HazardMaker or opened from the user's computer. It is NOT part of the ShakeReady hazard repository and has not been reviewed" : null,
     "",
     `Inventory: ${B.source}, ${B.state}, ${B.source_year}` + (B.provenance ? `. Source file ${B.provenance.source_file}, SHA-256 ${B.provenance.source_sha256}` : ""),

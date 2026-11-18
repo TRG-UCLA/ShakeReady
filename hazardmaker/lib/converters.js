@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+   Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE. */
 /* SR-HazardMaker: the converters, as they run in the browser.
    Files are read on the person's own computer; nothing is uploaded.
    Each converter here has a twin in src/sr_hazardmaker/ and the two are tested to give identical layers.

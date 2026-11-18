@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE.
 """USGS National Seismic Hazard Model: uniform-hazard map tables to a hazard layer.
 
 Input is the `map.csv` table of each intensity measure for one site condition, either as separate

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE.
 """The ShakeReady hazard-layer format: reading a value at a site, checking and summarizing a layer.
 
 A layer is JSON (see docs/format.md):
