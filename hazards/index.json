@@ -1,0 +1,5 @@
+{
+ "about": "Hazard layers the ShakeReady map can use. Each entry points to a hazard grid file in this folder. See hazards/README.md for the file format and how to submit a layer.",
+ "format": "shakeready-hazard-index/1",
+ "hazards": []
+}

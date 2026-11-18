@@ -45,6 +45,23 @@
   <h3 id="hazus-classes">Bridges in each class</h3>
   <div id="hz-classes-out"></div>
 
+  <h2 id="hazards">Hazard layers</h2>
+  <p>A hazard layer is a grid of ground motions that the map can display and use to estimate damage. There are two kinds. A <b>probabilistic</b> layer is a hazard map: it gives, for each place, the shaking with a set chance of being exceeded there, at one or more probability levels. It does not describe one earthquake. A <b>scenario</b> layer holds the ground motions of a single earthquake, computed or recorded.</p>
+  <p>Every layer states its source and the ground condition its values assume. Layers are kept in the project's <a href="https://github.com/TRG-UCLA/ShakeReady/tree/main/hazards" rel="noopener">hazard repository</a>, which also describes the file format and how to submit a layer.</p>
+  <div id="hazards-out"></div>
+
+  <h2 id="damage">Damage estimates</h2>
+  <p>When a hazard layer is selected on the map, damage is estimated for each bridge in four steps:</p>
+  <ol>
+    <li>Read the spectral accelerations at 1.0 second and 0.3 second at the bridge from the hazard layer.</li>
+    <li>Adjust the bridge's class medians for skew, number of spans and spectral shape, as described under <a href="#hazus">HAZUS fragilities for bridges</a>.</li>
+    <li>For each damage state, compute the probability of reaching or exceeding it: Φ( ln( Sa(1.0 s) / median ) / 0.6 ), where Φ is the standard normal distribution function.</li>
+    <li>Take differences to get the probability of each of the five states: none, slight, moderate, extensive and complete.</li>
+  </ol>
+  <p>The map colors each bridge by the result and offers the full table for download, one row per bridge, with its sources written at the top of the file. Anyone can reproduce a table with <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a>, a separate implementation of the same calculation.</p>
+  <h3 id="damage-decisions">Choices made in estimating damage</h3>
+  <div id="dmg-decisions-out"></div>
+
   <h2 id="inventory-decisions">Choices made in preparing the inventories</h2>
   <div id="inv-decisions-out"></div>
 
@@ -65,8 +82,9 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;
 const fmt = n => Number(n).toLocaleString("en-US");
 const link = u => /^https?:/.test(u) ? `<a href="${esc(u)}" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>` : esc(u);
 function decisionTable(list){
-  return `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Id</th><th>Topic</th><th>Choice</th><th>Basis</th><th>Effect</th></tr>`
-    + list.map(d => `<tr id="${esc(d.id)}"><td>${esc(d.id)}</td><td>${esc(d.topic)}</td><td>${esc(d.choice)}</td><td>${esc(d.basis)}</td><td>${esc(d.effect || "")}</td></tr>`).join("")
+  const fx = list.some(d => d.effect);
+  return `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Id</th><th>Topic</th><th>Choice</th><th>Basis</th>${fx ? "<th>Effect</th>" : ""}</tr>`
+    + list.map(d => `<tr id="${esc(d.id)}"><td>${esc(d.id)}</td><td>${esc(d.topic)}</td><td>${esc(d.choice)}</td><td>${esc(d.basis)}</td>${fx ? `<td>${esc(d.effect || "")}</td>` : ""}</tr>`).join("")
     + `</table></div>`;
 }
 Promise.all([
@@ -90,6 +108,21 @@ Promise.all([
 
   document.getElementById("hz-decisions-out").innerHTML = decisionTable(P.fragility_decisions);
   document.getElementById("inv-decisions-out").innerHTML = decisionTable(P.inventory_decisions);
+  document.getElementById("dmg-decisions-out").innerHTML = decisionTable(P.damage_decisions || []);
+  const HL = P.hazard_layers || [];
+  document.getElementById("hazards-out").innerHTML = !HL.length
+    ? `<p class="placeholder">No hazard layer has been published yet. The first will be the U.S. Geological Survey's National Seismic Hazard Model.</p>`
+    : HL.map(h => { const s = h.source || {}; return `<section class="prov-ds" id="hz-${esc(h.id)}"><h3>${esc(h.title)}</h3>
+      <dl class="prov-dl">
+        <dt>Kind</dt><dd>${h.kind === "probabilistic" ? "Probabilistic hazard map" : "Scenario: one earthquake"}</dd>
+        <dt>Site condition</dt><dd>${esc(h.site_condition)}</dd>
+        ${h.levels && h.levels.length > 1 ? `<dt>Levels</dt><dd>${h.levels.map(l => esc(l.label)).join("<br>")}</dd>` : ""}
+        <dt>Measures</dt><dd>${esc((h.measures || []).join(", "))}</dd>
+        <dt>Source</dt><dd>${esc(s.title || "")}${s.publisher ? ". " + esc(s.publisher) : ""}${s.version ? ". " + esc(s.version) : ""}${s.doi ? `. <a href="https://doi.org/${esc(s.doi)}" rel="noopener">doi:${esc(s.doi)}</a>` : ""}${s.url ? ". " + link(s.url) : ""}</dd>
+        ${s.retrieved_utc ? `<dt>Retrieved</dt><dd>${esc(s.retrieved_utc)}</dd>` : ""}
+        ${h.description ? `<dt>Note</dt><dd>${esc(h.description)}</dd>` : ""}
+        <dt>Published file</dt><dd><a href="${esc(h.file)}">${esc(h.file)}</a>${h.bytes ? `, ${fmt(h.bytes)} bytes` : ""}<br><code>${esc(h.sha256 || "")}</code></dd>
+      </dl></section>`; }).join("");
 
   document.getElementById("hz-classes-out").innerHTML = `<div class="table-scroll"><table class="dl-table prov-table"><tr><th>Class</th><th>Bridges</th><th>Design</th><th>Description</th><th>Median Sa(1.0 s), g: slight, moderate, extensive, complete</th></tr>`
     + Object.entries(P.hazus_class_counts).map(([k, n]) => { const c = HZ.classes[k]; return `<tr><td>${esc(k)}</td><td>${fmt(n)}</td><td>${esc(c.design)}</td><td>${esc(c.description)}</td><td>${c.medians.map(v => v.toFixed(2)).join(", ")}</td></tr>`; }).join("")

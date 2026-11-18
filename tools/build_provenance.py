@@ -62,6 +62,20 @@ def decision_effects():
     }
 
 
+def hazard_layers():
+    """The published hazard layers, with a fresh checksum of each file."""
+    path = 'hazards/index.json'
+    if not os.path.exists(path):
+        return []
+    out = []
+    for h in json.load(open(path, encoding='utf-8')).get('hazards', []):
+        h = dict(h)
+        if os.path.exists(h['file']):
+            h['sha256'], h['bytes'] = sha256(h['file']), os.path.getsize(h['file'])
+        out.append(h)
+    return out
+
+
 def main():
     src = json.load(open('tools/provenance_sources.json', encoding='utf-8'))
     effects, extra = decision_effects()
@@ -87,13 +101,15 @@ def main():
         'datasets': src['datasets'],
         'fragility_decisions': [dict(d, effect=effects.get(d['id'])) for d in frag['decisions']],
         'inventory_decisions': src['inventory_decisions'],
+        'damage_decisions': src.get('damage_decisions', []),
+        'hazard_layers': hazard_layers(),
         'hazus_class_counts': extra['class_counts'],
         'verification': src['verification'],
         'limits': src['limits'],
     }
     with open('data/provenance.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=1, ensure_ascii=False)
-    print('wrote data/provenance.json:', len(out['datasets']), 'datasets,', len(out['fragility_decisions']) + len(out['inventory_decisions']), 'decisions')
+    print('wrote data/provenance.json:', len(out['datasets']), 'datasets,', len(out['fragility_decisions']) + len(out['inventory_decisions']) + len(out['damage_decisions']), 'decisions,', len(out['hazard_layers']), 'hazard layers')
 
 
 if __name__ == '__main__':

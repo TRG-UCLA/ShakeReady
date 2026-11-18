@@ -116,13 +116,25 @@ The owner's rule: anyone using results from this site must be able to tell where
 - **Limits to keep visible:** the curves are generic; the NBI does not record retrofits, so pre-1975
   California bridges are treated as unretrofitted; 3,571 records are culverts; a skew coded 99 is
   evaluated as 45 degrees (1,706 bridges).
-- **Planned by the owner, not yet built:** restructure the map around three registries (inventories,
-  hazards, fragilities). Inventories can be added and removed. Hazard layers are selectable, with the US
-  national hazard map as default and a scenario repository that others submit computed or recorded
-  events to. Where an inventory has a fragility set, the map computes expected damage per asset,
-  displays it, and offers an asset-by-asset download. The HAZUS set needs Sa(1.0 s), and Sa(0.3 s) for
-  the shape factor, from the hazard layer. Results from a probabilistic hazard map are per-site and
-  should not be summed across assets the way scenario results can.
+- **Built, waiting for data:** the map is driven by registries. `data/registry.json` lists inventories
+  and fragility sets; `hazards/index.json` lists hazard layers (empty until the first is added). With a
+  hazard layer selected, the map reads Sa(1.0 s) and Sa(0.3 s) at each bridge, computes damage-state
+  probabilities, colors the bridges, shows expected counts, and offers the asset-by-asset table for
+  download with its provenance in the header. `tools/damage_reference.py` is an independent
+  implementation; the map's table matched it exactly for all bridges on made-up test layers.
+- **Never publish a made-up hazard layer.** Test layers are generated in a scratch copy of the site and
+  thrown away. Anything in `hazards/` is public and will be taken as real.
+- **To add the first real layer (USGS National Seismic Hazard Model, CONUS 2023.R2, doi:10.5066/P14VGAV4):**
+  the owner downloads the site class BC archive (about 1.9 GB) and supplies the `map.csv` files for SA1P0,
+  SA0P3 and PGA. Run `tools/build_hazard_nshm.py` with a source record, then `tools/validate_hazard.py`,
+  then `tools/build_provenance.py`. The converter was tested on files of the expected shape, not yet on
+  the real ones: check the column names when they arrive.
+- **Open choices for the owner:** start with the reference site condition (Vs30 = 760 m/s) or go straight
+  to site-specific values; which hazard level loads by default (975 years was suggested).
+- **Still to build:** a converter for USGS ShakeMap grids (scenarios); site amplification from a Vs30 map;
+  fragility sets for the building inventories; ground-failure damage.
+- Results from a probabilistic hazard map are per-site and must not be presented as the loss from one
+  earthquake. The map and the download both say so.
 
 ## Data provenance
 

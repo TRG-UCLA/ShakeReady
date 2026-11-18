@@ -91,6 +91,24 @@ footer a{color:var(--muted)}
 .pop-kv b{font-weight:600}
 .pop-img{max-width:230px;border-radius:6px;margin-top:8px;display:block}
 .pop-link{display:inline-block;margin-top:6px}
+.haz-note{font-size:12.5px;color:var(--muted);margin:8px 0 10px;line-height:1.45}
+.haz-note a{color:var(--amber)}
+.legend{margin:2px 0 14px;font-size:12px;color:var(--muted)}
+.legend .bar{height:10px;border-radius:3px;margin-bottom:3px}
+.legend .ticks{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.legend .sw{display:flex;flex-wrap:wrap;gap:4px 10px}
+.legend .sw span{display:inline-flex;align-items:center;gap:5px}
+.legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
+#dmg-summary{font-size:13px;margin:4px 0 2px}
+#dmg-summary table{width:100%;border-collapse:collapse;margin:6px 0}
+#dmg-summary td{padding:3px 0;border-bottom:1px solid var(--line)}
+#dmg-summary td:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--paper)}
+#dmg-summary td i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px}
+.dmg-cluster div{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.35);font:600 12px/1 Inter,system-ui,sans-serif;color:#1C1507}
+.dmg-cluster div.dark{color:#fff}
+.pop-dmg{margin-top:9px;padding-top:8px;border-top:1px solid #D8E0E7}
+.pop-dmg table{border-collapse:collapse;margin:4px 0 2px}
+.pop-dmg td{padding:1px 12px 1px 0;font-variant-numeric:tabular-nums}
 .pop-frag{margin-top:9px;padding-top:8px;border-top:1px solid #D8E0E7}
 .pop-note{color:#5F7183;font-size:12px}
 .sv-link{display:block;margin-top:9px;font-weight:600}
@@ -127,10 +145,35 @@ footer a{color:var(--muted)}
 
     <section>
       <h2>Layers</h2>
-      <label class="layer"><input type="checkbox" id="lyr-bridge" checked><span class="chip" style="background:var(--c-bridge)"></span><span class="lname">NBI bridges</span><span class="lcount" id="cnt-bridge">…</span></label>
-      <label class="layer"><input type="checkbox" id="lyr-instr"><span class="chip" style="background:var(--c-instr)"></span><span class="lname">Instrumented buildings</span><span class="lcount" id="cnt-instr">…</span></label>
-      <label class="layer"><input type="checkbox" id="lyr-nond"><span class="chip" style="background:var(--c-nond)"></span><span class="lname">Instrumented non-ductile</span><span class="lcount" id="cnt-nond">…</span></label>
-      <label class="layer"><input type="checkbox" id="lyr-lat"><span class="chip" style="background:var(--c-lat)"></span><span class="lname">LA Times concrete buildings</span><span class="lcount" id="cnt-lat">…</span></label>
+      <div id="layer-list"></div>
+    </section>
+
+    <section id="hazard-section">
+      <h2>Hazard and damage</h2>
+      <div class="frow"><label for="hazard">Hazard layer</label>
+        <select id="hazard"><option value="">None</option></select></div>
+      <p class="haz-note" id="haz-empty" hidden>No hazard layer has been published yet. When one is, it will be listed here, and the map will estimate damage for every bridge.</p>
+      <div id="hazard-controls" hidden>
+        <div class="frow" id="level-row"><label for="hazlevel">Hazard level</label><select id="hazlevel"></select></div>
+        <p class="haz-note" id="haz-note"></p>
+        <label class="layer"><input type="checkbox" id="haz-show" checked><span class="lname">Show shaking on the map</span></label>
+        <div class="frow"><label for="haz-measure">Shaking measure shown</label><select id="haz-measure"></select></div>
+        <div class="legend" id="haz-legend"></div>
+        <div class="frow"><label for="fragility">Fragility set for bridges</label><select id="fragility"></select></div>
+        <div id="damage-controls">
+          <div class="frow"><label for="dmg-metric">Color bridges by</label>
+            <select id="dmg-metric">
+              <option value="pext">Probability of extensive or complete damage</option>
+              <option value="pany">Probability of any damage</option>
+              <option value="state">Most likely damage state</option>
+              <option value="sa10">Shaking at the bridge, Sa(1.0 s)</option>
+            </select></div>
+          <div class="legend" id="dmg-legend"></div>
+          <div id="dmg-summary"></div>
+          <div class="actions"><button class="btn-apply" id="dmg-download">Download damage table (CSV)</button></div>
+          <p class="haz-note">The table covers the bridges currently shown and carries its sources and method. <a href="methods.html#damage" target="_blank" rel="noopener">How damage is estimated</a></p>
+        </div>
+      </div>
     </section>
 
     <section>
@@ -247,7 +290,7 @@ const rate = v => v < 0 ? "n/a" : v;
 /* HAZUS highway bridge fragilities (FEMA Hazus 6.1 Technical Manual, Section 7.1); mirrors tools/hazus_bridges.py */
 let HZ = null;
 const hzSkew = a => a === 99 ? 45 : (a < 0 || a >= 90 ? 0 : a);
-const hzKskew = a => Math.sqrt(Math.sin((90 - hzSkew(a)) * Math.PI / 180));
+const hzKskew = a => Math.sqrt(Math.sin((90 - hzSkew(a)) * (Math.PI / 180)));
 function hzK3d(cls, n){
   const eq = HZ.classes[cls].k3d; if (!eq) return 1;
   const {A, B} = HZ.k3d_coefficients[eq];
@@ -268,6 +311,100 @@ function hazusBlock(r){
     + `<span class="pop-note">Class values ${c.medians.map(v => v.toFixed(2)).join(", ")}, adjusted for ${skewTxt} and ${r[F.spans_main]} span${r[F.spans_main] === 1 ? "" : "s"}.`
     + (c.ishape ? " The slight value can be lower, depending on the shape of the ground-motion spectrum." : "")
     + ` <a href="methods.html#hazus" target="_blank" rel="noopener">Source and method</a></span></div>`;
+}
+
+/* ---------- hazard layers and damage (mirrors tools/hazard_grid.py and tools/damage_reference.py) ---------- */
+let REG = {inventories: [], fragilities: []};   // data/registry.json
+let HAZINDEX = {hazards: []};                   // hazards/index.json
+let HAZ = null, LEVEL = null;                   // the loaded hazard file and the selected level
+let DMG = new Map();                            // bridge row -> result
+let hazOverlay = null;
+const STATES = ["None", "Slight", "Moderate", "Extensive", "Complete"];
+const DMG_RAMP = ["#FFF3B0", "#FDB863", "#F46036", "#C1121F", "#5A0F2E"];
+const STATE_COLORS = ["#B8C4CF", "#FFE08A", "#FDB863", "#F46036", "#8E1B2C"];
+const P_BINS = [0.01, 0.05, 0.2, 0.5], SA_BINS = [0.1, 0.2, 0.4, 0.8];
+const SHAKE_STOPS = [[0.02, "#5B6FD6"], [0.05, "#3D7DD8"], [0.1, "#38B6C9"], [0.2, "#7BD389"], [0.4, "#F2D16B"], [0.8, "#F9A03F"], [1.5, "#F46036"], [3, "#D7263D"]];
+const MEASURE_NAMES = {SA1P0: "Sa(1.0 s)", SA0P3: "Sa(0.3 s)", PGA: "PGA"};
+
+function erf(x){                               // accurate to about 1e-15
+  const ax = Math.abs(x);
+  let v;
+  if (ax < 2.5){
+    const x2 = ax * ax; let sum = ax, term = ax, n = 0;
+    while (Math.abs(term) > 1e-17 * Math.abs(sum) && n < 200){ n++; term *= -x2 / n; sum += term / (2 * n + 1); }
+    v = 2 / Math.sqrt(Math.PI) * sum;
+  } else {
+    let f = ax; for (let k = 60; k >= 1; k--) f = ax + (k / 2) / f;
+    v = 1 - Math.exp(-ax * ax) / (Math.sqrt(Math.PI) * f);
+  }
+  return x < 0 ? -v : v;
+}
+const phi = x => 0.5 * (1 + erf(x / Math.SQRT2));
+
+function hazAt(values, lat, lng){               // bilinear; nodes without a value are left out
+  const g = HAZ.grid, x = (lng - g.lon_min) / g.dlon, y = (lat - g.lat_min) / g.dlat;
+  if (x < 0 || y < 0 || x > g.nlon - 1 || y > g.nlat - 1) return null;
+  const i0 = Math.min(Math.floor(x), g.nlon - 2), j0 = Math.min(Math.floor(y), g.nlat - 2), fx = x - i0, fy = y - j0;
+  let total = 0, weight = 0;
+  const add = (dj, di, w) => { const v = values[(j0 + dj) * g.nlon + i0 + di]; if (v !== HAZ.nodata && w > 0){ total += w * v; weight += w; } };
+  add(0, 0, (1 - fx) * (1 - fy)); add(0, 1, fx * (1 - fy)); add(1, 0, (1 - fx) * fy); add(1, 1, fx * fy);
+  return weight > 0 ? total / weight * HAZ.scale : null;
+}
+
+function bridgeDamage(r){
+  const cls = "HWB" + r[F.hazus], c = HZ.classes[cls], n = r[F.spans_main], skew = r[F.skew];
+  const kskew = hzKskew(skew), k3d = hzK3d(cls, n);
+  const res = {cls, design: c.design, kskew, k3d};
+  const m = LEVEL.measures;
+  const sa10 = hazAt(m.SA1P0, r[F.lat], r[F.lng]);
+  const sa03 = m.SA0P3 ? hazAt(m.SA0P3, r[F.lat], r[F.lng]) : null;
+  if (sa10 === null) return res;
+  res.sa10 = sa10; res.sa03 = sa03;
+  let fs = 1;
+  if (c.ishape === 1 && sa03) fs = Math.min(1, 2.5 * sa10 / sa03);
+  const k = kskew * k3d, med = [c.medians[0] * fs, c.medians[1] * k, c.medians[2] * k, c.medians[3] * k];
+  res.fslight = med[0] / c.medians[0]; res.med = med;
+  let p;
+  if (sa10 <= 0) p = [1, 0, 0, 0, 0];
+  else {
+    const ex = med.map(v => phi(Math.log(sa10 / v) / HZ.beta));
+    for (let i = 1; i < 4; i++) ex[i] = Math.min(ex[i], ex[i - 1]);
+    p = [1 - ex[0], ex[0] - ex[1], ex[1] - ex[2], ex[2] - ex[3], ex[3]];
+  }
+  res.p = p; res.pext = p[3] + p[4];
+  let best = 0; for (let i = 1; i < 5; i++) if (p[i] > p[best]) best = i;      // a tie goes to the milder state
+  res.state = best;
+  return res;
+}
+const damageActive = () => !!(HAZ && LEVEL && HZ && document.getElementById("fragility").value);
+function computeDamage(){
+  DMG = new Map();
+  if (!B || !damageActive()) return;
+  for (const r of B.rows) DMG.set(r, bridgeDamage(r));
+}
+function metricValue(d, metric){
+  if (!d || !d.p) return null;
+  return metric === "pext" ? d.pext : metric === "pany" ? 1 - d.p[0] : metric === "state" ? d.state : d.sa10;
+}
+function metricColor(v, metric){
+  if (v === null || v === undefined) return "#FFFFFF";
+  if (metric === "state") return STATE_COLORS[Math.round(v)];
+  const bins = metric === "sa10" ? SA_BINS : P_BINS;
+  let i = 0; while (i < bins.length && v >= bins[i]) i++;
+  return DMG_RAMP[i];
+}
+const pct = v => v < 0.0005 ? "<0.1%" : v > 0.9995 ? ">99.9%" : (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
+
+function damageBlock(r){
+  const d = DMG.get(r);
+  if (!damageActive() || !d) return "";
+  const where = `${esc(HAZ.title)}${HAZ.levels.length > 1 ? ", " + esc(LEVEL.label) : ""}`;
+  if (!d.p) return `<div class="pop-dmg"><b>Damage estimate:</b> none. This bridge lies outside the area covered by the hazard layer (${where}).</div>`;
+  return `<div class="pop-dmg"><b>Shaking here:</b> Sa(1.0 s) ${d.sa10.toFixed(3)} g` + (d.sa03 !== null ? `, Sa(0.3 s) ${d.sa03.toFixed(3)} g` : "") + `<br>`
+    + `<span class="pop-note">${where}. ${esc(HAZ.site_condition)}.</span><br>`
+    + `<b>Probability of each damage state:</b><table>` + STATES.map((s, i) => `<tr><td>${s}</td><td>${pct(d.p[i])}</td></tr>`).join("") + `</table>`
+    + `<span class="pop-note">` + (HAZ.kind === "probabilistic" ? "Evaluated at this site's own hazard level, not for a single earthquake. " : "")
+    + `<a href="methods.html#damage" target="_blank" rel="noopener">Source and method</a></span></div>`;
 }
 
 function bridgePopup(r){
@@ -292,6 +429,7 @@ function bridgePopup(r){
     + `<b>Overall condition:</b> ${r[F.cond]}<br>`
     + `<b>Ratings:</b> deck ${rate(r[F.deck])}, superstructure ${rate(r[F.superstructure])}, substructure ${rate(r[F.substructure])}, channel ${rate(r[F.channel])}, culvert ${rate(r[F.culvert])}</div>`
     + hazusBlock(r)
+    + damageBlock(r)
     + streetViewLink(r[F.lat], r[F.lng]);
 }
 
@@ -348,13 +486,23 @@ function filterRows(){
 function renderBridges(){
   if (!B) return;
   const rows = filterRows();
+  const active = damageActive(), metric = document.getElementById("dmg-metric").value;
   if (bridgeCluster){ map.removeLayer(bridgeCluster); }
-  bridgeCluster = L.markerClusterGroup({chunkedLoading:true, disableClusteringAtZoom:15, spiderfyOnMaxZoom:true});
+  const opts = {chunkedLoading:true, disableClusteringAtZoom:15, spiderfyOnMaxZoom:true};
+  if (active) opts.iconCreateFunction = cluster => {            // a cluster takes the average of the bridges inside it
+    let s = 0, n = 0;
+    for (const mk of cluster.getAllChildMarkers()){ const v = mk.options.metric; if (v !== null && v !== undefined){ s += v; n++; } }
+    const col = n ? metricColor(s / n, metric) : "#B8C4CF", count = cluster.getChildCount();
+    const size = count < 100 ? 34 : count < 1000 ? 40 : 46, dark = [DMG_RAMP[3], DMG_RAMP[4], STATE_COLORS[4]].includes(col);
+    return L.divIcon({html: `<div style="background:${col}" class="${dark ? "dark" : ""}"><span>${fmt(count)}</span></div>`, className: "dmg-cluster", iconSize: [size, size]});
+  };
+  bridgeCluster = L.markerClusterGroup(opts);
   const markers = rows.map(r => {
-    const mk = L.circleMarker([r[F.lat], r[F.lng]], {
-      radius:6, color:"#9A5A12", weight:1, fillColor:"#F9A03F", fillOpacity:.85
-    });
-    mk.bindPopup(() => bridgePopup(r));
+    const v = active ? metricValue(DMG.get(r), metric) : null;
+    const mk = L.circleMarker([r[F.lat], r[F.lng]], active
+      ? {radius:6, color:"#1B2836", weight:.8, fillColor:metricColor(v, metric), fillOpacity:.95, metric:v}
+      : {radius:6, color:"#9A5A12", weight:1, fillColor:"#F9A03F", fillOpacity:.85});
+    mk.bindPopup(() => bridgePopup(r), {maxWidth:320});
     return mk;
   });
   bridgeCluster.addLayers(markers);
@@ -362,12 +510,179 @@ function renderBridges(){
   document.getElementById("bridgecount").innerHTML =
     `Showing <strong>${fmt(rows.length)}</strong> of ${fmt(B.rows.length)} bridges`;
   document.getElementById("cnt-bridge").textContent = fmt(rows.length);
+  renderDamageSummary(rows);
 }
 
+function renderDamageSummary(rows){
+  const box = document.getElementById("dmg-summary");
+  if (!damageActive()){ box.innerHTML = ""; return; }
+  const sums = [0, 0, 0, 0, 0]; let without = 0;
+  for (const r of rows){ const d = DMG.get(r); if (d && d.p) d.p.forEach((v, i) => sums[i] += v); else without++; }
+  box.innerHTML = `Expected number of bridges in each damage state, of the ${fmt(rows.length)} shown:`
+    + `<table>` + STATES.map((s, i) => `<tr><td><i style="background:${STATE_COLORS[i]}"></i>${s}</td><td>${fmt(Math.round(sums[i]))}</td></tr>`).join("")
+    + (without ? `<tr><td>No estimate (outside the hazard layer)</td><td>${fmt(without)}</td></tr>` : "") + `</table>`
+    + (HAZ.kind === "probabilistic" ? `<span class="haz-note">Each bridge is evaluated at its own site's hazard level. These are not the losses of one earthquake.</span>` : "");
+}
+
+function renderLegends(){
+  const metric = document.getElementById("dmg-metric").value, lg = document.getElementById("dmg-legend");
+  if (!damageActive()) lg.innerHTML = "";
+  else if (metric === "state") lg.innerHTML = `<div class="sw">` + STATES.map((s, i) => `<span><i style="background:${STATE_COLORS[i]}"></i>${s}</span>`).join("") + `</div>`;
+  else {
+    const bins = metric === "sa10" ? SA_BINS : P_BINS, f = metric === "sa10" ? (v => v + " g") : (v => v * 100 + "%");
+    const labels = [`under ${f(bins[0])}`].concat(bins.slice(0, -1).map((b, i) => `${f(b)} to ${f(bins[i + 1])}`)).concat([`over ${f(bins[bins.length - 1])}`]);
+    lg.innerHTML = `<div class="sw">` + labels.map((s, i) => `<span><i style="background:${DMG_RAMP[i]}"></i>${s}</span>`).join("") + `</div>`;
+  }
+  const hl = document.getElementById("haz-legend");
+  if (!HAZ || !document.getElementById("haz-show").checked){ hl.innerHTML = ""; return; }
+  hl.innerHTML = `<div class="bar" style="background:linear-gradient(90deg,${SHAKE_STOPS.map(s => s[1]).join(",")})"></div>`
+    + `<div class="ticks">` + SHAKE_STOPS.map(s => `<span>${s[0]}</span>`).join("") + `</div>${MEASURE_NAMES[document.getElementById("haz-measure").value]}, in g`;
+}
+
+/* shaking drawn as an image, resampled to the map's projection so it lines up with the bridges */
+function shakeColor(v){
+  const S = SHAKE_STOPS; let i = 0;
+  if (v <= S[0][0]) return hexRgb(S[0][1]);
+  if (v >= S[S.length - 1][0]) return hexRgb(S[S.length - 1][1]);
+  while (v > S[i + 1][0]) i++;
+  const t = Math.log(v / S[i][0]) / Math.log(S[i + 1][0] / S[i][0]), a = hexRgb(S[i][1]), b = hexRgb(S[i + 1][1]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+function drawHazardOverlay(){
+  if (hazOverlay){ map.removeLayer(hazOverlay); hazOverlay = null; }
+  if (!HAZ || !LEVEL || !document.getElementById("haz-show").checked) return;
+  const values = LEVEL.measures[document.getElementById("haz-measure").value];
+  if (!values) return;
+  const g = HAZ.grid, south = g.lat_min, north = g.lat_min + (g.nlat - 1) * g.dlat, west = g.lon_min, east = g.lon_min + (g.nlon - 1) * g.dlon;
+  const my = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)), myN = my(north), myS = my(south);
+  const W = Math.min(1100, g.nlon * 3), H = Math.max(2, Math.round(W * (myN - myS) / ((east - west) * Math.PI / 180)));
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let py = 0; py < H; py++){
+    const lat = (2 * Math.atan(Math.exp(myN - (py + .5) / H * (myN - myS))) - Math.PI / 2) * 180 / Math.PI;
+    for (let px = 0; px < W; px++){
+      const v = hazAt(values, lat, west + (px + .5) / W * (east - west)), o = (py * W + px) * 4;
+      if (v === null) continue;
+      const c = shakeColor(v); img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  hazOverlay = L.imageOverlay(cv.toDataURL(), [[south, west], [north, east]], {opacity:.55, pane:"hazard", interactive:false}).addTo(map);
+}
+
+function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); renderLegends(); }
+
+function selectHazard(id){
+  const entry = HAZINDEX.hazards.find(h => h.id === id);
+  const controls = document.getElementById("hazard-controls");
+  if (!entry){ HAZ = LEVEL = null; controls.hidden = true; refreshHazardViews(); return Promise.resolve(); }
+  return fetch(entry.file).then(r => r.json()).then(h => {
+    HAZ = h; HAZ.entry = entry;
+    const lsel = document.getElementById("hazlevel");
+    lsel.innerHTML = h.levels.map(lv => `<option value="${esc(lv.id)}">${esc(lv.label)}</option>`).join("");
+    lsel.value = h.levels.some(lv => lv.id === h.default_level) ? h.default_level : h.levels[0].id;
+    document.getElementById("level-row").hidden = h.levels.length < 2;
+    LEVEL = h.levels.find(lv => lv.id === lsel.value);
+    const msel = document.getElementById("haz-measure");
+    msel.innerHTML = ["SA1P0", "SA0P3", "PGA"].filter(k => LEVEL.measures[k]).map(k => `<option value="${k}">${MEASURE_NAMES[k]}</option>`).join("");
+    document.getElementById("haz-note").innerHTML = `${esc(h.site_condition)}. ` + (h.kind === "probabilistic"
+      ? "A hazard map gives the shaking with a set chance of being exceeded at each place. It is not one earthquake."
+      : "The shaking of one earthquake.") + ` <a href="methods.html#hazards" target="_blank" rel="noopener">Source</a>`;
+    controls.hidden = false;
+    refreshHazardViews();
+  }).catch(() => {
+    HAZ = LEVEL = null; controls.hidden = true; refreshHazardViews();
+    document.getElementById("haz-empty").hidden = false;
+    document.getElementById("haz-empty").textContent = "This hazard layer could not be loaded.";
+  });
+}
+
+/* the asset-by-asset table, with its sources and method written at the top */
+const DMG_COLUMNS = ["structure_number","latitude","longitude","county","year_built","hazus_class","design","main_spans","skew_deg","sa10_g","sa03_g","k_skew","k_3d","factor_slight","median_slight_g","median_moderate_g","median_extensive_g","median_complete_g","p_none","p_slight","p_moderate","p_extensive","p_complete","p_extensive_or_complete","most_likely_state"];
+const f4 = v => (v === null || v === undefined) ? "" : v.toFixed(4);
+const csvCell = s => /[",\n]/.test(String(s)) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
+function damageRow(r){
+  const d = DMG.get(r), has = d && d.p;
+  return [r[F.structure_num], r[F.lat].toFixed(5), r[F.lng].toFixed(5), B.counties[r[F.county_i]], r[F.year_built], d.cls, d.design, r[F.spans_main], r[F.skew],
+    has ? f4(d.sa10) : "", has ? f4(d.sa03) : "", f4(d.kskew), f4(d.k3d), has ? f4(d.fslight) : "",
+    ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), has ? f4(d.pext) : "", has ? STATES[d.state] : ""].map(csvCell).join(",");
+}
+function damageCsv(rows, prov){
+  const src = HAZ.source || {}, now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
+  const head = [
+    "ShakeReady bridge damage estimates, asset by asset",
+    `Generated ${now} from ${site}map.html`,
+    `Bridges: ${rows.length} of ${B.rows.length} in the inventory (those shown on the map when the table was made)`,
+    "",
+    `Hazard layer: ${HAZ.title} [${HAZ.id}]`,
+    HAZ.levels.length > 1 ? `Hazard level: ${LEVEL.label}` : null,
+    `Hazard type: ${HAZ.kind === "probabilistic" ? "probabilistic hazard map. Each bridge is evaluated at its own site's hazard level; the rows do not describe one earthquake and should not be added up as if they did" : "scenario, the shaking of one earthquake"}`,
+    `Site condition of the hazard values: ${HAZ.site_condition}`,
+    src.title ? `Hazard source: ${src.title}${src.publisher ? ". " + src.publisher : ""}${src.doi ? ". doi:" + src.doi : ""}${src.url ? ". " + src.url : ""}` : null,
+    HAZ.entry && HAZ.entry.sha256 ? `Hazard file checksum (SHA-256): ${HAZ.entry.sha256}` : null,
+    "",
+    `Inventory: ${B.source}, ${B.state}, ${B.source_year}` + (B.provenance ? `. Source file ${B.provenance.source_file}, SHA-256 ${B.provenance.source_sha256}` : ""),
+    `Fragility set: ${HZ.name}. ${HZ.source}`,
+    `Method: lognormal fragility curves on Sa(1.0 s) with dispersion ${HZ.beta}; class medians adjusted for skew, number of spans and spectral shape; ground motion read at each bridge by bilinear interpolation of the hazard grid`,
+    `Recorded choices in effect: ${(HZ.decisions || []).map(d => d.id).join(", ")}${prov && prov.damage_decisions ? ", " + prov.damage_decisions.map(d => d.id).join(", ") : ""}. Each is explained at ${site}methods.html`,
+    prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
+    "Limits: the curves describe classes of bridges, not individual structures. Seismic retrofits are not reflected. Culverts are included. Only ground shaking is considered.",
+    "",
+    "Columns: sa10_g and sa03_g are spectral accelerations at 1.0 s and 0.3 s at the bridge, in g. k_skew and k_3d are the skew and span factors; factor_slight is the spectral-shape factor applied to the slight median. median_* are the adjusted medians in g. p_* are damage-state probabilities and sum to 1. Blank cells mean the bridge lies outside the hazard layer.",
+  ].filter(l => l !== null).map(l => l === "" ? "#" : "# " + l);
+  return head.concat([DMG_COLUMNS.join(",")], rows.map(damageRow)).join("\n") + "\n";
+}
+function downloadDamage(){
+  if (!damageActive()) return;
+  const rows = filterRows();
+  fetch("data/provenance.json").then(r => r.json()).catch(() => null).then(prov => {
+    const blob = new Blob([damageCsv(rows, prov)], {type: "text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `shakeready_bridge_damage_${HAZ.id}${HAZ.levels.length > 1 ? "_" + LEVEL.id : ""}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+}
+
+map.createPane("hazard"); map.getPane("hazard").style.zIndex = 350; map.getPane("hazard").style.pointerEvents = "none";
+
+/* ---------- startup: the registries say what there is to show ---------- */
+const FALLBACK_REGISTRY = {inventories: [{id: "nbi-bridges", title: "NBI bridges", format: "nbi-rows", file: "data/bridges.json", color: "#F9A03F", visible: true, fragilities: ["hazus-highway-bridges"]}],
+                           fragilities: [{id: "hazus-highway-bridges", title: "HAZUS highway bridges", file: "data/fragility/hazus_highway_bridges.json", method: "hazus-bridges"}]};
 Promise.all([
-  fetch("data/bridges.json").then(r => r.json()),
-  fetch("data/fragility/hazus_highway_bridges.json").then(r => r.json()).catch(() => null)   // the map still works without it
-]).then(([data, frag]) => {
+  fetch("data/registry.json").then(r => r.json()).catch(() => FALLBACK_REGISTRY),
+  fetch("hazards/index.json").then(r => r.json()).catch(() => ({hazards: []}))
+]).then(([reg, hazIndex]) => {
+  REG = reg; HAZINDEX = hazIndex;
+  const bridgeInv = REG.inventories.find(i => i.format === "nbi-rows");
+  const list = document.getElementById("layer-list");
+  for (const inv of REG.inventories){
+    const isBridge = inv === bridgeInv, key = isBridge ? "bridge" : inv.id;
+    const lab = document.createElement("label"); lab.className = "layer";
+    lab.innerHTML = `<input type="checkbox" id="lyr-${esc(key)}"${inv.visible ? " checked" : ""}><span class="chip" style="background:${esc(inv.color)}"></span><span class="lname">${esc(inv.title)}</span><span class="lcount" id="cnt-${esc(key)}">…</span>`;
+    list.appendChild(lab);
+    if (!isBridge && inv.format === "geojson-points") loadBuildingLayer(inv.file, inv.color, "lyr-" + key, "cnt-" + key, inv.visible);
+  }
+  document.getElementById("lyr-bridge").addEventListener("change", e => {
+    if (!bridgeCluster) return;
+    e.target.checked ? map.addLayer(bridgeCluster) : map.removeLayer(bridgeCluster);
+  });
+
+  // fragility sets that apply to the bridges
+  const fsel = document.getElementById("fragility");
+  const sets = (bridgeInv.fragilities || []).map(id => REG.fragilities.find(f => f.id === id)).filter(Boolean);
+  fsel.innerHTML = sets.map(f => `<option value="${esc(f.id)}">${esc(f.title)}</option>`).join("") + `<option value="">None (show shaking only)</option>`;
+
+  // hazard layers
+  const hsel0 = document.getElementById("hazard");
+  for (const h of HAZINDEX.hazards){ const o = document.createElement("option"); o.value = h.id; o.textContent = h.title; hsel0.appendChild(o); }
+  if (!HAZINDEX.hazards.length){ hsel0.disabled = true; document.getElementById("haz-empty").hidden = false; }
+
+  return Promise.all([
+    fetch(bridgeInv.file).then(r => r.json()),
+    sets.length ? fetch(sets[0].file).then(r => r.json()).catch(() => null) : null    // the map still works without it
+  ]);
+}).then(([data, frag]) => {
   B = data; HZ = frag;
   data.fields.forEach((f,i) => F[f] = i);
   const matBox = document.getElementById("materials");
@@ -391,9 +706,23 @@ Promise.all([
     const o = document.createElement("option"); o.value = i; o.textContent = c; sel.appendChild(o);
   });
   renderBridges();
+  renderLegends();
+  const def = HAZINDEX.hazards.find(h => h.default);          // a layer marked as default loads straight away
+  if (def){ document.getElementById("hazard").value = def.id; return selectHazard(def.id); }
 }).catch(() => {
   document.getElementById("bridgecount").textContent = "Bridge data failed to load. Refresh to retry.";
 });
+
+document.getElementById("hazard").addEventListener("change", e => selectHazard(e.target.value));
+document.getElementById("hazlevel").addEventListener("change", e => { LEVEL = HAZ.levels.find(lv => lv.id === e.target.value); refreshHazardViews(); });
+document.getElementById("fragility").addEventListener("change", () => {
+  document.getElementById("damage-controls").hidden = !document.getElementById("fragility").value;
+  refreshHazardViews();
+});
+document.getElementById("dmg-metric").addEventListener("change", () => { renderBridges(); renderLegends(); });
+document.getElementById("haz-show").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
+document.getElementById("haz-measure").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
+document.getElementById("dmg-download").addEventListener("click", downloadDamage);
 
 document.getElementById("apply").addEventListener("click", renderBridges);
 document.getElementById("reset").addEventListener("click", () => {
@@ -401,11 +730,6 @@ document.getElementById("reset").addEventListener("click", () => {
   document.querySelectorAll("#materials input, #conds input").forEach(b => b.checked = false);
   renderBridges();
 });
-document.getElementById("lyr-bridge").addEventListener("change", e => {
-  if (!bridgeCluster) return;
-  e.target.checked ? map.addLayer(bridgeCluster) : map.removeLayer(bridgeCluster);
-});
-
 /* ---------- building layers ---------- */
 const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num"]);
 function buildingPopup(props, coords){
@@ -426,24 +750,21 @@ function buildingPopup(props, coords){
   return html;
 }
 
-function loadBuildingLayer(file, color, checkboxId, countId){
+function loadBuildingLayer(file, color, checkboxId, countId, visible){
   const layer = L.geoJSON(null, {
     pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius:7, color:"#13202E", weight:1.5, fillColor:color, fillOpacity:.9}),
     onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties, f.geometry && f.geometry.coordinates), {maxWidth:280})
   });
-  fetch("data/" + file).then(r => r.json()).then(gj => {
+  fetch(file).then(r => r.json()).then(gj => {
     layer.addData(gj);
     document.getElementById(countId).textContent = fmt(gj.features.filter(f => f.geometry).length);
   }).catch(() => { document.getElementById(countId).textContent = "—"; });
   document.getElementById(checkboxId).addEventListener("change", e => {
     e.target.checked ? map.addLayer(layer) : map.removeLayer(layer);
   });
+  if (visible) map.addLayer(layer);
   return layer;
 }
-loadBuildingLayer("instrumented_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-instr").trim(), "lyr-instr", "cnt-instr");
-loadBuildingLayer("instrumented_nonductile_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-nond").trim(), "lyr-nond", "cnt-nond");
-loadBuildingLayer("latimes_concrete_buildings.geojson", getComputedStyle(document.documentElement).getPropertyValue("--c-lat").trim(), "lyr-lat", "cnt-lat");
-
 /* ---------- mobile panel ---------- */
 const panel = document.getElementById("panel");
 document.getElementById("panel-toggle").addEventListener("click", () => panel.classList.toggle("open"));

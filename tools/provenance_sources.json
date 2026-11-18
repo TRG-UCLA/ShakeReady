@@ -51,47 +51,169 @@
   }
  },
  "datasets": [
-  {"id": "nbi-bridges", "title": "NBI bridges, California, 2025", "files": ["data/bridges.json", "data/nbi_bridges.csv"],
-   "source": "nbi-2025-ca", "script": "tools/build_bridges.py",
+  {
+   "id": "nbi-bridges",
+   "title": "NBI bridges, California, 2025",
+   "files": [
+    "data/bridges.json",
+    "data/nbi_bridges.csv"
+   ],
+   "source": "nbi-2025-ca",
+   "script": "tools/build_bridges.py",
    "processing": [
     "Read the comma-delimited file (single quote as text qualifier). All 25,975 records are of record type 1, the route carried on the structure, and all are kept.",
     "Convert latitude (Item 16) and longitude (Item 17) from packed degrees, minutes and seconds to decimal degrees; west longitude is made negative.",
     "Decode material and design codes (Item 43 for the main spans, Item 44 for approach spans) and county codes (Item 3) to names.",
     "Carry over year built and reconstructed, lanes, traffic, span counts and lengths, skew and condition ratings as recorded.",
     "Assign each record its HAZUS highway bridge class (see the fragility set)."
-   ]},
-  {"id": "instrumented-buildings", "title": "Instrumented buildings", "files": ["data/instrumented_buildings.geojson"],
-   "source": "kmz-instrumented", "script": "One-time conversion from KML to GeoJSON, November 2026",
-   "processing": ["Unpack the KMZ and read each placemark's name, coordinates and attribute table.", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
-  {"id": "instrumented-nonductile", "title": "Instrumented non-ductile buildings", "files": ["data/instrumented_nonductile_buildings.geojson"],
-   "source": "kmz-nonductile", "script": "One-time conversion from KML to GeoJSON, November 2026",
-   "processing": ["Unpack the KMZ and read each placemark's name and attribute table.", "Take each building's position from its Latitude and Longitude attributes (see decision BLD-02).", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
-  {"id": "latimes-concrete", "title": "LA Times concrete buildings", "files": ["data/latimes_concrete_buildings.geojson"],
-   "source": "kmz-latimes", "script": "One-time conversion from KML to GeoJSON, November 2026",
-   "processing": ["Unpack the KMZ and read each placemark's name, coordinates and attribute table.", "Write one GeoJSON point per placemark with every attribute carried over unchanged."]},
-  {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges (fragility set)", "files": ["data/fragility/hazus_highway_bridges.json"],
-   "source": "hazus-6.1", "script": "tools/hazus_bridges.py",
-   "processing": ["Transcribe the classification scheme (Table 7-1), the K3D coefficients (Table 7-2) and the median values (Table 7-6).", "Implement Equations 7-1 to 7-4 and the damage algorithm for ground shaking.", "Record every choice made where the manual is silent or inconsistent (decisions HZ-01 to HZ-11)."]}
+   ]
+  },
+  {
+   "id": "instrumented-buildings",
+   "title": "Instrumented buildings",
+   "files": [
+    "data/instrumented_buildings.geojson"
+   ],
+   "source": "kmz-instrumented",
+   "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": [
+    "Unpack the KMZ and read each placemark's name, coordinates and attribute table.",
+    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
+   ]
+  },
+  {
+   "id": "instrumented-nonductile",
+   "title": "Instrumented non-ductile buildings",
+   "files": [
+    "data/instrumented_nonductile_buildings.geojson"
+   ],
+   "source": "kmz-nonductile",
+   "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": [
+    "Unpack the KMZ and read each placemark's name and attribute table.",
+    "Take each building's position from its Latitude and Longitude attributes (see decision BLD-02).",
+    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
+   ]
+  },
+  {
+   "id": "latimes-concrete",
+   "title": "LA Times concrete buildings",
+   "files": [
+    "data/latimes_concrete_buildings.geojson"
+   ],
+   "source": "kmz-latimes",
+   "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "processing": [
+    "Unpack the KMZ and read each placemark's name, coordinates and attribute table.",
+    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
+   ]
+  },
+  {
+   "id": "hazus-highway-bridges",
+   "title": "HAZUS highway bridges (fragility set)",
+   "files": [
+    "data/fragility/hazus_highway_bridges.json"
+   ],
+   "source": "hazus-6.1",
+   "script": "tools/hazus_bridges.py",
+   "processing": [
+    "Transcribe the classification scheme (Table 7-1), the K3D coefficients (Table 7-2) and the median values (Table 7-6).",
+    "Implement Equations 7-1 to 7-4 and the damage algorithm for ground shaking.",
+    "Record every choice made where the manual is silent or inconsistent (decisions HZ-01 to HZ-11)."
+   ]
+  }
  ],
  "inventory_decisions": [
-  {"id": "NBI-01", "topic": "Which records are included", "choice": "All records in the FHWA highway-bridge file are included.", "basis": "The file holds only record type 1 (the route carried on the structure), so no record is a duplicate view of another."},
-  {"id": "NBI-02", "topic": "Records without a usable location", "choice": "A record is placed on the map only if its coordinates fall inside a bounding box around California (32.0 to 42.1 north, 124.6 to 114.0 west). Other records are listed in the CSV without coordinates.", "basis": "Guards against missing or mistyped coordinates in the source."},
-  {"id": "NBI-03", "topic": "Approach spans", "choice": "When a bridge has no approach spans (Item 46 is zero), its approach material and design are shown as None.", "basis": "The source codes these as 'other', which reads as if a material were present."},
-  {"id": "NBI-04", "topic": "Year reconstructed", "choice": "A value of zero in Item 106 means the bridge has not been reconstructed.", "basis": "NBI coding."},
-  {"id": "NBI-05", "topic": "Names of what a bridge carries and crosses", "choice": "Item 7 (facility carried) and Item 6A (feature intersected) are shown as recorded, with repeated spaces removed.", "basis": "No spelling or capitalization is changed, so the text can be matched to the source."},
-  {"id": "BLD-01", "topic": "Building attributes", "choice": "Every attribute in the original files is carried over unchanged.", "basis": "The building layers are an archive of the original team's work, not a new compilation."},
-  {"id": "BLD-02", "topic": "Positions of the six non-ductile buildings", "choice": "Their positions are taken from the Latitude and Longitude attributes in the file (for example '34.0488 N' and '118.2595 W'), with west made negative.", "basis": "The original file stored only street addresses for these six, which the original map service located on the fly."},
-  {"id": "BLD-03", "topic": "The earlier bridge snapshot", "choice": "The bridge data from the original site (about 2016, 25,431 records) is archived and no longer shown.", "basis": "Replaced by the 2025 file. The earlier snapshot lacked span counts and condition ratings, and 60 of its records had no coordinates."}
+  {
+   "id": "NBI-01",
+   "topic": "Which records are included",
+   "choice": "All records in the FHWA highway-bridge file are included.",
+   "basis": "The file holds only record type 1 (the route carried on the structure), so no record is a duplicate view of another."
+  },
+  {
+   "id": "NBI-02",
+   "topic": "Records without a usable location",
+   "choice": "A record is placed on the map only if its coordinates fall inside a bounding box around California (32.0 to 42.1 north, 124.6 to 114.0 west). Other records are listed in the CSV without coordinates.",
+   "basis": "Guards against missing or mistyped coordinates in the source."
+  },
+  {
+   "id": "NBI-03",
+   "topic": "Approach spans",
+   "choice": "When a bridge has no approach spans (Item 46 is zero), its approach material and design are shown as None.",
+   "basis": "The source codes these as 'other', which reads as if a material were present."
+  },
+  {
+   "id": "NBI-04",
+   "topic": "Year reconstructed",
+   "choice": "A value of zero in Item 106 means the bridge has not been reconstructed.",
+   "basis": "NBI coding."
+  },
+  {
+   "id": "NBI-05",
+   "topic": "Names of what a bridge carries and crosses",
+   "choice": "Item 7 (facility carried) and Item 6A (feature intersected) are shown as recorded, with repeated spaces removed.",
+   "basis": "No spelling or capitalization is changed, so the text can be matched to the source."
+  },
+  {
+   "id": "BLD-01",
+   "topic": "Building attributes",
+   "choice": "Every attribute in the original files is carried over unchanged.",
+   "basis": "The building layers are an archive of the original team's work, not a new compilation."
+  },
+  {
+   "id": "BLD-02",
+   "topic": "Positions of the six non-ductile buildings",
+   "choice": "Their positions are taken from the Latitude and Longitude attributes in the file (for example '34.0488 N' and '118.2595 W'), with west made negative.",
+   "basis": "The original file stored only street addresses for these six, which the original map service located on the fly."
+  },
+  {
+   "id": "BLD-03",
+   "topic": "The earlier bridge snapshot",
+   "choice": "The bridge data from the original site (about 2016, 25,431 records) is archived and no longer shown.",
+   "basis": "Replaced by the 2025 file. The earlier snapshot lacked span counts and condition ratings, and 60 of its records had no coordinates."
+  }
  ],
  "verification": [
-  {"check": "Record count against FHWA", "result": "25,975 records read, equal to the count FHWA publishes for California in 2025."},
-  {"check": "Locations against the earlier snapshot", "result": "For the 24,415 bridges present in both the 2025 file and the earlier snapshot, 95% of locations agree to within about 6 meters and 99% have the same year built."},
-  {"check": "A known structure", "result": "The longest span in the file is the Golden Gate Bridge at 1,280.2 m, the correct value."},
-  {"check": "Transcription of the HAZUS tables", "result": "A script compared the transcribed values with the text of the manual: all 28 sets of medians match, as do the K3D equation, I-shape value and design era of the 27 classes that have them."},
-  {"check": "Classification rules", "result": "The classification function returns the class given in every row of Table 7-1."},
-  {"check": "The manual's worked example", "result": "Reproduced: class HWB17, K3D = 1.125, and damage-state probabilities 0.183, 0.205, 0.165, 0.255, 0.192 against the manual's rounded 0.18, 0.20, 0.16, 0.26, 0.20."},
-  {"check": "The map against the reference code", "result": "For 425 sampled bridges, covering every class present, the adjusted medians computed in the browser equal those of the reference code to rounding error."},
-  {"check": "Map filters", "result": "Each filter tested returns the same number of bridges as an independent count from the data file."}
+  {
+   "check": "Record count against FHWA",
+   "result": "25,975 records read, equal to the count FHWA publishes for California in 2025."
+  },
+  {
+   "check": "Locations against the earlier snapshot",
+   "result": "For the 24,415 bridges present in both the 2025 file and the earlier snapshot, 95% of locations agree to within about 6 meters and 99% have the same year built."
+  },
+  {
+   "check": "A known structure",
+   "result": "The longest span in the file is the Golden Gate Bridge at 1,280.2 m, the correct value."
+  },
+  {
+   "check": "Transcription of the HAZUS tables",
+   "result": "A script compared the transcribed values with the text of the manual: all 28 sets of medians match, as do the K3D equation, I-shape value and design era of the 27 classes that have them."
+  },
+  {
+   "check": "Classification rules",
+   "result": "The classification function returns the class given in every row of Table 7-1."
+  },
+  {
+   "check": "The manual's worked example",
+   "result": "Reproduced: class HWB17, K3D = 1.125, and damage-state probabilities 0.183, 0.205, 0.165, 0.255, 0.192 against the manual's rounded 0.18, 0.20, 0.16, 0.26, 0.20."
+  },
+  {
+   "check": "The map against the reference code",
+   "result": "For 425 sampled bridges, covering every class present, the adjusted medians computed in the browser equal those of the reference code to rounding error."
+  },
+  {
+   "check": "Map filters",
+   "result": "Each filter tested returns the same number of bridges as an independent count from the data file."
+  },
+  {
+   "check": "Damage calculation against an independent implementation",
+   "result": "The table produced by the map was compared with the one produced by separate reference code (tools/damage_reference.py), using made-up test layers that are not published: a hazard map at two probability levels and a scenario. For all 25,974 bridges the two tables are identical, character for character."
+  },
+  {
+   "check": "Summary and download",
+   "result": "The expected counts shown on the map equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
+  }
  ],
  "limits": [
   "The HAZUS curves describe classes of bridges, not individual structures. They suit screening an inventory, not conclusions about one bridge.",
@@ -100,5 +222,55 @@
   "Only ground shaking is considered. Liquefaction, landslide and fault-rupture displacement are not (decision HZ-08).",
   "NBI values are as submitted by the owning agencies. No value has been corrected.",
   "The building layers date from 2017 and have not been updated."
+ ],
+ "damage_decisions": [
+  {
+   "id": "DMG-01",
+   "topic": "Ground motion at an asset",
+   "choice": "The value at an asset is found by bilinear interpolation between the four grid nodes around it.",
+   "basis": "Hazard layers are grids; assets lie between nodes. Bilinear interpolation is the simplest method that varies smoothly and adds no information of its own."
+  },
+  {
+   "id": "DMG-02",
+   "topic": "Nodes without a value",
+   "choice": "A node without a value is left out and the remaining nodes' weights are rescaled. An asset outside the grid, or with no valid node around it, gets no estimate and is listed with blank cells.",
+   "basis": "Avoids inventing ground motion where the layer has none, such as offshore or beyond the edge of a scenario."
+  },
+  {
+   "id": "DMG-03",
+   "topic": "Site condition",
+   "choice": "A layer's values are used as published. No further adjustment is made for the soil at each asset.",
+   "basis": "Each layer states the ground condition its values assume. If that is a uniform reference condition, shaking on softer ground is understated, and so is damage there."
+  },
+  {
+   "id": "DMG-04",
+   "topic": "Order of the damage states",
+   "choice": "The probability of reaching a more severe state is not allowed to exceed that of a milder one.",
+   "basis": "After the manual's adjustments, the median for a more severe state can fall at or below that of a milder one (for example where a class has equal medians for two states). Without this rule a state could receive a negative probability."
+  },
+  {
+   "id": "DMG-05",
+   "topic": "Results from a probabilistic hazard map",
+   "choice": "Each asset is evaluated at its own site's ground motion for the chosen probability level.",
+   "basis": "A hazard map does not describe one earthquake: its values would not all occur together. Results are therefore per asset. Totals across assets are shown as a description of the inventory, not as the loss from an event."
+  },
+  {
+   "id": "DMG-06",
+   "topic": "Expected number in each damage state",
+   "choice": "The expected number of assets in a state is the sum of their probabilities of being in that state.",
+   "basis": "Standard for expected counts. It carries the caution in DMG-05 when the layer is probabilistic."
+  },
+  {
+   "id": "DMG-07",
+   "topic": "Most likely damage state",
+   "choice": "The state with the highest probability. A tie goes to the milder state.",
+   "basis": "A single label per asset is useful on a map, but it hides the spread. The five probabilities are always given alongside it."
+  },
+  {
+   "id": "DMG-08",
+   "topic": "Rounding in the table",
+   "choice": "Values are given to four decimal places, an exact half rounded up. Coordinates are given to five.",
+   "basis": "Stated so that the table can be reproduced exactly by the reference code."
+  }
  ]
 }

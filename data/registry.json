@@ -1,0 +1,12 @@
+{
+ "about": "What the ShakeReady map can show. Add or remove an inventory by editing this list. Hazard layers are listed separately in hazards/index.json.",
+ "inventories": [
+  {"id": "nbi-bridges", "title": "NBI bridges", "format": "nbi-rows", "file": "data/bridges.json", "color": "#F9A03F", "visible": true, "fragilities": ["hazus-highway-bridges"]},
+  {"id": "instrumented-buildings", "title": "Instrumented buildings", "format": "geojson-points", "file": "data/instrumented_buildings.geojson", "color": "#3D9BE9", "visible": false, "fragilities": []},
+  {"id": "instrumented-nonductile", "title": "Instrumented non-ductile", "format": "geojson-points", "file": "data/instrumented_nonductile_buildings.geojson", "color": "#9B6DE0", "visible": false, "fragilities": []},
+  {"id": "latimes-concrete", "title": "LA Times concrete buildings", "format": "geojson-points", "file": "data/latimes_concrete_buildings.geojson", "color": "#E05252", "visible": false, "fragilities": []}
+ ],
+ "fragilities": [
+  {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges", "file": "data/fragility/hazus_highway_bridges.json", "method": "hazus-bridges"}
+ ]
+}

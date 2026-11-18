@@ -12,6 +12,10 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `tools/hazus_bridges.py` — HAZUS highway bridge classes and fragility curves; run it to self-test and write the fragility file
 - `data/fragility/hazus_highway_bridges.json` — the HAZUS fragility set, with its source and recorded decisions
 - `methods.html` — methods and provenance, drawn from `data/provenance.json`
+- `data/registry.json` — the inventories and fragility sets the map offers; edit it to add or remove an inventory
+- `hazards/` — the hazard-layer repository: `index.json`, one file per layer, and a README with the format and how to submit
+- `tools/hazard_grid.py`, `tools/build_hazard_nshm.py`, `tools/validate_hazard.py` — the hazard file format, the USGS converter, and the checker
+- `tools/damage_reference.py` — independent reference calculation of the bridge damage table
 - `tools/build_provenance.py` and `tools/provenance_sources.json` — write the provenance record; rerun after rebuilding any data file
 - `tools/build_hero.py` — draws the home-page hero artwork into `index.html` (needs numpy, scipy, contourpy)
 - `data/nbi_bridges.csv` — all 25,975 bridge records as a labeled, spreadsheet-friendly table

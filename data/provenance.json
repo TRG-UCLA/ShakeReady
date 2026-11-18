@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-17T05:49:27Z",
+ "generated_utc": "2026-11-18T05:56:03Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "14ef4e8a92994a0d80d7c4ab52d9ea9babbd598e",
+ "code_version": "27b6679a65e919eeb48f3f1d77ac72e26b5b4b54",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
@@ -298,6 +298,57 @@
    "basis": "Replaced by the 2025 file. The earlier snapshot lacked span counts and condition ratings, and 60 of its records had no coordinates."
   }
  ],
+ "damage_decisions": [
+  {
+   "id": "DMG-01",
+   "topic": "Ground motion at an asset",
+   "choice": "The value at an asset is found by bilinear interpolation between the four grid nodes around it.",
+   "basis": "Hazard layers are grids; assets lie between nodes. Bilinear interpolation is the simplest method that varies smoothly and adds no information of its own."
+  },
+  {
+   "id": "DMG-02",
+   "topic": "Nodes without a value",
+   "choice": "A node without a value is left out and the remaining nodes' weights are rescaled. An asset outside the grid, or with no valid node around it, gets no estimate and is listed with blank cells.",
+   "basis": "Avoids inventing ground motion where the layer has none, such as offshore or beyond the edge of a scenario."
+  },
+  {
+   "id": "DMG-03",
+   "topic": "Site condition",
+   "choice": "A layer's values are used as published. No further adjustment is made for the soil at each asset.",
+   "basis": "Each layer states the ground condition its values assume. If that is a uniform reference condition, shaking on softer ground is understated, and so is damage there."
+  },
+  {
+   "id": "DMG-04",
+   "topic": "Order of the damage states",
+   "choice": "The probability of reaching a more severe state is not allowed to exceed that of a milder one.",
+   "basis": "After the manual's adjustments, the median for a more severe state can fall at or below that of a milder one (for example where a class has equal medians for two states). Without this rule a state could receive a negative probability."
+  },
+  {
+   "id": "DMG-05",
+   "topic": "Results from a probabilistic hazard map",
+   "choice": "Each asset is evaluated at its own site's ground motion for the chosen probability level.",
+   "basis": "A hazard map does not describe one earthquake: its values would not all occur together. Results are therefore per asset. Totals across assets are shown as a description of the inventory, not as the loss from an event."
+  },
+  {
+   "id": "DMG-06",
+   "topic": "Expected number in each damage state",
+   "choice": "The expected number of assets in a state is the sum of their probabilities of being in that state.",
+   "basis": "Standard for expected counts. It carries the caution in DMG-05 when the layer is probabilistic."
+  },
+  {
+   "id": "DMG-07",
+   "topic": "Most likely damage state",
+   "choice": "The state with the highest probability. A tie goes to the milder state.",
+   "basis": "A single label per asset is useful on a map, but it hides the spread. The five probabilities are always given alongside it."
+  },
+  {
+   "id": "DMG-08",
+   "topic": "Rounding in the table",
+   "choice": "Values are given to four decimal places, an exact half rounded up. Coordinates are given to five.",
+   "basis": "Stated so that the table can be reproduced exactly by the reference code."
+  }
+ ],
+ "hazard_layers": [],
  "hazus_class_counts": {
   "HWB1": 15,
   "HWB2": 9,
@@ -355,6 +406,14 @@
   {
    "check": "Map filters",
    "result": "Each filter tested returns the same number of bridges as an independent count from the data file."
+  },
+  {
+   "check": "Damage calculation against an independent implementation",
+   "result": "The table produced by the map was compared with the one produced by separate reference code (tools/damage_reference.py), using made-up test layers that are not published: a hazard map at two probability levels and a scenario. For all 25,974 bridges the two tables are identical, character for character."
+  },
+  {
+   "check": "Summary and download",
+   "result": "The expected counts shown on the map equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
   }
  ],
  "limits": [
