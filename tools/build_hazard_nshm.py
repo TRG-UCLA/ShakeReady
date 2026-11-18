@@ -14,7 +14,7 @@ Usage:
 The output is cropped to a box around California and written to hazards/<id>.json. The layer is
 then listed in hazards/index.json.
 """
-import argparse, csv, datetime, hashlib, json, os, sys
+import argparse, csv, datetime, hashlib, json, math, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hazard_grid
@@ -111,7 +111,7 @@ def main():
             arr = [NODATA] * (nlat * nlon)
             for (la, lo), v in d[rp].items():
                 j = int(round((la - lats[0]) / dlat)); i = int(round((lo - lons[0]) / dlon))
-                arr[j * nlon + i] = int(round(v / SCALE))
+                arr[j * nlon + i] = int(math.floor(v / SCALE + 0.5))      # a half rounds up, as in HazardMaker
             measures[m] = arr
         levels.append({'id': f'rp{rp}', 'label': f'{rp:,}-year return period' + (f' ({LEVEL_INFO[rp]})' if rp in LEVEL_INFO else ''),
                        'return_period_years': rp, 'measures': measures})

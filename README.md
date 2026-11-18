@@ -13,6 +13,8 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `data/fragility/hazus_highway_bridges.json` — the HAZUS fragility set, with its source and recorded decisions
 - `methods.html` — methods and provenance, drawn from `data/provenance.json`
 - `data/registry.json` — the inventories and fragility sets the map offers; edit it to add or remove an inventory
+- `hazardmaker/` — HazardMaker, the sub-app that converts ground-motion files into hazard layers (`index.html`, `hazardmaker.js`)
+- `assets/hazard-common.js` — hazard-layer code shared by the map and HazardMaker
 - `hazards/` — the hazard-layer repository: `index.json`, one file per layer, and a README with the format and how to submit
 - `tools/hazard_grid.py`, `tools/build_hazard_nshm.py`, `tools/validate_hazard.py` — the hazard file format, the USGS converter, and the checker
 - `tools/damage_reference.py` — independent reference calculation of the bridge damage table

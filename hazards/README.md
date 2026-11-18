@@ -31,11 +31,15 @@ Spectral accelerations are 5% damped.
 
 ## Submitting a layer
 
-1. Convert your ground motions to the format above. `tools/build_hazard_nshm.py` converts USGS hazard-map
-   files and can serve as a model for other converters.
+1. Convert your ground motions to the format above. The easiest way is **HazardMaker**, a page of the
+   ShakeReady site (`/hazardmaker/`). It reads USGS hazard-model files, USGS ShakeMap `grid.xml` files and
+   plain tables of points on a regular grid, asks for the layer's source, checks the result, previews it,
+   and gives you the layer file and its index entry. Nothing is uploaded: files are read in your browser.
+   `tools/build_hazard_nshm.py` does the USGS hazard-model conversion from the command line.
 2. Run `python3 tools/validate_hazard.py hazards/<your-file>.json`. It checks the structure, units and
    coverage, and prints the checksum.
-3. Add an entry for the layer to `index.json` (id, title, kind, file, site condition, levels, source, checksum).
+3. Add an entry for the layer to `index.json` (id, title, kind, file, site condition, levels, source,
+   checksum). HazardMaker writes this entry for you.
 4. Open a pull request on the ShakeReady repository with the file and the index entry, or send both to
    the maintainers. Say how the ground motions were produced: the earthquake, the method or model, the site
    condition, and who to contact.

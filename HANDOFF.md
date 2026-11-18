@@ -122,16 +122,27 @@ The owner's rule: anyone using results from this site must be able to tell where
   probabilities, colors the bridges, shows expected counts, and offers the asset-by-asset table for
   download with its provenance in the header. `tools/damage_reference.py` is an independent
   implementation; the map's table matched it exactly for all bridges on made-up test layers.
+- **HazardMaker** (`hazardmaker/`) is a sub-app that makes hazard layers in the browser. Converters:
+  USGS hazard-model files (an archive or its `map.csv` tables; reads only the members it needs from a
+  large zip, ZIP64 included), USGS ShakeMap `grid.xml` (units read from the file), and tables of points on
+  a regular grid. It requires a stated source, checks and previews the layer, downloads the layer file and
+  its index entry, and can keep a layer in the browser (IndexedDB) for use on the map as an unpublished,
+  clearly marked local layer. `assets/hazard-common.js` holds the code shared with the map.
+  `hazardmaker.js` mirrors `tools/build_hazard_nshm.py`: the two were checked to produce identical layers,
+  so change them together. **Next for HazardMaker, as agreed with the owner: a scenario builder** that
+  computes shaking from an earthquake description with a ground-motion model. Models must be implemented
+  from published coefficients and checked against an established implementation, and the owner chooses
+  which models.
 - **Never publish a made-up hazard layer.** Test layers are generated in a scratch copy of the site and
   thrown away. Anything in `hazards/` is public and will be taken as real.
 - **To add the first real layer (USGS National Seismic Hazard Model, CONUS 2023.R2, doi:10.5066/P14VGAV4):**
-  the owner downloads the site class BC archive (about 1.9 GB) and supplies the `map.csv` files for SA1P0,
-  SA0P3 and PGA. Run `tools/build_hazard_nshm.py` with a source record, then `tools/validate_hazard.py`,
-  then `tools/build_provenance.py`. The converter was tested on files of the expected shape, not yet on
+  the owner downloads the site class BC archive (about 1.9 GB) and drops it on HazardMaker, which reads the
+  three tables it needs and produces the layer file and index entry. Add both to `hazards/`, run
+  `tools/validate_hazard.py`, then `tools/build_provenance.py`. The converter was tested on files of the expected shape, not yet on
   the real ones: check the column names when they arrive.
 - **Open choices for the owner:** start with the reference site condition (Vs30 = 760 m/s) or go straight
   to site-specific values; which hazard level loads by default (975 years was suggested).
-- **Still to build:** a converter for USGS ShakeMap grids (scenarios); site amplification from a Vs30 map;
+- **Still to build:** HazardMaker's scenario builder; site amplification from a Vs30 map;
   fragility sets for the building inventories; ground-failure damage.
 - Results from a probabilistic hazard map are per-site and must not be presented as the loss from one
   earthquake. The map and the download both say so.
