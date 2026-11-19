@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — ShakeReady</title>
+<title>Regional analysis — ShakeReady</title>
 <meta name="description" content="The ShakeReady dashboard: California bridges and instrumented buildings on a map, with hazard layers and bridge damage estimates.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M5.3 19.6 L5.6 19.6 L6 19.7 L6.4 19.7 L6.8 19.8 L7.1 20 L7.5 20.2 L7.9 20.4 L8.2 20.8 L8.6 21.2 L9 21.7 L9.3 22.3 L9.7 22.9 L10.1 23.6 L10.4 24.3 L10.8 24.8 L11.2 25.2 L11.6 25.2 L11.9 25 L12.3 24.3 L12.7 23.1 L13 21.4 L13.4 19.4 L13.8 17 L14.2 14.6 L14.5 12.1 L14.9 10 L15.3 8.2 L15.6 7.1 L16 6.7 L16.4 7.1 L16.7 8.2 L17.1 10 L17.5 12.1 L17.9 14.6 L18.2 17 L18.6 19.4 L19 21.4 L19.3 23.1 L19.7 24.3 L20.1 25 L20.4 25.2 L20.8 25.2 L21.2 24.8 L21.5 24.3 L21.9 23.6 L22.3 22.9 L22.7 22.3 L23 21.7 L23.4 21.2 L23.8 20.8 L24.1 20.4 L24.5 20.2 L24.9 20 L25.2 19.8 L25.6 19.7 L26 19.7 L26.4 19.6 L26.7 19.6' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,6 +99,20 @@ footer a{color:var(--muted)}
 .legend .ticks{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
 .legend .sw{display:flex;flex-wrap:wrap;gap:4px 10px}
 .legend .sw span{display:inline-flex;align-items:center;gap:5px}
+.tabs{display:flex;position:sticky;top:0;z-index:5;background:var(--ink);border-bottom:1px solid var(--line)}
+.tab{flex:1 1 0;min-width:0;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:inherit;padding:11px 6px 8px;cursor:pointer;text-align:center}
+.tab b{display:block;font-size:14px;font-weight:600}
+.tab-sub{display:block;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab:hover{color:var(--paper)}
+.tab[aria-selected="true"]{color:var(--paper);border-bottom-color:var(--amber)}
+.tab[aria-selected="true"] .tab-sub{color:var(--amber)}
+.tab:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
+.linklike{background:none;border:0;padding:0;font:inherit;color:var(--amber);text-decoration:underline;cursor:pointer}
+.map-legend{background:rgba(255,255,255,.94);border-radius:6px;padding:8px 10px;font:12px/1.35 Archivo,system-ui,sans-serif;color:#22303C;box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:230px}
+.map-legend .legend-title{color:#22303C;font-weight:600;margin-bottom:5px}
+.map-legend .sw{display:flex;flex-direction:column;gap:3px}
+.map-legend .sw span{display:flex;align-items:center;gap:7px}
+.map-legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.35);flex:none}
 .legend-note{margin-top:6px;line-height:1.4}
 .legend-title{color:var(--paper);font-weight:600;margin-bottom:6px}
 .legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
@@ -137,10 +151,10 @@ footer a{color:var(--muted)}
 <body>
 <nav class="site-nav"><div class="inner">
   <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
-  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html" aria-current="page">Dashboard</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html" aria-current="page">Regional analysis</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
 </div></nav>
 <div id="app">
-  <nav id="panel" aria-label="Map controls">
+  <nav id="panel" aria-label="Dashboard controls">
     <header>
       <p class="tagline" style="margin-top:0">California's bridges and instrumented buildings on one map, with the shaking they may face and the damage it could do.</p>
       <svg class="trace" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true">
@@ -148,48 +162,16 @@ footer a{color:var(--muted)}
       </svg>
     </header>
 
-    <section>
-      <h2>Layers</h2>
-      <div id="layer-list"></div>
-    </section>
+    <div class="tabs" role="tablist" aria-label="Sections of the dashboard">
+      <button role="tab" class="tab" id="tab-inventory" aria-controls="pane-inventory" aria-selected="true"><b>Inventory</b><span class="tab-sub" id="tabsub-inventory">&nbsp;</span></button>
+      <button role="tab" class="tab" id="tab-hazard" aria-controls="pane-hazard" aria-selected="false" tabindex="-1"><b>Hazard</b><span class="tab-sub" id="tabsub-hazard">None</span></button>
+      <button role="tab" class="tab" id="tab-damage" aria-controls="pane-damage" aria-selected="false" tabindex="-1"><b>Damage</b><span class="tab-sub" id="tabsub-damage">Needs a hazard</span></button>
+    </div>
 
-    <section id="hazard-section">
-      <h2>Hazard and damage</h2>
-      <div class="frow"><label for="hazard">Hazard layer</label>
-        <select id="hazard"><option value="">None</option></select>
-        <input type="file" id="hazard-file" accept=".json,application/json" hidden></div>
-      <p class="haz-note" id="haz-empty" hidden>No hazard layer has been published yet. When one is, it will be listed here, and the dashboard will estimate damage for every bridge.</p>
-      <p class="haz-note" id="haz-file-msg" hidden></p>
-      <p class="haz-note">Have ground motions of your own? <a href="hazardmaker/">Make a layer with SR-HazardMaker</a>, or choose “Use a layer file from my computer” in the menu.</p>
-      <div id="hazard-controls" hidden>
-        <div class="frow" id="level-row"><label for="hazlevel">Hazard level</label><select id="hazlevel"></select></div>
-        <p class="haz-note" id="haz-note"></p>
-        <label class="layer"><input type="checkbox" id="haz-show" checked><span class="lname">Show shaking on the map</span></label>
-        <label class="layer" id="haz-fault-row" hidden><input type="checkbox" id="haz-fault" checked><span class="lname" id="haz-fault-label">Show the fault</span></label>
-        <p class="haz-note" id="haz-fault-note" hidden></p>
-        <div class="frow"><label for="haz-measure">Shaking measure shown</label><select id="haz-measure"></select></div>
-        <div class="legend" id="haz-legend"></div>
-        <div class="frow"><label for="fragility">Fragility set for bridges</label><select id="fragility"></select></div>
-        <div id="damage-controls">
-          <div class="frow"><label for="dmg-metric">Color bridges by</label>
-            <select id="dmg-metric">
-              <option value="pex">Probability of reaching a damage state</option>
-              <option value="state">Likely damage state (at least a 50% chance of this or worse)</option>
-              <option value="sa10">Shaking at the bridge, Sa(1.0 s)</option>
-            </select></div>
-          <div class="frow" id="dmg-state-row"><label for="dmg-state">Damage state to map</label>
-            <select id="dmg-state">
-              <option value="1">Slight or worse (any damage)</option>
-              <option value="2">Moderate or worse</option>
-              <option value="3" selected>Extensive or worse</option>
-              <option value="4">Complete</option>
-            </select></div>
-          <div class="legend" id="dmg-legend"></div>
-          <div id="dmg-summary"></div>
-          <div class="actions"><button class="btn-apply" id="dmg-download">Download damage table (CSV)</button></div>
-          <p class="haz-note">The table covers the bridges currently shown and carries its sources and method. <a href="methods.html#damage" target="_blank" rel="noopener">How damage is estimated</a></p>
-        </div>
-      </div>
+    <div class="pane" id="pane-inventory" role="tabpanel" aria-labelledby="tab-inventory">
+    <section>
+      <h2>Inventories shown</h2>
+      <div id="layer-list"></div>
     </section>
 
     <section>
@@ -237,6 +219,58 @@ footer a{color:var(--muted)}
       </div>
       <p id="bridgecount"></p>
     </section>
+    </div>
+
+    <div class="pane" id="pane-hazard" role="tabpanel" aria-labelledby="tab-hazard" hidden>
+    <section id="hazard-section">
+      <h2>Hazard layer</h2>
+      <div class="frow"><label for="hazard">Hazard layer</label>
+        <select id="hazard"><option value="">None</option></select>
+        <input type="file" id="hazard-file" accept=".json,application/json" hidden></div>
+      <p class="haz-note" id="haz-empty" hidden>No hazard layer has been published yet. When one is, it will be listed here, and the dashboard will estimate damage for every bridge.</p>
+      <p class="haz-note" id="haz-file-msg" hidden></p>
+      <p class="haz-note">Have ground motions of your own? <a href="hazardmaker/">Make a layer with SR-HazardMaker</a>, or choose “Use a layer file from my computer” in the menu.</p>
+      <div id="hazard-controls" hidden>
+        <div class="frow" id="level-row"><label for="hazlevel">Hazard level</label><select id="hazlevel"></select></div>
+        <p class="haz-note" id="haz-note"></p>
+        <label class="layer"><input type="checkbox" id="haz-show" checked><span class="lname">Show shaking on the map</span></label>
+        <label class="layer" id="haz-fault-row" hidden><input type="checkbox" id="haz-fault" checked><span class="lname" id="haz-fault-label">Show the fault</span></label>
+        <p class="haz-note" id="haz-fault-note" hidden></p>
+        <div class="frow"><label for="haz-measure">Shaking measure shown</label><select id="haz-measure"></select></div>
+        <div class="legend" id="haz-legend"></div>
+      </div>
+    </section>
+    </div>
+
+    <div class="pane" id="pane-damage" role="tabpanel" aria-labelledby="tab-damage" hidden>
+    <section id="damage-section">
+      <h2>Damage to bridges</h2>
+      <p class="haz-note" id="dmg-need-hazard">Damage is estimated from a hazard layer: the shaking at each bridge, read against its fragility curves. <button type="button" class="linklike" data-goto="hazard">Choose a hazard layer</button> to begin.</p>
+      <div id="damage-all" hidden>
+        <div class="frow"><label for="fragility">Fragility set for bridges</label><select id="fragility"></select></div>
+        <div id="damage-controls">
+          <div class="frow"><label for="dmg-metric">Color bridges by</label>
+            <select id="dmg-metric">
+              <option value="pex">Probability of reaching a damage state</option>
+              <option value="state">Likely damage state (at least a 50% chance of this or worse)</option>
+              <option value="sa10">Shaking at the bridge, Sa(1.0 s)</option>
+            </select></div>
+          <div class="frow" id="dmg-state-row"><label for="dmg-state">Damage state to map</label>
+            <select id="dmg-state">
+              <option value="1">Slight or worse (any damage)</option>
+              <option value="2">Moderate or worse</option>
+              <option value="3" selected>Extensive or worse</option>
+              <option value="4">Complete</option>
+            </select></div>
+          <div class="legend" id="dmg-legend"></div>
+          <div id="dmg-summary"></div>
+          <div class="actions"><button class="btn-apply" id="dmg-download">Download damage table (CSV)</button></div>
+          <p class="haz-note">The table covers the bridges currently shown and carries its sources and method. <a href="methods.html#damage" target="_blank" rel="noopener">How damage is estimated</a></p>
+        </div>
+      </div>
+    </section>
+    </div>
+
 
     <footer>
       Bridge records from the FHWA National Bridge Inventory (California, 2025). Building layers compiled from CESMD strong-motion stations and the LA Times concrete-building survey. A ShakeReady collaboration across universities and research centers.
@@ -528,6 +562,7 @@ function renderBridges(){
   document.getElementById("bridgecount").innerHTML =
     `Showing <strong>${fmt(rows.length)}</strong> of ${fmt(B.rows.length)} bridges`;
   document.getElementById("cnt-bridge").textContent = fmt(rows.length);
+  document.getElementById("tabsub-inventory").textContent = rows.length === B.rows.length ? `${fmt(rows.length)} bridges` : `${fmt(rows.length)} of ${fmt(B.rows.length)}`;
   renderDamageSummary(rows);
 }
 
@@ -560,6 +595,7 @@ function renderLegends(){
       + (sa ? "" : `<div class="legend-note">A numbered circle shows the average over the bridges it stands for.</div>`);
   }
   document.getElementById("dmg-state-row").hidden = metric !== "pex";
+  updateTabNotes(); updateMapLegend();
   const hl = document.getElementById("haz-legend");
   if (!HAZ || !document.getElementById("haz-show").checked){ hl.innerHTML = ""; return; }
   hl.innerHTML = SRHazard.legendHtml(document.getElementById("haz-measure").value);
@@ -586,6 +622,50 @@ function drawHazardSource(){
   note.textContent = SRHazard.sourceLegend(HAZ);
   if (on){ hazSource = SRHazard.drawSource(L, HAZ, {pane: "fault"}); hazSource.addTo(map); }
 }
+/* the panel's three parts: Inventory, Hazard, Damage */
+function showTab(name){
+  for (const t of ["inventory", "hazard", "damage"]){
+    const on = t === name, tab = document.getElementById("tab-" + t);
+    tab.setAttribute("aria-selected", on ? "true" : "false"); tab.tabIndex = on ? 0 : -1;
+    document.getElementById("pane-" + t).hidden = !on;
+  }
+  document.getElementById("panel").scrollTop = 0;
+}
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => showTab(tab.id.slice(4)));
+  tab.addEventListener("keydown", e => {                       // arrow keys move between tabs
+    const order = ["inventory", "hazard", "damage"], i = order.indexOf(tab.id.slice(4));
+    const j = e.key === "ArrowRight" ? (i + 1) % 3 : e.key === "ArrowLeft" ? (i + 2) % 3 : -1;
+    if (j >= 0){ showTab(order[j]); document.getElementById("tab-" + order[j]).focus(); }
+  });
+});
+document.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => showTab(b.dataset.goto)));
+
+/* what each part is currently set to, shown under its name */
+function updateTabNotes(){
+  const short = s => s.length > 22 ? s.slice(0, 21) + "…" : s;
+  document.getElementById("tabsub-hazard").textContent = HAZ ? short(HAZ.title) : "None";
+  const metric = document.getElementById("dmg-metric").value;
+  document.getElementById("tabsub-damage").textContent = !HAZ ? "Needs a hazard" : !damageActive() ? "Off"
+    : metric === "pex" ? ["", "Slight or worse", "Moderate or worse", "Extensive or worse", "Complete"][mappedState()] : metric === "state" ? "Likely state" : "Shaking at bridges";
+  document.getElementById("damage-all").hidden = !HAZ;
+  document.getElementById("dmg-need-hazard").hidden = !!HAZ;
+}
+
+/* the bridge colors are explained on the map itself, since the Damage part of the panel may not be the one open */
+const mapLegend = L.control({position: "bottomleft"});
+mapLegend.onAdd = () => { const d = L.DomUtil.create("div", "map-legend"); d.id = "map-legend"; d.hidden = true; L.DomEvent.disableClickPropagation(d); return d; };
+mapLegend.addTo(map);
+function updateMapLegend(){
+  const box = document.getElementById("map-legend"), src = document.getElementById("dmg-legend");
+  const on = damageActive() && document.getElementById("lyr-bridge") && document.getElementById("lyr-bridge").checked;
+  box.hidden = !on;
+  if (!on) return;
+  const metric = document.getElementById("dmg-metric").value, copy = src.cloneNode(true);
+  copy.querySelectorAll(".legend-note").forEach(n => n.remove());
+  box.innerHTML = (metric === "state" ? `<div class="legend-title">Likely damage state</div>` : metric === "sa10" ? `<div class="legend-title">Shaking at the bridge, Sa(1.0 s)</div>` : "") + copy.innerHTML;
+}
+
 function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); drawHazardSource(); renderLegends(); }
 
 function selectHazard(id){
@@ -696,6 +776,7 @@ Promise.all([
   document.getElementById("lyr-bridge").addEventListener("change", e => {
     if (!bridgeCluster) return;
     e.target.checked ? map.addLayer(bridgeCluster) : map.removeLayer(bridgeCluster);
+    updateMapLegend();
   });
 
   // fragility sets that apply to the bridges
@@ -745,7 +826,7 @@ Promise.all([
   const asked = new URLSearchParams(location.search).get("hazard");   // HazardMaker opens the map with ?hazard=local:<id>
   const hsel1 = document.getElementById("hazard");
   const start = asked && [...hsel1.options].some(o => o.value === asked) ? asked : (HAZINDEX.hazards.find(h => h.default) || {}).id;
-  if (start){ hsel1.value = lastHazard = start; return selectHazard(start); }             // a layer marked as default loads straight away
+  if (start){ hsel1.value = lastHazard = start; if (asked) showTab("damage"); return selectHazard(start); }             // a layer marked as default loads straight away
   renderBridges();
   renderLegends();
 }).catch(() => {

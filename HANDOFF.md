@@ -106,6 +106,33 @@ at a screenshot of every new form before publishing. Do not use value-like place
 The dashboard's map draws lines on a canvas (`preferCanvas`), so drawn features are not page elements. To
 test them, ask Leaflet what is on the map and sample the painted pixel, or look at a screenshot.
 
+## Two dashboards (the owner's plan)
+
+- **Regional analysis** is the existing dashboard (`dashboard.html`; the menu calls it "Regional analysis").
+  At the owner's request its panel has three parts, as tabs: **Inventory** (which inventories are shown, and
+  the bridge filters), **Hazard** (the hazard layer, its level, the shaking and the fault on the map) and
+  **Damage** (fragility set, what to color bridges by, summary, download). Each tab shows its current setting
+  under its name. Because the Damage part may not be the one open, the bridge colors are also explained by a
+  legend on the map itself. Arriving with `?hazard=` opens on Damage.
+- **Local analysis** is planned and not built: one site, a target spectrum, and a suite of ground motions for
+  performance-based earthquake engineering. The tool behind it has the working name **SR-SuiteMaker** (the
+  owner has not confirmed the name). Its first stage is in a **private** repository,
+  <https://github.com/TRG-UCLA/SR-SuiteMaker>, kept private until the name is confirmed and there is enough to
+  release. It holds, tested: the Boore et al. (2014) model at all 105 periods (checked against the OpenQuake
+  engine's verification tables), the Baker and Jayaram (2008) correlation between periods (constants
+  cross-checked against two published implementations), and three kinds of target: a spectrum the user
+  supplies, a scenario spectrum, and a conditional mean spectrum with its conditional standard deviation.
+  - The owner chose: all three kinds of target; records from both NGA-West2 and his group's simulations.
+  - **Waiting on the owner:** the name; the NGA-West2 flatfile from PEER; a sample of the group's simulated
+    motions and how they are organized.
+  - **Constraints:** PEER time series cannot be redistributed (download limits, account required), so the
+    tool selects from the flatfile's spectra and outputs record numbers and scale factors. Baker's
+    CS_Selection is GPL-2.0: read it to cross-check, never copy from it. Write from the published papers
+    (Baker 2011; Jayaram, Lin and Baker 2011; Baker and Lee 2018).
+  - Proposed and not yet agreed: an "Analyze this site" link from a bridge on the regional dashboard to the
+    local one; a menu of Home, Regional analysis, Local analysis, Tools, Data, Methods, Projects,
+    Publications, People, with "Tools" replacing "Code". Do not add "Local analysis" to the menu as an empty page.
+
 ## Reading damage on the dashboard
 
 "Color bridges by" offers three views. **Probability maps** (the default): each bridge by its probability of
