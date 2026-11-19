@@ -548,6 +548,8 @@ function selectHazard(id){
   const local = id.startsWith("local:");
   const entry = local ? {id, local: true} : HAZINDEX.hazards.find(h => h.id === id);
   const controls = document.getElementById("hazard-controls");
+  const emptyNote = document.getElementById("haz-empty");
+  emptyNote.hidden = !!entry || HAZINDEX.hazards.length > 0;          // "none published yet" is only useful while nothing is selected
   if (!entry){ HAZ = LEVEL = null; controls.hidden = true; refreshHazardViews(); return Promise.resolve(); }
   const load = local
     ? SRHazard.store.get(id.slice(6)).then(rec => { if (!rec) throw new Error("gone"); entry.sha256 = rec.sha256; return rec.layer; })
