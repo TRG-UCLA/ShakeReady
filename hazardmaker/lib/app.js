@@ -302,7 +302,7 @@ const SRHazardMakerApp = (() => {
       } catch (err){ bs.textContent = err.message || String(err); bs.classList.add("bad"); }
     });
 
-    let pvMap = null, pvOverlay = null;
+    let pvMap = null, pvOverlay = null, pvSource = null;
     async function finish(){
       S.text = SRHazard.serialize(S.layer); S.sha = await SRHazard.sha256Hex(S.text);
       const L0 = S.layer, g = L0.grid, chk = SRHazard.check(L0);
@@ -333,8 +333,10 @@ const SRHazardMakerApp = (() => {
       const o = SRHazard.overlayCanvas(S.layer, lv.measures[m]);
       if (pvOverlay) pvMap.removeLayer(pvOverlay);
       pvOverlay = L.imageOverlay(o.canvas.toDataURL(), o.bounds, {opacity: .6}).addTo(pvMap);
+      if (pvSource) pvMap.removeLayer(pvSource);
+      pvSource = SRHazard.drawSource(L, S.layer); if (pvSource) pvSource.addTo(pvMap);      // the fault or the epicenter, where the layer says
       if (fit) pvMap.fitBounds(o.bounds);
-      $("pv-legend").innerHTML = SRHazard.legendHtml(m);
+      $("pv-legend").innerHTML = SRHazard.legendHtml(m) + (pvSource ? `<div class="hm-source-note">${SRHazard.sourceLegend(S.layer)}</div>` : "");
     }
     $("pv-level").addEventListener("change", () => drawPreview(false));
     $("pv-measure").addEventListener("change", () => drawPreview(false));

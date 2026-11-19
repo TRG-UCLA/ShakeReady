@@ -4,7 +4,7 @@ Copyright (c) 2026, E. Taciroglu. Free to use under the BSD 3-Clause license (se
 If you use it, please cite it: run `sr-hazardmaker cite`.
 """
 # SPDX-License-Identifier: BSD-3-Clause
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 __author__ = "E. Taciroglu"
 __year__ = "2026"
 __license__ = "BSD-3-Clause"

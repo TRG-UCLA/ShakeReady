@@ -123,6 +123,13 @@ const SRScenario = (() => {
     if (nlat * nlon > MAX_NODES) throw new Error(`That would be a grid of ${(nlat * nlon).toLocaleString("en-US")} points. Use a coarser spacing or a smaller margin.`);
     return {lat_min: rnd(j0 * sp * 1e6) / 1e6, lon_min: rnd(i0 * sp * 1e6) / 1e6, dlat: sp, dlon: sp, nlat, nlon};
   }
+  /* The corners of the rupture's footprint at the surface: the two ends of the trace, then the same two carried down dip. Null for a vertical fault. */
+  function surfaceProjection(g){
+    if (g.w <= 0) return null;
+    const a = [g.ax, g.ay], b = [g.ax + g.ux * g.length, g.ay + g.uy * g.length];
+    const corners = [a, b, [b[0] + g.nx * g.w, b[1] + g.ny * g.w], [a[0] + g.nx * g.w, a[1] + g.ny * g.w]];
+    return corners.map(([x, y]) => [rnd((g.lat0 + y / g.ky) * 1e5) / 1e5, rnd((g.lon0 + x / g.kx) * 1e5) / 1e5]);
+  }
   function levelLabel(epsilon){
     if (epsilon === 0) return "Median";
     return `Median ${epsilon > 0 ? "plus" : "minus"} ${num(Math.abs(epsilon))} standard deviation` + (Math.abs(epsilon) === 1 ? "" : "s");
@@ -149,18 +156,21 @@ const SRScenario = (() => {
         for (const m of MEASURES) measures[m][j * nlon + i] = toInt(groundMotion(m, p.magnitude, p.mechanism, r, p.vs30, p.epsilon));
       }
     }
+    const scenario = {
+        magnitude: p.magnitude, mechanism: p.mechanism, trace: p.trace, length_km: Number(g.length.toFixed(3)), dip_deg: p.dip, down_dip_width_km: p.width_km,
+        vs30_m_per_s: p.vs30, epsilon: p.epsilon, model: CITATION, model_options: "base model: no regional adjustment, no basin term", component: "RotD50",
+        distance: "Joyner-Boore distance to the surface projection of a planar rectangular rupture, in a flat local frame"};
+    const footprint = surfaceProjection(g);
+    if (footprint) scenario.surface_projection = footprint;
     return {
       format: FORMAT, id: meta.id, title: meta.title, kind: "scenario", description: meta.description || "", site_condition: meta.site_condition,
       units: "g", scale: SCALE, nodata: NODATA, grid, default_level: "event",
       levels: [{id: "event", label: levelLabel(p.epsilon), measures}],
-      source: Object.assign({}, meta.source, {scenario: {
-        magnitude: p.magnitude, mechanism: p.mechanism, trace: p.trace, length_km: Number(g.length.toFixed(3)), dip_deg: p.dip, down_dip_width_km: p.width_km,
-        vs30_m_per_s: p.vs30, epsilon: p.epsilon, model: CITATION, model_options: "base model: no regional adjustment, no basin term", component: "RotD50",
-        distance: "Joyner-Boore distance to the surface projection of a planar rectangular rupture, in a flat local frame"}}),
+      source: Object.assign({}, meta.source, {scenario}),
       provenance: {generator: `SR-HazardMaker ${H.VERSION}, browser (scenario builder)`, made_with: H.MADE_WITH, generated_utc: new Date().toISOString().replace(/\.\d+Z$/, "Z"), stored_precision_g: SCALE,
                    note: "Computed, not recorded. One Vs30 is used everywhere. With epsilon other than zero, every point is shifted by the same number of standard deviations, which is not a simulated realization of the event."},
     };
   }
-  return {NAME, CITATION, COEFFS, LIMITS, MECHANISMS, DEFAULTS, lnMedian, sigma, groundMotion, checkInputs, checkParams, parsePoint, POINT_HELP, geometry, rjb, gridFor, levelLabel, defaults, build, num};
+  return {NAME, CITATION, COEFFS, LIMITS, MECHANISMS, DEFAULTS, lnMedian, sigma, groundMotion, checkInputs, checkParams, parsePoint, POINT_HELP, geometry, rjb, gridFor, surfaceProjection, levelLabel, defaults, build, num};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = SRScenario;

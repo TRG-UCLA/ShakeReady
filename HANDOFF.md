@@ -96,6 +96,9 @@ their `display`. The tests had checked the `hidden` mark, not visibility. When t
 is visible on screen (Playwright `is_visible()`), walk through it as a first-time user would, and look
 at a screenshot of every new form before publishing. Do not use value-like placeholders in inputs.
 
+The ShakeReady map draws lines on a canvas (`preferCanvas`), so drawn features are not page elements. To
+test them, ask Leaflet what is on the map and sample the painted pixel, or look at a screenshot.
+
 ## Credit
 
 The owner, E. Taciroglu, is to be named as the maker of ShakeReady's codes: the bridge inventory builder
@@ -173,6 +176,10 @@ The owner's rule: anyone using results from this site must be able to tell where
     to keep building and was told this model was chosen to start; **he has not yet said which other models
     he wants.** Decisions SB-01 to SB-09 are on the Methods page. Ideas not yet built: more models,
     picking the fault on a map, Vs30 that varies by place, spatially correlated realizations.
+  - **The fault on the map (since 0.3.3):** `SRHazard.drawSource` draws what a layer records about its
+    earthquake: a scenario's fault trace, a dipping rupture's footprint, a ShakeMap's epicenter. The tool's
+    preview and the ShakeReady map both use it; the map has a "Show the fault" box and zooms to a scenario
+    when one is selected. The earthquake form has a map for clicking the fault's two ends (since 0.3.2).
   - **DOI: 10.5281/zenodo.24356049** (all versions; confirmed by the owner). It is in the tool's citation, `CITATION.cff`,
     the guide, the page and each layer's record. Zenodo archives every new GitHub Release automatically
     and gives it a version DOI of its own; nothing needs doing per release beyond publishing the Release.

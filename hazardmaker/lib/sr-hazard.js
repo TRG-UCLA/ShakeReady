@@ -5,7 +5,7 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.3.2";
+  const VERSION = "0.3.3";
   const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
   const DOI = "10.5281/zenodo.24356049";            // for all versions; each release also has its own, listed on the Zenodo record
   const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://doi.org/10.5281/zenodo.24356049)";     // written into every layer
@@ -125,6 +125,36 @@ const SRHazard = (() => {
       + `<div class="ticks">` + SHAKE_STOPS.map(s => `<span>${s[0]}</span>`).join("") + `</div>${MEASURE_NAMES[measure]}, in g`;
   }
 
+  /* What a layer says about the earthquake behind it, for drawing: the fault trace and surface footprint of a
+     computed scenario, or the epicenter of a ShakeMap. Null if the layer says neither. */
+  function sourceInfo(layer){
+    const s = (layer && layer.source) || {}, out = {trace: null, footprint: null, epicenter: null};
+    const pair = p => Array.isArray(p) && p.length === 2 && typeof p[0] === "number" && typeof p[1] === "number";
+    if (s.scenario && Array.isArray(s.scenario.trace) && s.scenario.trace.length === 2 && s.scenario.trace.every(pair)){
+      out.trace = s.scenario.trace;
+      if (Array.isArray(s.scenario.surface_projection) && s.scenario.surface_projection.length === 4 && s.scenario.surface_projection.every(pair)) out.footprint = s.scenario.surface_projection;
+    }
+    if (s.event && typeof s.event.latitude === "number" && typeof s.event.longitude === "number") out.epicenter = [s.event.latitude, s.event.longitude];
+    return out.trace || out.epicenter ? out : null;
+  }
+  function sourceLegend(layer){
+    const i = sourceInfo(layer); if (!i) return "";
+    return [i.trace ? "Red line: the fault" : "", i.footprint ? "dashed outline: the rupture's footprint at the surface" : "", i.epicenter ? "\u2605: the epicenter" : ""].filter(Boolean).join("; ") + ".";
+  }
+  /* Draw it with Leaflet (passed in as L). Returns a layer group to add to a map, or null. Give options.pane to place it in a map pane. */
+  function drawSource(L, layer, options){
+    const i = sourceInfo(layer); if (!i) return null;
+    const base = Object.assign({interactive: false}, options && options.pane ? {pane: options.pane} : {}), g = L.layerGroup();
+    if (i.footprint) L.polygon(i.footprint, Object.assign({color: "#D7263D", weight: 1.5, dashArray: "5 4", fillColor: "#D7263D", fillOpacity: 0.08}, base)).addTo(g);
+    if (i.trace){
+      L.polyline(i.trace, Object.assign({color: "#FFFFFF", weight: 7, opacity: 0.9}, base)).addTo(g);
+      L.polyline(i.trace, Object.assign({color: "#D7263D", weight: 3.5}, base)).addTo(g);
+    }
+    if (i.epicenter) L.marker(i.epicenter, Object.assign({keyboard: false, icon: L.divIcon({className: "sr-epicenter", iconSize: [24, 24],
+      html: '<span style="display:block;font-size:24px;line-height:24px;text-align:center;color:#D7263D;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff">\u2605</span>'})}, base)).addTo(g);
+    return g;
+  }
+
   async function sha256Hex(text){
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -161,6 +191,6 @@ const SRHazard = (() => {
     },
   };
 
-  return {VERSION, MAKER, YEAR, LICENSE, URL, DOI, MADE_WITH, citation, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sha256Hex, store};
+  return {VERSION, MAKER, YEAR, LICENSE, URL, DOI, MADE_WITH, citation, FORMAT, MEASURES, MEASURE_NAMES, SCALE, NODATA, CALIFORNIA, SHAKE_STOPS, rnd, toInt, valueAt, check, summary, serialize, indexEntry, shakeColor, overlayCanvas, legendHtml, sourceInfo, sourceLegend, drawSource, sha256Hex, store};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = SRHazard;

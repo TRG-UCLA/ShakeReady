@@ -161,6 +161,8 @@ footer a{color:var(--muted)}
         <div class="frow" id="level-row"><label for="hazlevel">Hazard level</label><select id="hazlevel"></select></div>
         <p class="haz-note" id="haz-note"></p>
         <label class="layer"><input type="checkbox" id="haz-show" checked><span class="lname">Show shaking on the map</span></label>
+        <label class="layer" id="haz-fault-row" hidden><input type="checkbox" id="haz-fault" checked><span class="lname" id="haz-fault-label">Show the fault</span></label>
+        <p class="haz-note" id="haz-fault-note" hidden></p>
         <div class="frow"><label for="haz-measure">Shaking measure shown</label><select id="haz-measure"></select></div>
         <div class="legend" id="haz-legend"></div>
         <div class="frow"><label for="fragility">Fragility set for bridges</label><select id="fragility"></select></div>
@@ -543,7 +545,19 @@ function drawHazardOverlay(){
   hazOverlay = L.imageOverlay(o.canvas.toDataURL(), o.bounds, {opacity:.55, pane:"hazard", interactive:false}).addTo(map);
 }
 
-function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); renderLegends(); }
+/* the fault of a computed scenario, or the epicenter of a ShakeMap, where the layer records one */
+let hazSource = null;
+function drawHazardSource(){
+  if (hazSource){ map.removeLayer(hazSource); hazSource = null; }
+  const info = HAZ ? SRHazard.sourceInfo(HAZ) : null, row = document.getElementById("haz-fault-row"), note = document.getElementById("haz-fault-note");
+  const on = document.getElementById("haz-fault").checked;
+  row.hidden = !info; note.hidden = !info || !on;
+  if (!info) return;
+  document.getElementById("haz-fault-label").textContent = info.trace ? "Show the fault" : "Show the epicenter";
+  note.textContent = SRHazard.sourceLegend(HAZ);
+  if (on){ hazSource = SRHazard.drawSource(L, HAZ, {pane: "fault"}); hazSource.addTo(map); }
+}
+function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); drawHazardSource(); renderLegends(); }
 
 function selectHazard(id){
   const local = id.startsWith("local:");
@@ -569,6 +583,10 @@ function selectHazard(id){
       : "The shaking of one earthquake.")
       + (local ? " This layer is kept in your browser only. It has not been reviewed or published." : ` <a href="methods.html#hazards" target="_blank" rel="noopener">Source</a>`);
     controls.hidden = false;
+    if (h.kind === "scenario"){            // one earthquake covers a limited area: bring it into view
+      const g = h.grid;
+      map.fitBounds([[g.lat_min, g.lon_min], [g.lat_min + (g.nlat - 1) * g.dlat, g.lon_min + (g.nlon - 1) * g.dlon]]);
+    }
     refreshHazardViews();
   }).catch(() => {
     HAZ = LEVEL = null; controls.hidden = true; refreshHazardViews();
@@ -627,6 +645,7 @@ function downloadDamage(){
 }
 
 map.createPane("hazard"); map.getPane("hazard").style.zIndex = 350; map.getPane("hazard").style.pointerEvents = "none";
+map.createPane("fault"); map.getPane("fault").style.zIndex = 450; map.getPane("fault").style.pointerEvents = "none";   // the fault line sits above the bridges, so it is never buried
 
 /* ---------- startup: the registries say what there is to show ---------- */
 const FALLBACK_REGISTRY = {inventories: [{id: "nbi-bridges", title: "NBI bridges", format: "nbi-rows", file: "data/bridges.json", color: "#F9A03F", visible: true, fragilities: ["hazus-highway-bridges"]}],
@@ -737,6 +756,7 @@ document.getElementById("fragility").addEventListener("change", () => {
 });
 document.getElementById("dmg-metric").addEventListener("change", () => { renderBridges(); renderLegends(); });
 document.getElementById("haz-show").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
+document.getElementById("haz-fault").addEventListener("change", drawHazardSource);
 document.getElementById("haz-measure").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
 document.getElementById("dmg-download").addEventListener("click", downloadDamage);
 

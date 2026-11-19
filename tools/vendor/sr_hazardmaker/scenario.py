@@ -129,6 +129,17 @@ def grid_for(p, g):
     return {"lat_min": rnd(j0 * sp * 1e6) / 1e6, "lon_min": rnd(i0 * sp * 1e6) / 1e6, "dlat": sp, "dlon": sp, "nlat": nlat, "nlon": nlon}
 
 
+def surface_projection(g):
+    """The corners of the rupture's footprint at the surface, as [latitude, longitude]: the two ends of the
+    trace, then the same two ends carried down dip. None for a vertical fault, whose footprint is its trace."""
+    if g["w"] <= 0:
+        return None
+    a = (g["ax"], g["ay"])
+    b = (g["ax"] + g["ux"] * g["length"], g["ay"] + g["uy"] * g["length"])
+    corners = [a, b, (b[0] + g["nx"] * g["w"], b[1] + g["ny"] * g["w"]), (a[0] + g["nx"] * g["w"], a[1] + g["ny"] * g["w"])]
+    return [[rnd((g["lat0"] + y / g["ky"]) * 1e5) / 1e5, rnd((g["lon0"] + x / g["kx"]) * 1e5) / 1e5] for x, y in corners]
+
+
 def level_label(epsilon):
     if epsilon == 0:
         return "Median"
@@ -172,6 +183,9 @@ def build(p, meta, generator="SR-HazardMaker (scenario builder)"):
         "dip_deg": p["dip"], "down_dip_width_km": p["width_km"], "vs30_m_per_s": p["vs30"], "epsilon": p["epsilon"],
         "model": bssa14.CITATION, "model_options": "base model: no regional adjustment, no basin term", "component": "RotD50",
         "distance": "Joyner-Boore distance to the surface projection of a planar rectangular rupture, in a flat local frame"}
+    footprint = surface_projection(g)
+    if footprint:
+        source["scenario"]["surface_projection"] = footprint
     return {
         "format": FORMAT, "id": meta["id"], "title": meta["title"], "kind": "scenario", "description": meta.get("description", ""),
         "site_condition": meta["site_condition"], "units": "g", "scale": SCALE, "nodata": NODATA, "grid": grid, "default_level": "event",
