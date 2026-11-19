@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Reference calculation of bridge damage: the same table the map offers for download.
 
+Part of ShakeReady. Made by E. Taciroglu.
+
 For every bridge in data/bridges.json, read the ground motion at its location from a hazard file,
 apply the HAZUS highway bridge fragilities, and write the asset-by-asset table. This is an
 independent implementation in Python, used to check the map's own calculation and to let anyone

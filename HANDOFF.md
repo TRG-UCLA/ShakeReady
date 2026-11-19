@@ -88,6 +88,15 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
+## Credit
+
+The owner, E. Taciroglu, is to be named as the maker of ShakeReady's codes: the bridge inventory builder
+(`tools/build_bridges.py`), the HAZUS bridge fragilities (`tools/hazus_bridges.py`), the damage calculation
+(`tools/damage_reference.py` and the map), and SR-HazardMaker. "Made by E. Taciroglu" appears on the Code
+page, in each file's header, in the records the data files carry, in downloaded damage tables, and on the
+Methods page. Keep it there, and add it to any new code. The fragility values themselves remain FEMA's and
+are credited to FEMA.
+
 ## Provenance: keep results traceable
 
 The owner's rule: anyone using results from this site must be able to tell where they came from.

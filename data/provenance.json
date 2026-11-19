@@ -1,11 +1,11 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-19T00:41:58Z",
+ "generated_utc": "2026-11-19T00:43:25Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "8e7015166d2a023eed305988e5b9a1af4de9f1f3",
+ "code_version": "31dcfd73b7d79b81ee406b4cdcab67aa0440746e",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
- "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
+ "prepared_by": "ShakeReady's code, namely the bridge inventory builder, the HAZUS bridge fragilities and the damage calculation, was made by E. Taciroglu, as was SR-HazardMaker. The processing, transcription and checks described here were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at his direction. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
   "nbi-2025-ca": {
    "title": "National Bridge Inventory, 2025, California, comma-delimited file (CA25.txt)",
@@ -70,8 +70,8 @@
    "published_files": [
     {
      "path": "data/bridges.json",
-     "sha256": "5cae3d3c258fc3fd8377f3e07bf5e370eb77b185a86343ff799d00beb7a752d4",
-     "bytes": 3878237,
+     "sha256": "45cc99749734faa3df86bf6a60ea6eedd698e1a2b861ebc95810c66fdcf7730a",
+     "bytes": 3878262,
      "records": 25974
     },
     {
@@ -150,8 +150,8 @@
    "published_files": [
     {
      "path": "data/fragility/hazus_highway_bridges.json",
-     "sha256": "744014572d2ae011446ea2550e7c7e170b09544f5e4277b2ca04792279e91db8",
-     "bytes": 12164,
+     "sha256": "2070c2a8bd94d0f21a6969298123b2a919bc708429b99483bb1145b6bf7ff752",
+     "bytes": 12331,
      "records": 28
     }
    ]

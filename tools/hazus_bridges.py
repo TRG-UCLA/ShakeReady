@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """HAZUS fragilities for highway bridges, applied to National Bridge Inventory records.
 
+HAZUS bridge fragilities, part of ShakeReady. Made by E. Taciroglu.
+
 Source: FEMA, Hazus Earthquake Model Technical Manual, Hazus 6.1 (July 2024), Section 7.1:
   Table 7-1  Hazus Bridge Classification Scheme
   Table 7-2  Coefficients for Evaluating K3D
@@ -219,6 +221,7 @@ def fragility_set():
         'name': 'HAZUS highway bridges',
         'source': 'FEMA, Hazus Earthquake Model Technical Manual, Hazus 6.1, July 2024, Section 7.1 (Tables 7-1, 7-2 and 7-6; Equations 7-1 to 7-4)',
         'source_url': 'https://www.fema.gov/sites/default/files/documents/fema_hazus-earthquake-model-technical-manual-6-1.pdf',
+        'implemented_by': 'E. Taciroglu, in tools/hazus_bridges.py of ShakeReady. The classes and median values themselves are FEMA\'s, from the manual named in "source".',
         'applies_to': 'nbi-bridges',
         'intensity_measure': 'SA(1.0)',
         'intensity_measure_also_needed': 'SA(0.3) for the Kshape factor, classes with ishape = 1',

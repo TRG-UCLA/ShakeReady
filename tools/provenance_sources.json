@@ -1,7 +1,7 @@
 {
  "release": "2026-11-17",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
+ "prepared_by": "ShakeReady's code, namely the bridge inventory builder, the HAZUS bridge fragilities and the damage calculation, was made by E. Taciroglu, as was SR-HazardMaker. The processing, transcription and checks described here were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at his direction. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
   "nbi-2025-ca": {
    "title": "National Bridge Inventory, 2025, California, comma-delimited file (CA25.txt)",

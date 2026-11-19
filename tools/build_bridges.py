@@ -11,6 +11,8 @@ Output: data/bridges.json   compact row format read by map.html
 
 Each bridge is also assigned its HAZUS highway bridge class (see hazus_bridges.py).
 
+Bridge inventory builder, part of ShakeReady. Made by E. Taciroglu.
+
 Only Python's standard library is used.
 """
 import csv, json, os, re, sys
@@ -175,7 +177,7 @@ def main(path):
         'source_file': os.path.basename(path), 'source_sha256': source_sha256,
         'source_url': 'https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm',
         'generated_utc': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'generator': 'tools/build_bridges.py', 'records_read': len(records), 'records_without_location': no_location,
+        'generator': 'tools/build_bridges.py', 'made_by': 'E. Taciroglu', 'records_read': len(records), 'records_without_location': no_location,
         'fragility_classes': 'HAZUS highway bridge classes, see data/fragility/hazus_highway_bridges.json',
         'details': 'data/provenance.json and the Methods page of the site',
     }

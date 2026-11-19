@@ -8,8 +8,8 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `map.html` — the interactive map application (Leaflet + OpenStreetMap, no API keys required)
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html` — site sections
 - `assets/style.css` — shared styles
-- `tools/build_bridges.py` — builds the bridge layer from the FHWA file
-- `tools/hazus_bridges.py` — HAZUS highway bridge classes and fragility curves; run it to self-test and write the fragility file
+- `tools/build_bridges.py` — the bridge inventory builder: builds the bridge layer from the FHWA file (made by E. Taciroglu)
+- `tools/hazus_bridges.py` — HAZUS bridge fragilities: classes and fragility curves; run it to self-test and write the fragility file (made by E. Taciroglu)
 - `data/fragility/hazus_highway_bridges.json` — the HAZUS fragility set, with its source and recorded decisions
 - `methods.html` — methods and provenance, drawn from `data/provenance.json`
 - `data/registry.json` — the inventories and fragility sets the map offers; edit it to add or remove an inventory

@@ -606,6 +606,7 @@ function damageCsv(rows, prov){
     `Fragility set: ${HZ.name}. ${HZ.source}`,
     `Method: lognormal fragility curves on Sa(1.0 s) with dispersion ${HZ.beta}; class medians adjusted for skew, number of spans and spectral shape; ground motion read at each bridge by bilinear interpolation of the hazard grid`,
     `Recorded choices in effect: ${(HZ.decisions || []).map(d => d.id).join(", ")}${prov && prov.damage_decisions ? ", " + prov.damage_decisions.map(d => d.id).join(", ") : ""}. Each is explained at ${site}methods.html`,
+    "Code: ShakeReady's bridge inventory builder, HAZUS bridge fragilities and damage calculation, made by E. Taciroglu (https://github.com/TRG-UCLA/ShakeReady)",
     prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
     "Limits: the curves describe classes of bridges, not individual structures. Seismic retrofits are not reflected. Culverts are included. Only ground shaking is considered.",
     "",
