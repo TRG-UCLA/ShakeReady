@@ -108,8 +108,9 @@ test them, ask Leaflet what is on the map and sample the painted pixel, or look 
 
 ## Two dashboards (the owner's plan)
 
-**The owner's instruction (2026-11-19): do not build more on the dashboards yet. Plan and mock up first, build
-SR-SuiteMaker, then come back.** The plan is in `PLAN.md`; a diagram and a mock-up of Local analysis are on the
+**The owner agreed to the plan on 2026-11-19 ("let's go ahead with your plans"), after first asking to plan and
+mock up before building. Follow the order of work in `PLAN.md`: SR-SuiteMaker, then Local analysis, then the
+link and the menu. The three-part panel on the regional dashboard stays.** The plan is in `PLAN.md`; a diagram and a mock-up of Local analysis are on the
 design canvas (<https://claude.ai/artifact/8qNks7eM7wySai6Nj2iZjq>). He uses the name "SR-SuiteMaker", so treat
 the name as accepted. A mock-up must not show real-looking data: use plain placeholders.
 
@@ -126,6 +127,15 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
   engine's verification tables), the Baker and Jayaram (2008) correlation between periods (constants
   cross-checked against two published implementations), and three kinds of target: a spectrum the user
   supplies, a scenario spectrum, and a conditional mean spectrum with its conditional standard deviation.
+  - Also in that repository, tested: the record-set format (`records.py`), a repeatable random number
+    generator (`rng.py`, checked against its JavaScript reference so the browser will give the same
+    selections), and the selection (`selection.py`): screening, scaling, matching the mean, and matching the
+    mean and spread after Jayaram, Lin and Baker (2011). Run on the real NGA-West2 spectra from Baker's
+    table (downloaded for testing only, never to be redistributed): for a conditional target it chose 11
+    records with the mean within 3.2% and the spread within 0.06, in a tenth of a second.
+  - Not yet built: reading the PEER flatfile and simulated motions; computing spectra from time series; the
+    browser page (must give the same selection as Python for the same seed); the command line; the suite
+    file's provenance; a public release.
   - The owner chose: all three kinds of target; records from both NGA-West2 and his group's simulations.
   - **Waiting on the owner:** the name; the NGA-West2 flatfile from PEER; a sample of the group's simulated
     motions and how they are organized.
