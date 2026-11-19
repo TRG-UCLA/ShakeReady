@@ -199,20 +199,20 @@
    "result": "Reproduced: class HWB17, K3D = 1.125, and damage-state probabilities 0.183, 0.205, 0.165, 0.255, 0.192 against the manual's rounded 0.18, 0.20, 0.16, 0.26, 0.20."
   },
   {
-   "check": "The map against the reference code",
+   "check": "The dashboard against the reference code",
    "result": "For 425 sampled bridges, covering every class present, the adjusted medians computed in the browser equal those of the reference code to rounding error."
   },
   {
-   "check": "Map filters",
+   "check": "Dashboard filters",
    "result": "Each filter tested returns the same number of bridges as an independent count from the data file."
   },
   {
    "check": "Damage calculation against an independent implementation",
-   "result": "The table produced by the map was compared with the one produced by separate reference code (tools/damage_reference.py), using made-up test layers that are not published: a hazard map at two probability levels and a scenario. For all 25,974 bridges the two tables are identical, character for character."
+   "result": "The table produced by the dashboard was compared with the one produced by separate reference code (tools/damage_reference.py), using made-up test layers that are not published: a hazard map at two probability levels and a scenario. For all 25,974 bridges the two tables are identical, character for character."
   },
   {
    "check": "Summary and download",
-   "result": "The expected counts shown on the map equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
+   "result": "The expected counts shown on the dashboard equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
   },
   {
    "check": "SR-HazardMaker against ShakeMap files",
@@ -223,16 +223,16 @@
    "result": "A table in cm/s² with its own column names and rows in random order is placed correctly on its grid and converted to g."
   },
   {
-   "check": "An SR-HazardMaker layer on the map",
-   "result": "A layer made in SR-HazardMaker and opened on the map gives a damage table identical, for all 25,974 bridges, to the reference code run on the same layer file. The checksum shown equals the file's."
+   "check": "An SR-HazardMaker layer on the dashboard",
+   "result": "A layer made in SR-HazardMaker and opened on the dashboard gives a damage table identical, for all 25,974 bridges, to the reference code run on the same layer file. The checksum shown equals the file's."
   },
   {
    "check": "SR-HazardMaker: browser and command line against each other",
    "result": "The tool's own test suite (21 tests, run automatically on every change) builds the same inputs with the Python converters and with the browser converters and requires the same layer from both: USGS-style tables given separately, in an archive and in a ZIP64 archive; ShakeMap grids with either unit spelling, any field order and any row order, zipped or not; and a plain table in cm/s². Reading a value at a point must agree exactly at 4,000 random points. On this site, a 290 MB archive gave the same layer, with only the three tables needed read from it."
   },
   {
-   "check": "A layer file opened on the map",
-   "result": "A layer file opened from the computer on the map gives the same damage table as the reference code for all 25,974 bridges. A file that is not a layer is refused."
+   "check": "A layer file opened on the dashboard",
+   "result": "A layer file opened from the computer on the dashboard gives the same damage table as the reference code for all 25,974 bridges. A file that is not a layer is refused."
   },
   {
    "check": "The ground-motion model against reference values",
@@ -240,7 +240,7 @@
   },
   {
    "check": "The scenario builder",
-   "result": "Distances to a vertical and to a dipping fault match hand-computed values. A scenario built on the page and the same scenario built on the command line are the same layer, value for value (43,248 values in the case tested), and three further scenarios agree in the tool's own tests. A scenario layer opened on the map gives a damage table identical to the reference code."
+   "result": "Distances to a vertical and to a dipping fault match hand-computed values. A scenario built on the page and the same scenario built on the command line are the same layer, value for value (43,248 values in the case tested), and three further scenarios agree in the tool's own tests. A scenario layer opened on the dashboard gives a damage table identical to the reference code."
   }
  ],
  "limits": [
@@ -291,7 +291,7 @@
   {
    "id": "DMG-07",
    "topic": "A single label for a bridge",
-   "choice": "Two labels are computed. The map colors by the worst damage state a bridge has at least a 50% chance of reaching or exceeding. The table also gives the single most likely of the five states, with a tie going to the milder one.",
+   "choice": "Two labels are computed. The dashboard colors by the worst damage state a bridge has at least a 50% chance of reaching or exceeding. The table also gives the single most likely of the five states, with a tie going to the milder one.",
    "basis": "The single most likely state can mislead: 'None' is often the largest of five probabilities even where damage has a sizable chance, because that chance is split among four damage states. In a magnitude 7 test scenario on rock, all 135 bridges within 2 km of the fault were labeled None by that rule, though 35 of them had a 25 to 58 percent chance of some damage. The 50% rule is easier to read correctly, and the popup leads with the chance of any damage. The five probabilities are always given."
   },
   {
@@ -347,7 +347,7 @@
   {
    "id": "HM-08",
    "topic": "Layers kept in a browser",
-   "choice": "A layer made with SR-HazardMaker, or opened from a file on the user's computer, can be used on the map without being published. It is marked as the user's own, and any damage table made from it states that it is not part of the ShakeReady repository and gives its checksum.",
+   "choice": "A layer made with SR-HazardMaker, or opened from a file on the user's computer, can be used on the dashboard without being published. It is marked as the user's own, and any damage table made from it states that it is not part of the ShakeReady repository and gives its checksum.",
    "basis": "Lets people work with their own ground motions at once, without letting an unreviewed layer pass for a published one."
   },
   {

@@ -118,7 +118,7 @@ def check(h):
     lon_max = g["lon_min"] + (g["nlon"] - 1) * g["dlon"]
     c = CALIFORNIA
     if lat_max < c["lat_min"] or g["lat_min"] > c["lat_max"] or lon_max < c["lon_min"] or g["lon_min"] > c["lon_max"]:
-        warnings.append("The grid does not overlap California, so no structure on the ShakeReady map falls inside it.")
+        warnings.append("The grid does not overlap California, so no structure on the ShakeReady dashboard falls inside it.")
     s = h.get("source") or {}
     for k, label in (("title", "a title"), ("publisher", "a publisher or author"), ("retrieved_utc", "the date it was obtained or made")):
         if not s.get(k):

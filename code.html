@@ -13,20 +13,20 @@
 </head>
 <body><nav class="site-nav"><div class="inner">
   <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
-  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="map.html">Map</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html" aria-current="page">Code</a></li></ul>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html">Dashboard</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html" aria-current="page">Code</a></li></ul>
 </div></nav>
 <main class="page">
   <h1>Code</h1>
-  <p class="lede">The software behind the data pipeline and the map.</p>
+  <p class="lede">The software behind the data pipeline and the dashboard.</p>
   <div class="entry">
     <h3>This website</h3>
     <p class="meta">HTML · JavaScript · Leaflet</p>
-    <p>The site itself is open: a static, dependency-light application served from its own repository. The map renders 25,000+ structures with marker clustering and client-side filtering, with no server or API keys involved.</p>
+    <p>The site itself is open: a static, dependency-light application served from its own repository. The dashboard's map renders 25,000+ structures with marker clustering and client-side filtering, with no server or API keys involved.</p>
   </div>
   <div class="entry">
     <h3>Bridge inventory builder</h3>
     <p class="meta">Made by E. Taciroglu · Python · standard library only</p>
-    <p>Converts a state file from the FHWA National Bridge Inventory into the map's bridge layer and a labeled CSV: decodes packed coordinates, material and design codes, county codes and condition ratings. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/build_bridges.py" rel="noopener">tools/build_bridges.py</a></p>
+    <p>Converts a state file from the FHWA National Bridge Inventory into the dashboard's bridge layer and a labeled CSV: decodes packed coordinates, material and design codes, county codes and condition ratings. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/build_bridges.py" rel="noopener">tools/build_bridges.py</a></p>
   </div>
   <div class="entry">
     <h3>HAZUS bridge fragilities</h3>
@@ -41,7 +41,7 @@
   <div class="entry">
     <h3>Bridge damage, reference calculation</h3>
     <p class="meta">Made by E. Taciroglu · Python · standard library only</p>
-    <p>An independent implementation of the bridge damage table the map offers for download, used to check the map and to let anyone reproduce a table. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a></p>
+    <p>An independent implementation of the bridge damage table the dashboard offers for download, used to check the dashboard and to let anyone reproduce a table. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a></p>
   </div>
   <div class="placeholder">Links to analysis code and data-processing repositories will be listed here.</div>
 </main>

@@ -6,7 +6,7 @@ Usage:
 
 Input:  the comma-delimited state file from https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm
         (text qualifier is a single quote; one header row).
-Output: data/bridges.json   compact row format read by map.html
+Output: data/bridges.json   compact row format read by dashboard.html
         data/nbi_bridges.csv  the same records as a labeled table for download
 
 Each bridge is also assigned its HAZUS highway bridge class (see hazus_bridges.py).

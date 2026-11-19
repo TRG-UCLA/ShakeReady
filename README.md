@@ -5,7 +5,7 @@ Interactive map of California bridges and seismically instrumented buildings —
 ## What's here
 
 - `index.html` — home page
-- `map.html` — the interactive map application (Leaflet + OpenStreetMap, no API keys required)
+- `dashboard.html` — the dashboard: the interactive map with inventories, hazard layers and damage estimates (Leaflet + OpenStreetMap, no API keys required)
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html` — site sections
 - `assets/style.css` — shared styles
 - `tools/build_bridges.py` — the bridge inventory builder: builds the bridge layer from the FHWA file (made by E. Taciroglu)

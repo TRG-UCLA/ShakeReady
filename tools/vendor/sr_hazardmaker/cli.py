@@ -161,7 +161,7 @@ def cmd_cite(a):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="sr-hazardmaker", description="Turn ground-motion data into hazard layers for the ShakeReady map.")
+    p = argparse.ArgumentParser(prog="sr-hazardmaker", description="Turn ground-motion data into hazard layers for the ShakeReady dashboard.")
     p.add_argument("--version", action="version", version=f"SR-HazardMaker {__version__}, made by {__author__}")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -174,7 +174,7 @@ def main(argv=None):
         sp.add_argument("--source-title"); sp.add_argument("--publisher", help="publisher or author of the source")
         sp.add_argument("--version", help="version of the source"); sp.add_argument("--doi"); sp.add_argument("--url")
         sp.add_argument("--date", help="date obtained or made, YYYY-MM-DD (default: today)")
-        sp.add_argument("--contact"); sp.add_argument("--default-level", help="level the map selects first, e.g. rp975")
+        sp.add_argument("--contact"); sp.add_argument("--default-level", help="level the dashboard selects first, e.g. rp975")
 
     s = sub.add_parser("nshm", help="USGS National Seismic Hazard Model archive or map.csv tables")
     s.add_argument("files", nargs="+"); s.add_argument("--site-condition", help='which site condition in the archive, e.g. "Vs30 = 760 m/s"')

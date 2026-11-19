@@ -5,7 +5,7 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.3.3";
+  const VERSION = "0.3.4";
   const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
   const DOI = "10.5281/zenodo.24356049";            // for all versions; each release also has its own, listed on the Zenodo record
   const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://doi.org/10.5281/zenodo.24356049)";     // written into every layer
@@ -64,7 +64,7 @@ const SRHazard = (() => {
     if (errors.length) return {errors, warnings};
     const latMax = g.lat_min + (g.nlat - 1) * g.dlat, lonMax = g.lon_min + (g.nlon - 1) * g.dlon;
     if (latMax < CALIFORNIA.lat_min || g.lat_min > CALIFORNIA.lat_max || lonMax < CALIFORNIA.lon_min || g.lon_min > CALIFORNIA.lon_max)
-      warnings.push("The grid does not overlap California, so no structure on the ShakeReady map falls inside it.");
+      warnings.push("The grid does not overlap California, so no structure on the ShakeReady dashboard falls inside it.");
     const s = h.source || {};
     for (const [k, label] of [["title", "a title"], ["publisher", "a publisher or author"], ["retrieved_utc", "the date it was obtained or made"]])
       if (!s[k]) warnings.push(`The source has no ${label}. A layer cannot be published without saying where it came from.`);

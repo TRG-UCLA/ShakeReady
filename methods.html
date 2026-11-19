@@ -13,7 +13,7 @@
 </head>
 <body><nav class="site-nav"><div class="inner">
   <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
-  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="map.html">Map</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html" aria-current="page">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html">Dashboard</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html" aria-current="page">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
 </div></nav>
 <main class="page methods">
   <h1>Methods and provenance</h1>
@@ -36,7 +36,7 @@
     <li><b>Spectral shape:</b> K<sub>shape</sub> = 2.5 × Sa(1.0 s) / Sa(0.3 s) (Equation 7-2), used only for classes flagged in Table 7-1.</li>
     <li>The slight median is multiplied by the smaller of 1 and K<sub>shape</sub> where that factor applies. The moderate, extensive and complete medians are multiplied by K<sub>skew</sub> × K<sub>3D</sub>.</li>
   </ul>
-  <p>The values shown in a bridge's popup on the map are these adjusted medians. The full set is published as <a href="data/fragility/hazus_highway_bridges.json">hazus_highway_bridges.json</a>, and the code is <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/hazus_bridges.py" rel="noopener">tools/hazus_bridges.py</a>.</p>
+  <p>The values shown in a bridge's popup on the dashboard are these adjusted medians. The full set is published as <a href="data/fragility/hazus_highway_bridges.json">hazus_highway_bridges.json</a>, and the code is <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/hazus_bridges.py" rel="noopener">tools/hazus_bridges.py</a>.</p>
 
   <h3 id="hazus-decisions">Choices made in applying HAZUS</h3>
   <p>The manual is silent or inconsistent on several points. Each choice made is recorded here with its basis and the number of bridges it affects, so that it can be reviewed and, if need be, changed.</p>
@@ -46,25 +46,25 @@
   <div id="hz-classes-out"></div>
 
   <h2 id="hazards">Hazard layers</h2>
-  <p>A hazard layer is a grid of ground motions that the map can display and use to estimate damage. There are two kinds. A <b>probabilistic</b> layer is a hazard map: it gives, for each place, the shaking with a set chance of being exceeded there, at one or more probability levels. It does not describe one earthquake. A <b>scenario</b> layer holds the ground motions of a single earthquake, computed or recorded.</p>
+  <p>A hazard layer is a grid of ground motions that the dashboard can display and use to estimate damage. There are two kinds. A <b>probabilistic</b> layer is a hazard map: it gives, for each place, the shaking with a set chance of being exceeded there, at one or more probability levels. It does not describe one earthquake. A <b>scenario</b> layer holds the ground motions of a single earthquake, computed or recorded.</p>
   <p>Every layer states its source and the ground condition its values assume. Layers are kept in the project's <a href="https://github.com/TRG-UCLA/ShakeReady/tree/main/hazards" rel="noopener">hazard repository</a>, which also describes the file format and how to submit a layer.</p>
   <div id="hazards-out"></div>
   <h3 id="hazardmaker">Making a layer</h3>
-  <p>Layers are made with <a href="hazardmaker/">SR-HazardMaker</a>, a tool made by E. Taciroglu, which converts ground-motion files into the format the map reads. It accepts USGS hazard-model files, USGS ShakeMaps, and plain tables of points on a regular grid, and it will not build a layer that does not state its source. SR-HazardMaker is a tool in its own right, with <a href="https://github.com/TRG-UCLA/SR-HazardMaker" rel="noopener">its own repository</a>, a command-line version, and its own tests. It is free to use under the BSD 3-Clause license, and is citable as <a href="https://doi.org/10.5281/zenodo.24356049" rel="noopener">doi:10.5281/zenodo.24356049</a>. This site uses a released version of it unchanged: <span id="hm-tool-version"></span>.</p>
+  <p>Layers are made with <a href="hazardmaker/">SR-HazardMaker</a>, a tool made by E. Taciroglu, which converts ground-motion files into the format the dashboard reads. It accepts USGS hazard-model files, USGS ShakeMaps, and plain tables of points on a regular grid, and it will not build a layer that does not state its source. SR-HazardMaker is a tool in its own right, with <a href="https://github.com/TRG-UCLA/SR-HazardMaker" rel="noopener">its own repository</a>, a command-line version, and its own tests. It is free to use under the BSD 3-Clause license, and is citable as <a href="https://doi.org/10.5281/zenodo.24356049" rel="noopener">doi:10.5281/zenodo.24356049</a>. This site uses a released version of it unchanged: <span id="hm-tool-version"></span>.</p>
   <div id="hm-decisions-out"></div>
   <h3 id="scenarios">Computed scenarios</h3>
   <p>SR-HazardMaker can also compute the shaking of an earthquake that someone describes: a magnitude, a style of faulting, a fault, and a ground condition. Such a layer is a calculation with a ground-motion model, not a recording, and it says so. Its inputs are written into it, so it can be recomputed.</p>
   <div id="sb-decisions-out"></div>
 
   <h2 id="damage">Damage estimates</h2>
-  <p>When a hazard layer is selected on the map, damage is estimated for each bridge in four steps:</p>
+  <p>When a hazard layer is selected on the dashboard, damage is estimated for each bridge in four steps:</p>
   <ol>
     <li>Read the spectral accelerations at 1.0 second and 0.3 second at the bridge from the hazard layer.</li>
     <li>Adjust the bridge's class medians for skew, number of spans and spectral shape, as described under <a href="#hazus">HAZUS fragilities for bridges</a>.</li>
     <li>For each damage state, compute the probability of reaching or exceeding it: Φ( ln( Sa(1.0 s) / median ) / 0.6 ), where Φ is the standard normal distribution function.</li>
     <li>Take differences to get the probability of each of the five states: none, slight, moderate, extensive and complete.</li>
   </ol>
-  <p>The map colors each bridge by the result and offers the full table for download, one row per bridge, with its sources written at the top of the file. Anyone can reproduce a table with <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a>, a separate implementation of the same calculation.</p>
+  <p>The dashboard colors each bridge by the result and offers the full table for download, one row per bridge, with its sources written at the top of the file. Anyone can reproduce a table with <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a>, a separate implementation of the same calculation.</p>
   <h3 id="damage-decisions">Choices made in estimating damage</h3>
   <div id="dmg-decisions-out"></div>
 

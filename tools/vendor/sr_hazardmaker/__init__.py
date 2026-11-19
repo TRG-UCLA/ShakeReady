@@ -1,10 +1,10 @@
-"""SR-HazardMaker: turn ground-motion data into hazard layers for the ShakeReady map.
+"""SR-HazardMaker: turn ground-motion data into hazard layers for the ShakeReady dashboard.
 
 Copyright (c) 2026, E. Taciroglu. Free to use under the BSD 3-Clause license (see LICENSE).
 If you use it, please cite it: run `sr-hazardmaker cite`.
 """
 # SPDX-License-Identifier: BSD-3-Clause
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 __author__ = "E. Taciroglu"
 __year__ = "2026"
 __license__ = "BSD-3-Clause"

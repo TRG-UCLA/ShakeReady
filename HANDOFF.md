@@ -15,7 +15,7 @@ several (data, code, publications, people, projects).
 ## Layout
 
 - `index.html` — home: hero (rupture-to-rafters scene and tagline), section grid
-- `map.html` — interactive map (Leaflet + OpenStreetMap, no API keys)
+- `dashboard.html` — the dashboard, an interactive map with inventories, hazard layers and damage estimates (Leaflet + OpenStreetMap, no API keys)
 - `data.html`, `projects.html`, `publications.html`, `people.html`, `code.html`
 - `assets/style.css` — shared styles and design tokens
 - `data/` — all content data (see below)
@@ -88,6 +88,13 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
+## Names
+
+The page that began as "the Map" is now **the Dashboard** (`dashboard.html`), renamed at the owner's request
+because it holds inventories, hazard layers, damage estimates, a summary and downloads. `map.html` remains as
+a redirect that keeps old links working, including `?hazard=`. In writing, "the dashboard" is the page and
+"the map" is the map inside it. Older passages of this note may still say "the map" for the page.
+
 ## Testing: check what a person sees
 
 Two faults reached the owner because tests checked the wrong thing. Sample numbers shown as input hints
@@ -96,7 +103,7 @@ their `display`. The tests had checked the `hidden` mark, not visibility. When t
 is visible on screen (Playwright `is_visible()`), walk through it as a first-time user would, and look
 at a screenshot of every new form before publishing. Do not use value-like placeholders in inputs.
 
-The ShakeReady map draws lines on a canvas (`preferCanvas`), so drawn features are not page elements. To
+The dashboard's map draws lines on a canvas (`preferCanvas`), so drawn features are not page elements. To
 test them, ask Leaflet what is on the map and sample the painted pixel, or look at a screenshot.
 
 ## Credit
@@ -178,7 +185,7 @@ The owner's rule: anyone using results from this site must be able to tell where
     picking the fault on a map, Vs30 that varies by place, spatially correlated realizations.
   - **The fault on the map (since 0.3.3):** `SRHazard.drawSource` draws what a layer records about its
     earthquake: a scenario's fault trace, a dipping rupture's footprint, a ShakeMap's epicenter. The tool's
-    preview and the ShakeReady map both use it; the map has a "Show the fault" box and zooms to a scenario
+    preview and the ShakeReady dashboard both use it; the map has a "Show the fault" box and zooms to a scenario
     when one is selected. The earthquake form has a map for clicking the fault's two ends (since 0.3.2).
   - **DOI: 10.5281/zenodo.24356049** (all versions; confirmed by the owner). It is in the tool's citation, `CITATION.cff`,
     the guide, the page and each layer's record. Zenodo archives every new GitHub Release automatically

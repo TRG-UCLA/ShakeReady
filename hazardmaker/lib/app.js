@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
    Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE. */
 /* SR-HazardMaker: the page. SRHazardMakerApp.mount(element, options) builds the tool inside an element.
-   options.mapUrl   address of a ShakeReady map on the same site, for "open the map" (optional)
+   options.mapUrl   address of a ShakeReady dashboard on the same site, for "open the dashboard" (optional)
    Needs sr-hazard.js and converters.js; uses Leaflet for the preview if the page has loaded it. */
 "use strict";
 const SRHazardMakerApp = (() => {
@@ -64,9 +64,9 @@ const SRHazardMakerApp = (() => {
   </section>
   <section class="hm-step" id="step5" hidden>
     <h2><span class="num">5</span>Use it</h2>
-    <p id="default-level-wrap" hidden><label>Level the map selects first <select id="f-default"></select></label></p>
+    <p id="default-level-wrap" hidden><label>Level the dashboard selects first <select id="f-default"></select></label></p>
     <p class="hm-actions">
-      <button class="btn" id="use-map">Keep it in this browser and open the map</button>
+      <button class="btn" id="use-map">Keep it in this browser and open the dashboard</button>
       <button class="btn ghost" id="dl-layer">Download the layer file</button>
       <button class="btn ghost" id="dl-entry">Download the index entry</button>
     </p>
@@ -103,8 +103,8 @@ const SRHazardMakerApp = (() => {
 
     $("use-map").hidden = !canOpenMap;
     $("use-text").innerHTML = (canOpenMap
-      ? `<p><b>Keeping it in this browser</b> lets you use the layer on the ShakeReady map straight away, on this computer only. It is marked as yours and unpublished, and any damage table you download says so.</p>`
-      : `<p><b>To use it on the ShakeReady map</b> straight away, download the layer file, open the map, and under Hazard layer choose “Use a layer file from my computer”. It stays on your computer, marked as yours and unpublished.</p>`)
+      ? `<p><b>Keeping it in this browser</b> lets you use the layer on the ShakeReady dashboard straight away, on this computer only. It is marked as yours and unpublished, and any damage table you download says so.</p>`
+      : `<p><b>To use it on the ShakeReady dashboard</b> straight away, download the layer file, open the dashboard, and under Hazard layer choose “Use a layer file from my computer”. It stays on your computer, marked as yours and unpublished.</p>`)
       + `<p><b>To publish it</b> for everyone, send the two downloaded files to the ShakeReady maintainers, or open a pull request that adds them to the <a href="https://github.com/TRG-UCLA/ShakeReady/tree/main/hazards" rel="noopener">ShakeReady hazard repository</a>. A layer is reviewed before it is listed.</p>`;
 
     root.querySelectorAll('input[name="kind"]').forEach(r => r.addEventListener("change", () => {
@@ -360,7 +360,7 @@ const SRHazardMakerApp = (() => {
       $("saved-out").innerHTML = !rows.length ? `<p class="hm-none">None yet.</p>`
         : `<div class="hm-scroll"><table class="t"><tr><th>Layer</th><th>Kind</th><th>Kept</th><th>Size</th><th></th></tr>` + rows.map(r =>
           `<tr><td>${esc(r.title)}<br><small>${esc(r.id)}</small></td><td>${r.kind === "probabilistic" ? "Hazard map" : "One earthquake"}</td><td>${esc((r.saved_utc || "").slice(0, 10))}</td><td>${((r.bytes || 0) / 1e6).toFixed(2)} MB</td>`
-          + `<td>${canOpenMap ? `<a class="btn ghost small" href="${esc(mapLink(r.id))}">Open on the map</a> ` : ""}<button class="btn ghost small" data-remove="${esc(r.id)}">Remove</button></td></tr>`).join("") + `</table></div>`;
+          + `<td>${canOpenMap ? `<a class="btn ghost small" href="${esc(mapLink(r.id))}">Open on the dashboard</a> ` : ""}<button class="btn ghost small" data-remove="${esc(r.id)}">Remove</button></td></tr>`).join("") + `</table></div>`;
       $("saved-out").querySelectorAll("[data-remove]").forEach(b => b.addEventListener("click", async () => { await SRHazard.store.remove(b.dataset.remove); listSaved(); }));
     }
     listSaved();

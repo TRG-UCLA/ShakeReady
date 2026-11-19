@@ -1,7 +1,7 @@
 # Hazard layers
 
-This folder is ShakeReady's repository of hazard layers: gridded ground motions that the map can
-display and use to estimate damage. `index.json` lists the layers the map offers. Each layer is
+This folder is ShakeReady's repository of hazard layers: gridded ground motions that the dashboard can
+display and use to estimate damage. `index.json` lists the layers the dashboard offers. Each layer is
 one JSON file in this folder.
 
 There are two kinds:
@@ -45,6 +45,6 @@ Spectral accelerations are 5% damped.
    the maintainers. Say how the ground motions were produced: the earthquake, the method or model, the site
    condition, and who to contact.
 5. A maintainer reviews it, runs `python3 tools/build_provenance.py` so the layer enters the provenance
-   record, and merges. The layer then appears in the map's menu.
+   record, and merges. The layer then appears in the dashboard's menu.
 
-A layer without a stated source is not accepted. Everything the map computes from a layer cites it.
+A layer without a stated source is not accepted. Everything the dashboard computes from a layer cites it.
