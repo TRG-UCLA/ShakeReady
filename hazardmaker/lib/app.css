@@ -2,6 +2,7 @@
    Copyright (c) 2026, E. Taciroglu. Part of SR-HazardMaker; see LICENSE. */
 /* SR-HazardMaker: styles for the tool, scoped to .srhm so it can sit inside another site. */
 .srhm{--hm-ink:#0F1A2B;--hm-amber:#F9A03F;--hm-amber-ink:#9A5A12;--hm-text:#22303C;--hm-muted:#5F7183;--hm-line:#D8E0E7;--hm-radius:8px;color:var(--hm-text)}
+.srhm [hidden]{display:none !important}      /* a "hidden" element must not be shown by another rule's display setting */
 .srhm h2{font-size:21px;margin:0 0 12px}
 .srhm .hm-step{border-top:1px solid var(--hm-line);padding:26px 0 8px}
 .srhm .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--hm-ink);color:var(--hm-amber);font-size:15px;font-weight:700;margin-right:10px;vertical-align:2px}
@@ -50,6 +51,12 @@
 .srhm .hm-legend .bar{height:10px;border-radius:3px;margin-bottom:3px}
 .srhm .hm-legend .ticks{display:flex;justify-content:space-between}
 .srhm .hm-facts{font-size:13.5px;color:var(--hm-muted)}
+.srhm .hm-form > .wide{grid-column:1 / -1}
+.srhm .hm-label{display:block;font-size:13.5px;font-weight:600}
+.srhm #s-map{height:320px;border:1px solid var(--hm-line);border-radius:var(--hm-radius);background:#E6ECF0;cursor:crosshair}
+.srhm .hm-link{background:none;border:0;padding:0;font:inherit;color:#1D5FA8;text-decoration:underline;cursor:pointer}
+.srhm .hm-form input.bad{border-color:#B3261E;outline:1px solid #B3261E}
+.srhm .hm-form small.warn{color:#8A5A00}
 .srhm .hm-cite{background:#fff;border:1px solid var(--hm-line);border-left:3px solid var(--hm-amber);border-radius:var(--hm-radius);padding:12px 16px;font-size:14.5px;overflow-wrap:anywhere}
 .srhm #copy-status{margin:0;align-self:center;min-height:0;white-space:pre-wrap}
 .srhm .hm-saved{border-top:1px solid var(--hm-line);margin-top:26px;padding-top:26px}

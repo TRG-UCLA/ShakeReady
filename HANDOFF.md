@@ -88,6 +88,14 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
+## Testing: check what a person sees
+
+Two faults reached the owner because tests checked the wrong thing. Sample numbers shown as input hints
+looked like filled-in values, and elements marked `hidden` were still displayed because a style rule set
+their `display`. The tests had checked the `hidden` mark, not visibility. When testing a page, check what
+is visible on screen (Playwright `is_visible()`), walk through it as a first-time user would, and look
+at a screenshot of every new form before publishing. Do not use value-like placeholders in inputs.
+
 ## Credit
 
 The owner, E. Taciroglu, is to be named as the maker of ShakeReady's codes: the bridge inventory builder

@@ -5,7 +5,7 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.3.1";
+  const VERSION = "0.3.2";
   const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
   const DOI = "10.5281/zenodo.24356049";            // for all versions; each release also has its own, listed on the Zenodo record
   const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://doi.org/10.5281/zenodo.24356049)";     // written into every layer

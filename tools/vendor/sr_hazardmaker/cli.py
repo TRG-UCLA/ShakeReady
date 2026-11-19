@@ -129,10 +129,9 @@ def cmd_table(a):
 
 def _point(text, flag):
     try:
-        lat, lon = (float(v) for v in text.replace(";", ",").split(","))
+        return scenario.parse_point(text)
     except ValueError:
-        raise ValueError(f'{flag} needs a latitude and a longitude separated by a comma, for example {flag} 34.40,-118.80')
-    return [lat, lon]
+        raise ValueError(f'{flag} needs a latitude and a longitude, for example {flag} 34.40,-118.80 (west longitudes are negative)')
 
 
 def cmd_scenario(a):

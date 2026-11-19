@@ -10,6 +10,7 @@ docs/scenario.js holds the same builder for the browser; the two are tested to g
 """
 import datetime
 import math
+import re
 
 from . import bssa14
 from .grid import FORMAT, MADE_WITH, NODATA, SCALE, rnd, to_int
@@ -24,6 +25,33 @@ def num(x):
     """A number as text, the same way in Python and in the browser: 7.0 -> '7', 6.5 -> '6.5'."""
     x = float(x)
     return str(int(x)) if x == int(x) and abs(x) < 1e15 else repr(x)
+
+
+POINT_HELP = "Give a latitude and a longitude, for example 34.40, -118.80. West longitudes are negative."
+
+
+def parse_point(text):
+    """A point as a person writes it, as [latitude, longitude].
+
+    Accepts '34.40, -118.80', '34.40 -118.80', '34.40 N, 118.80 W' and '118.80W 34.40N', with or
+    without degree signs, and the minus sign that word processors substitute for a hyphen.
+    """
+    s = str(text)
+    for a, b in (("\u2212", "-"), ("\u2013", "-"), ("\u2014", "-"), ("\u00b0", " "), ("\u00ba", " ")):
+        s = s.replace(a, b)
+    found = re.findall(r"([-+]?\d+(?:\.\d+)?)\s*([NSEWnsew]?)", s)
+    if len(found) != 2:
+        raise ValueError(POINT_HELP)
+    vals = []
+    for number, letter in found:
+        v, letter = float(number), letter.upper()
+        if letter in ("S", "W") and v > 0:
+            v = -v
+        vals.append((v, letter))
+    (a, la), (b, lb) = vals
+    if la in ("E", "W") or lb in ("N", "S"):          # written longitude first
+        a, b = b, a
+    return [a, b]
 
 
 def check_params(p):

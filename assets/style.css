@@ -16,6 +16,7 @@
   --maxw:880px;
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}      /* a "hidden" element must not be shown by another rule's display setting */
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{margin:0;font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--paper);color:var(--text);line-height:1.6}

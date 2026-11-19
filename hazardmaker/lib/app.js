@@ -42,7 +42,7 @@ const SRHazardMakerApp = (() => {
       <label class="wide">Ground condition the values assume *<input id="f-site" type="text" autocomplete="off"><small>For example "Vs30 = 760 m/s everywhere" or "site-specific, as computed".</small></label>
       <label class="wide">Notes<textarea id="f-desc" rows="2"></textarea><small>How the ground motions were produced: the earthquake, the model or method, anything a user should know.</small></label>
       <label class="wide">Source: title *<input id="f-stitle" type="text" autocomplete="off"></label>
-      <label>Source: publisher or author *<input id="f-pub" type="text" autocomplete="off"></label>
+      <label><span id="l-pub">Source: publisher or author *</span><input id="f-pub" type="text" autocomplete="off"></label>
       <label>Source: version<input id="f-ver" type="text" autocomplete="off"></label>
       <label>Source: DOI<input id="f-doi" type="text" autocomplete="off" spellcheck="false" placeholder="10.xxxx/xxxxx"></label>
       <label>Source: web address<input id="f-url" type="url" autocomplete="off" spellcheck="false"></label>
@@ -113,6 +113,7 @@ const SRHazardMakerApp = (() => {
       $("file-help").innerHTML = HELP[S.kind]; $("file-report").innerHTML = ""; $("choices").innerHTML = ""; status("");
       $("files").value = ""; $("files").multiple = S.kind === "nshm";
       $("drop").hidden = S.kind === "scenario"; $("step2-title").textContent = S.kind === "scenario" ? "Describe the earthquake" : "Add the file";
+      $("l-pub").textContent = S.kind === "scenario" ? "Made by (your name or group) *" : "Source: publisher or author *";
       if (S.kind === "scenario") showScenarioForm();
       ["f-title","f-id","f-site","f-desc","f-stitle","f-pub","f-ver","f-doi","f-url","f-contact"].forEach(id => $(id).value = "");
       $("f-date").value = new Date().toISOString().slice(0, 10);
@@ -200,15 +201,20 @@ const SRHazardMakerApp = (() => {
     }
 
     /* ----- an earthquake to describe ----- */
+    let scnMap = null, scnDrawn = null;
     function showScenarioForm(){
       const D = SRScenario.DEFAULTS;
+      if (scnMap){ scnMap.remove(); scnMap = null; }
       $("choices").innerHTML = `<div class="hm-form">
         <label>Magnitude *<input id="s-mag" type="number" step="0.1" min="3" max="8.5"></label>
         <label>Style of faulting *<select id="s-mech"><option value="strike-slip">Strike-slip</option><option value="reverse">Reverse</option><option value="normal">Normal</option><option value="unspecified">Unspecified</option></select></label>
-        <label>Fault, first end: latitude *<input id="s-lat1" type="number" step="any" placeholder="34.40"></label>
-        <label>Fault, first end: longitude *<input id="s-lon1" type="number" step="any" placeholder="-118.80"></label>
-        <label>Fault, second end: latitude *<input id="s-lat2" type="number" step="any" placeholder="34.10"></label>
-        <label>Fault, second end: longitude *<input id="s-lon2" type="number" step="any" placeholder="-118.30"></label>
+        <div class="wide">
+          <b class="hm-label">The fault *</b>
+          <p class="hm-note">Click the two ends of the fault on the map, or type them below. <button type="button" class="hm-link" id="s-example">Fill in an example</button></p>
+          <div id="s-map" aria-label="Map for choosing the two ends of the fault"></div>
+        </div>
+        <label>First end: latitude, longitude *<input id="s-p1" type="text" inputmode="text" autocomplete="off" spellcheck="false"><small>Like this: 34.40, -118.80. West longitudes are negative.</small></label>
+        <label>Second end: latitude, longitude *<input id="s-p2" type="text" inputmode="text" autocomplete="off" spellcheck="false"><small id="s-fault-note">A third click on the map starts the fault again.</small></label>
         <label>Dip, degrees<input id="s-dip" type="number" step="any" value="${D.dip}"><small>90 is vertical. A dipping fault dips to the right of the direction from the first end to the second.</small></label>
         <label>Down-dip width, km<input id="s-width" type="number" step="any" value="${D.width_km}"><small>Matters only for a dipping fault.</small></label>
         <label>Vs30 used everywhere, m/s<input id="s-vs30" type="number" step="any" value="${D.vs30}"><small>760 is the reference rock condition. 150 to 1500.</small></label>
@@ -216,26 +222,62 @@ const SRHazardMakerApp = (() => {
         <label>Grid spacing<select id="s-spacing"><option value="0.01">0.01° (about 1 km)</option><option value="0.02" selected>0.02° (about 2 km)</option><option value="0.05">0.05° (about 5 km)</option></select></label>
         <label>Distance covered beyond the fault, km<input id="s-margin" type="number" step="any" value="${D.margin_km}"></label>
       </div><p><button class="btn" id="s-continue">Continue</button></p>`;
+
+      const read = id => { const t = $(id).value.trim(); if (!t) return null; try { return SRScenario.parsePoint(t); } catch (e){ return undefined; } };   // null = empty, undefined = unreadable
+      const show = p => `${p[0].toFixed(4)}, ${p[1].toFixed(4)}`;
+      function redraw(fit){
+        const p1 = read("s-p1"), p2 = read("s-p2"), note = $("s-fault-note");
+        for (const [id, p] of [["s-p1", p1], ["s-p2", p2]]) $(id).classList.toggle("bad", p === undefined);
+        const east = [p1, p2].find(p => p && p[1] > 0 && p[1] <= 180);
+        note.textContent = east ? `A longitude of ${SRScenario.num(east[1])} is east of Greenwich. For California, longitudes are negative.`
+          : p1 && p2 ? `A fault ${SRScenario.geometry({trace: [p1, p2], dip: 90, width_km: 1}).length.toFixed(1)} km long. A third click on the map starts it again.`
+          : "A third click on the map starts the fault again.";
+        note.classList.toggle("warn", !!east);
+        if (!scnMap) return;
+        scnDrawn.clearLayers();
+        [p1, p2].forEach((p, i) => { if (p) L.circleMarker(p, {radius: 7, color: "#0F1A2B", weight: 2, fillColor: "#F9A03F", fillOpacity: 1}).bindTooltip(String(i + 1), {permanent: true, direction: "top", offset: [0, -6]}).addTo(scnDrawn); });
+        if (p1 && p2){ const line = L.polyline([p1, p2], {color: "#D7263D", weight: 3}).addTo(scnDrawn); if (fit) scnMap.fitBounds(line.getBounds().pad(1.2)); }
+        else if (fit && (p1 || p2)) scnMap.setView(p1 || p2, 8);
+      }
+      if (window.L){
+        scnMap = L.map($("s-map")).setView([36.3, -119.6], 6);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 14, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(scnMap);
+        scnDrawn = L.layerGroup().addTo(scnMap);
+        scnMap.on("click", e => {
+          const p = [e.latlng.lat, e.latlng.lng], p1 = read("s-p1"), p2 = read("s-p2");
+          if (!p1 || (p1 && p2)){ $("s-p1").value = show(p); $("s-p2").value = ""; }      // first click, or a third click starting again
+          else $("s-p2").value = show(p);
+          redraw(false);
+        });
+      } else $("s-map").outerHTML = "";
+      ["s-p1", "s-p2"].forEach(id => $(id).addEventListener("change", () => redraw(true)));
+      $("s-example").addEventListener("click", () => {
+        $("s-mag").value = "7"; $("s-mech").value = "strike-slip"; $("s-p1").value = "34.4000, -118.8000"; $("s-p2").value = "34.1000, -118.3000";
+        redraw(true); status("An example is filled in: a magnitude 7 strike-slip earthquake northwest of Los Angeles. Change anything you like, then continue.");
+      });
       $("s-continue").addEventListener("click", () => {
         resetFrom(3);
         try {
-          const need = [["s-mag", "the magnitude"], ["s-lat1", "the first end's latitude"], ["s-lon1", "the first end's longitude"], ["s-lat2", "the second end's latitude"], ["s-lon2", "the second end's longitude"]];
-          const missing = need.filter(([id]) => $(id).value.trim() === "").map(x => x[1]);
-          if (missing.length) throw new Error("Please give " + missing.join(", ") + ".");
+          const p1 = read("s-p1"), p2 = read("s-p2"), missing = [];
+          if ($("s-mag").value.trim() === "") missing.push("the magnitude");
+          if (p1 === null && p2 === null) missing.push("the two ends of the fault (click them on the map, type them, or use the example)");
+          else if (p1 === null || p2 === null) missing.push(`the ${p1 === null ? "first" : "second"} end of the fault`);
+          if (missing.length) throw new Error("Still needed: " + missing.join(", and ") + ".");
+          for (const [p, which] of [[p1, "first"], [p2, "second"]]) if (p === undefined) throw new Error(`The ${which} end of the fault could not be read. ${SRScenario.POINT_HELP}`);
           const v = id => $(id).value.trim() === "" ? null : Number($(id).value);
-          S.scn = SRScenario.checkParams({magnitude: v("s-mag"), mechanism: $("s-mech").value, trace: [[v("s-lat1"), v("s-lon1")], [v("s-lat2"), v("s-lon2")]],
+          S.scn = SRScenario.checkParams({magnitude: v("s-mag"), mechanism: $("s-mech").value, trace: [p1, p2],
             dip: v("s-dip"), width_km: v("s-width"), vs30: v("s-vs30"), epsilon: Number($("s-eps").value), spacing: Number($("s-spacing").value), margin_km: v("s-margin")});
           const d = SRScenario.defaults(S.scn), g = SRScenario.geometry(S.scn);
           setForm({"f-title": d.title, "f-site": d.site_condition, "f-desc": d.description, "f-stitle": d.source.title, "f-ver": d.source.version, "f-doi": "", "f-url": ""});
-          status(`A fault ${g.length.toFixed(1)} km long. Say who made this scenario under “Source: publisher or author”, then build it.`);
-          $("step3").hidden = false;
+          status(`A fault ${g.length.toFixed(1)} km long. Next, say who made this scenario, then build it.`);
+          $("step3").hidden = false; $("f-pub").focus();
         } catch (err){ status(err.message || String(err), true); }
       });
     }
 
     /* ----- build ----- */
     function readMeta(){
-      const need = [["f-title", "a title"], ["f-id", "an identifier"], ["f-site", "the ground condition"], ["f-stitle", "the source's title"], ["f-pub", "the source's publisher or author"], ["f-date", "the date"]];
+      const need = [["f-title", "a title"], ["f-id", "an identifier"], ["f-site", "the ground condition"], ["f-stitle", "the source's title"], ["f-pub", S.kind === "scenario" ? "who made this scenario (under “Made by”)" : "the source's publisher or author"], ["f-date", "the date"]];
       const missing = need.filter(([id]) => !$(id).value.trim()).map(x => x[1]);
       if (missing.length) throw new Error("Please give " + missing.join(", ") + ".");
       const all = {title: $("f-stitle").value.trim(), publisher: $("f-pub").value.trim(), version: $("f-ver").value.trim(), doi: $("f-doi").value.trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i, ""),

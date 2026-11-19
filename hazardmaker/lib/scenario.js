@@ -64,6 +64,17 @@ const SRScenario = (() => {
   }
 
   const num = x => String(Number(x));                       // 7 -> "7", 6.5 -> "6.5"
+  const POINT_HELP = "Give a latitude and a longitude, for example 34.40, -118.80. West longitudes are negative.";
+  /* A point as a person writes it, as [latitude, longitude]: "34.40, -118.80", "34.40 N, 118.80 W", "118.80W 34.40N". */
+  function parsePoint(text){
+    const s = String(text).replace(/[\u2212\u2013\u2014]/g, "-").replace(/[\u00b0\u00ba]/g, " ");
+    const found = [...s.matchAll(/([-+]?\d+(?:\.\d+)?)\s*([NSEWnsew]?)/g)];
+    if (found.length !== 2) throw new Error(POINT_HELP);
+    const vals = found.map(m => { let v = Number(m[1]); const letter = m[2].toUpperCase(); if ((letter === "S" || letter === "W") && v > 0) v = -v; return [v, letter]; });
+    let [[a, la], [b, lb]] = vals;
+    if (la === "E" || la === "W" || lb === "N" || lb === "S") [a, b] = [b, a];
+    return [a, b];
+  }
   function checkParams(p){
     const q = Object.assign({}, DEFAULTS);
     for (const [k, v] of Object.entries(p)) if (v !== null && v !== undefined && v !== "") q[k] = v;
@@ -150,6 +161,6 @@ const SRScenario = (() => {
                    note: "Computed, not recorded. One Vs30 is used everywhere. With epsilon other than zero, every point is shifted by the same number of standard deviations, which is not a simulated realization of the event."},
     };
   }
-  return {NAME, CITATION, COEFFS, LIMITS, MECHANISMS, DEFAULTS, lnMedian, sigma, groundMotion, checkInputs, checkParams, geometry, rjb, gridFor, levelLabel, defaults, build, num};
+  return {NAME, CITATION, COEFFS, LIMITS, MECHANISMS, DEFAULTS, lnMedian, sigma, groundMotion, checkInputs, checkParams, parsePoint, POINT_HELP, geometry, rjb, gridFor, levelLabel, defaults, build, num};
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = SRScenario;
