@@ -108,6 +108,11 @@ test them, ask Leaflet what is on the map and sample the painted pixel, or look 
 
 ## Two dashboards (the owner's plan)
 
+**The owner's instruction (2026-11-19): do not build more on the dashboards yet. Plan and mock up first, build
+SR-SuiteMaker, then come back.** The plan is in `PLAN.md`; a diagram and a mock-up of Local analysis are on the
+design canvas (<https://claude.ai/artifact/8qNks7eM7wySai6Nj2iZjq>). He uses the name "SR-SuiteMaker", so treat
+the name as accepted. A mock-up must not show real-looking data: use plain placeholders.
+
 - **Regional analysis** is the existing dashboard (`dashboard.html`; the menu calls it "Regional analysis").
   At the owner's request its panel has three parts, as tabs: **Inventory** (which inventories are shown, and
   the bridge filters), **Hazard** (the hazard layer, its level, the shaking and the fault on the map) and
@@ -115,8 +120,7 @@ test them, ask Leaflet what is on the map and sample the painted pixel, or look 
   under its name. Because the Damage part may not be the one open, the bridge colors are also explained by a
   legend on the map itself. Arriving with `?hazard=` opens on Damage.
 - **Local analysis** is planned and not built: one site, a target spectrum, and a suite of ground motions for
-  performance-based earthquake engineering. The tool behind it has the working name **SR-SuiteMaker** (the
-  owner has not confirmed the name). Its first stage is in a **private** repository,
+  performance-based earthquake engineering. The tool behind it is **SR-SuiteMaker**. Its first stage is in a **private** repository,
   <https://github.com/TRG-UCLA/SR-SuiteMaker>, kept private until the name is confirmed and there is enough to
   release. It holds, tested: the Boore et al. (2014) model at all 105 periods (checked against the OpenQuake
   engine's verification tables), the Baker and Jayaram (2008) correlation between periods (constants
