@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-19T00:56:03Z",
+ "generated_utc": "2026-11-19T16:29:16Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "01e77b185c755a0f824e9efade4ddc049fb12ae4",
+ "code_version": "29414b0326de2e884d8e4a5d1b7cce530b6b0d62",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "ShakeReady's code, namely the bridge inventory builder, the HAZUS bridge fragilities and the damage calculation, was made by E. Taciroglu, as was SR-HazardMaker. The processing, transcription and checks described here were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at his direction. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
@@ -337,9 +337,9 @@
   },
   {
    "id": "DMG-07",
-   "topic": "Most likely damage state",
-   "choice": "The state with the highest probability. A tie goes to the milder state.",
-   "basis": "A single label per asset is useful on a map, but it hides the spread. The five probabilities are always given alongside it."
+   "topic": "A single label for a bridge",
+   "choice": "Two labels are computed. The map colors by the worst damage state a bridge has at least a 50% chance of reaching or exceeding. The table also gives the single most likely of the five states, with a tie going to the milder one.",
+   "basis": "The single most likely state can mislead: 'None' is often the largest of five probabilities even where damage has a sizable chance, because that chance is split among four damage states. In a magnitude 7 test scenario on rock, all 135 bridges within 2 km of the fault were labeled None by that rule, though 35 of them had a 25 to 58 percent chance of some damage. The 50% rule is easier to read correctly, and the popup leads with the chance of any damage. The five probabilities are always given."
   },
   {
    "id": "DMG-08",

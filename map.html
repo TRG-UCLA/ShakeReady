@@ -99,6 +99,7 @@ footer a{color:var(--muted)}
 .legend .ticks{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
 .legend .sw{display:flex;flex-wrap:wrap;gap:4px 10px}
 .legend .sw span{display:inline-flex;align-items:center;gap:5px}
+.legend-note{margin-top:6px;line-height:1.4}
 .legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
 #dmg-summary{font-size:13px;margin:4px 0 2px}
 #dmg-summary table{width:100%;border-collapse:collapse;margin:6px 0}
@@ -171,7 +172,7 @@ footer a{color:var(--muted)}
             <select id="dmg-metric">
               <option value="pext">Probability of extensive or complete damage</option>
               <option value="pany">Probability of any damage</option>
-              <option value="state">Most likely damage state</option>
+              <option value="state">Likely damage state (at least a 50% chance of this or worse)</option>
               <option value="sa10">Shaking at the bridge, Sa(1.0 s)</option>
             </select></div>
           <div class="legend" id="dmg-legend"></div>
@@ -371,7 +372,9 @@ function bridgeDamage(r){
   }
   res.p = p; res.pext = p[3] + p[4];
   let best = 0; for (let i = 1; i < 5; i++) if (p[i] > p[best]) best = i;      // a tie goes to the milder state
-  res.state = best;
+  res.state = best;                                                            // the single most likely of the five states
+  let acc = 0, s50 = 0; for (let i = 4; i >= 1; i--){ acc += p[i]; if (acc >= 0.5){ s50 = i; break; } }
+  res.state50 = s50;                                                           // the worst state reached with at least a 50% chance
   return res;
 }
 const damageActive = () => !!(HAZ && LEVEL && HZ && document.getElementById("fragility").value);
@@ -382,7 +385,7 @@ function computeDamage(){
 }
 function metricValue(d, metric){
   if (!d || !d.p) return null;
-  return metric === "pext" ? d.pext : metric === "pany" ? 1 - d.p[0] : metric === "state" ? d.state : d.sa10;
+  return metric === "pext" ? d.pext : metric === "pany" ? 1 - d.p[0] : metric === "state" ? d.state50 : d.sa10;
 }
 function metricColor(v, metric){
   if (v === null || v === undefined) return "#FFFFFF";
@@ -400,6 +403,7 @@ function damageBlock(r){
   if (!d.p) return `<div class="pop-dmg"><b>Damage estimate:</b> none. This bridge lies outside the area covered by the hazard layer (${where}).</div>`;
   return `<div class="pop-dmg"><b>Shaking here:</b> Sa(1.0 s) ${d.sa10.toFixed(3)} g` + (d.sa03 !== null ? `, Sa(0.3 s) ${d.sa03.toFixed(3)} g` : "") + `<br>`
     + `<span class="pop-note">${where}. ${esc(HAZ.site_condition)}.</span><br>`
+    + `<b>Chance of any damage:</b> ${pct(1 - d.p[0])}<br><b>Chance of extensive or complete damage:</b> ${pct(d.pext)}<br>`
     + `<b>Probability of each damage state:</b><table>` + STATES.map((s, i) => `<tr><td>${s}</td><td>${pct(d.p[i])}</td></tr>`).join("") + `</table>`
     + `<span class="pop-note">` + (HAZ.kind === "probabilistic" ? "Evaluated at this site's own hazard level, not for a single earthquake. " : "")
     + `<a href="methods.html#damage" target="_blank" rel="noopener">Source and method</a></span></div>`;
@@ -525,7 +529,8 @@ function renderDamageSummary(rows){
 function renderLegends(){
   const metric = document.getElementById("dmg-metric").value, lg = document.getElementById("dmg-legend");
   if (!damageActive()) lg.innerHTML = "";
-  else if (metric === "state") lg.innerHTML = `<div class="sw">` + STATES.map((s, i) => `<span><i style="background:${STATE_COLORS[i]}"></i>${s}</span>`).join("") + `</div>`;
+  else if (metric === "state") lg.innerHTML = `<div class="sw">` + STATES.map((s, i) => `<span><i style="background:${STATE_COLORS[i]}"></i>${s}</span>`).join("") + `</div>`
+    + `<div class="legend-note">The worst state a bridge has at least an even chance of reaching. “None” means damage of any kind is less likely than not. It does not mean no risk: see “Probability of any damage”.</div>`;
   else {
     const bins = metric === "sa10" ? SA_BINS : P_BINS, f = metric === "sa10" ? (v => v + " g") : (v => v * 100 + "%");
     const labels = [`under ${f(bins[0])}`].concat(bins.slice(0, -1).map((b, i) => `${f(b)} to ${f(bins[i + 1])}`)).concat([`over ${f(bins[bins.length - 1])}`]);
@@ -596,14 +601,14 @@ function selectHazard(id){
 }
 
 /* the asset-by-asset table, with its sources and method written at the top */
-const DMG_COLUMNS = ["structure_number","latitude","longitude","county","year_built","hazus_class","design","main_spans","skew_deg","sa10_g","sa03_g","k_skew","k_3d","factor_slight","median_slight_g","median_moderate_g","median_extensive_g","median_complete_g","p_none","p_slight","p_moderate","p_extensive","p_complete","p_extensive_or_complete","most_likely_state"];
+const DMG_COLUMNS = ["structure_number","latitude","longitude","county","year_built","hazus_class","design","main_spans","skew_deg","sa10_g","sa03_g","k_skew","k_3d","factor_slight","median_slight_g","median_moderate_g","median_extensive_g","median_complete_g","p_none","p_slight","p_moderate","p_extensive","p_complete","p_extensive_or_complete","most_likely_state","state_with_50pct_chance_or_worse"];
 const f4 = v => (v === null || v === undefined) ? "" : v.toFixed(4);
 const csvCell = s => /[",\n]/.test(String(s)) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
 function damageRow(r){
   const d = DMG.get(r), has = d && d.p;
   return [r[F.structure_num], r[F.lat].toFixed(5), r[F.lng].toFixed(5), B.counties[r[F.county_i]], r[F.year_built], d.cls, d.design, r[F.spans_main], r[F.skew],
     has ? f4(d.sa10) : "", has ? f4(d.sa03) : "", f4(d.kskew), f4(d.k3d), has ? f4(d.fslight) : "",
-    ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), has ? f4(d.pext) : "", has ? STATES[d.state] : ""].map(csvCell).join(",");
+    ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), has ? f4(d.pext) : "", has ? STATES[d.state] : "", has ? STATES[d.state50] : ""].map(csvCell).join(",");
 }
 function damageCsv(rows, prov){
   const src = HAZ.source || {}, now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -629,7 +634,7 @@ function damageCsv(rows, prov){
     prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
     "Limits: the curves describe classes of bridges, not individual structures. Seismic retrofits are not reflected. Culverts are included. Only ground shaking is considered.",
     "",
-    "Columns: sa10_g and sa03_g are spectral accelerations at 1.0 s and 0.3 s at the bridge, in g. k_skew and k_3d are the skew and span factors; factor_slight is the spectral-shape factor applied to the slight median. median_* are the adjusted medians in g. p_* are damage-state probabilities and sum to 1. Blank cells mean the bridge lies outside the hazard layer.",
+    "Columns: sa10_g and sa03_g are spectral accelerations at 1.0 s and 0.3 s at the bridge, in g. k_skew and k_3d are the skew and span factors; factor_slight is the spectral-shape factor applied to the slight median. median_* are the adjusted medians in g. p_* are damage-state probabilities and sum to 1. most_likely_state is the single most likely of the five states; it can be None even where damage has a sizable chance, because that chance is split among four states. state_with_50pct_chance_or_worse is the worst state the bridge has at least an even chance of reaching. Blank cells mean the bridge lies outside the hazard layer.",
   ].filter(l => l !== null).map(l => l === "" ? "#" : "# " + l);
   return head.concat([DMG_COLUMNS.join(",")], rows.map(damageRow)).join("\n") + "\n";
 }
