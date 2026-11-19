@@ -5,6 +5,7 @@
     sr-hazardmaker nshm ARCHIVE.zip                      a USGS hazard-model archive, or its map.csv tables
     sr-hazardmaker shakemap grid.xml                     a USGS ShakeMap grid, zipped or not
     sr-hazardmaker table points.csv --sa10 "SA(1.0)" --units g --title ... --site ... --source-title ... --publisher ...
+    sr-hazardmaker scenario --magnitude 7 --mechanism strike-slip --from 34.40,-118.80 --to 34.10,-118.30 --publisher "Your name"
     sr-hazardmaker check layer.json                      check a layer and print its summary
     sr-hazardmaker cite                                  how to cite SR-HazardMaker
 
@@ -19,7 +20,7 @@ import re
 import sys
 import unicodedata
 
-from . import __author__, __version__, citation, grid, nshm, shakemap, table
+from . import __author__, __version__, citation, grid, nshm, scenario, shakemap, table
 
 
 def slug(s):
@@ -126,6 +127,22 @@ def cmd_table(a):
     return write(table.build(t, mapping, a.units, meta, generator=f"SR-HazardMaker {__version__}, command line (table of points)"), a.out)
 
 
+def _point(text, flag):
+    try:
+        lat, lon = (float(v) for v in text.replace(";", ",").split(","))
+    except ValueError:
+        raise ValueError(f'{flag} needs a latitude and a longitude separated by a comma, for example {flag} 34.40,-118.80')
+    return [lat, lon]
+
+
+def cmd_scenario(a):
+    p = {"magnitude": a.magnitude, "mechanism": a.mechanism, "trace": [_point(a.start, "--from"), _point(a.end, "--to")],
+         "dip": a.dip, "width_km": a.width, "vs30": a.vs30, "epsilon": a.epsilon, "spacing": a.spacing, "margin_km": a.margin_km}
+    base = scenario.defaults(p)
+    print("Ground-motion model:", scenario.bssa14.CITATION)
+    return write(scenario.build(p, _meta(a, base), generator=f"SR-HazardMaker {__version__}, command line (scenario builder)"), a.out)
+
+
 def cmd_check(a):
     layer = grid.load(a.file)
     errors = report(layer)
@@ -173,6 +190,18 @@ def main(argv=None):
     s.add_argument("--kind", choices=("scenario", "probabilistic"), default="scenario")
     s.add_argument("--level-label", help="name of the level, for a hazard map")
     common(s); s.set_defaults(func=cmd_table)
+    s = sub.add_parser("scenario", help="compute the shaking of a described earthquake with a ground-motion model")
+    s.add_argument("--magnitude", type=float, required=True)
+    s.add_argument("--mechanism", choices=tuple(scenario.bssa14.MECHANISMS), required=True, help="style of faulting")
+    s.add_argument("--from", dest="start", required=True, metavar="LAT,LON", help="one end of the fault trace")
+    s.add_argument("--to", dest="end", required=True, metavar="LAT,LON", help="the other end; a dipping fault dips to the right of the direction from --from to --to")
+    s.add_argument("--dip", type=float, help="degrees from horizontal (default 90, vertical)")
+    s.add_argument("--width", type=float, help="down-dip width of the rupture in km, for a dipping fault (default 15)")
+    s.add_argument("--vs30", type=float, help="Vs30 used everywhere, m/s (default 760)")
+    s.add_argument("--epsilon", type=float, help="standard deviations above the median (default 0, the median)")
+    s.add_argument("--spacing", type=float, help="grid spacing in degrees (default 0.02)")
+    s.add_argument("--margin-km", type=float, help="how far the grid extends beyond the fault (default 100)")
+    common(s); s.set_defaults(func=cmd_scenario)
     s = sub.add_parser("check", help="check a layer file and print its summary")
     s.add_argument("file"); s.set_defaults(func=cmd_check)
     s = sub.add_parser("cite", help="how to cite SR-HazardMaker")

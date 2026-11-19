@@ -5,7 +5,7 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.2.0";
+  const VERSION = "0.3.0";
   const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
   const DOI = "";            // set once a DOI has been issued for the tool
   const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://github.com/TRG-UCLA/SR-HazardMaker)";     // written into every layer

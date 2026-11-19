@@ -12,7 +12,7 @@ Then run the site's checks and `python3 tools/build_provenance.py`, and commit.
 """
 import datetime, hashlib, json, os, shutil, subprocess, sys
 
-WEB = ["sr-hazard.js", "converters.js", "app.js", "app.css"]
+WEB = ["sr-hazard.js", "converters.js", "scenario.js", "app.js", "app.css"]
 
 
 def git(repo, *args):

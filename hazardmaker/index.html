@@ -19,19 +19,20 @@
 </div></nav>
 <main class="page">
   <h1>SR-HazardMaker</h1>
-  <p class="lede">Turn ground-motion data into a hazard layer the ShakeReady map can use. Your files are read on your own computer. Nothing is uploaded.</p>
+  <p class="lede">Make a hazard layer the ShakeReady map can use, from ground-motion files or from an earthquake you describe. Your files are read on your own computer. Nothing is uploaded.</p>
   <p class="byline">Made by E. Taciroglu, University of California, Los Angeles.</p>
   <div id="app"></div>
   <section style="border-top:1px solid var(--line);margin-top:26px;padding-top:26px">
     <h2>A tool of its own</h2>
     <p>SR-HazardMaker was made by E. Taciroglu. It is developed in <a href="https://github.com/TRG-UCLA/SR-HazardMaker" rel="noopener">its own repository</a>, where it is also available as a command-line tool and Python package, tested to produce the same layers as this page. This site uses release <span id="hm-version"></span> unchanged.</p>
     <h2>Coming next</h2>
-    <p>A scenario builder: describe an earthquake, choose a ground-motion model and a ground condition, and SR-HazardMaker will compute the shaking.</p>
+    <p>For the scenario builder: more ground-motion models, choosing the fault on a map, and ground conditions that vary from place to place.</p>
   </section>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="lib/sr-hazard.js"></script>
 <script src="lib/converters.js"></script>
+<script src="lib/scenario.js"></script>
 <script src="lib/app.js"></script>
 <script>
 SRHazardMakerApp.mount(document.getElementById("app"), {mapUrl: "../map.html"});

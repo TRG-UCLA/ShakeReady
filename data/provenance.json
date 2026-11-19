@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-18T23:38:09Z",
+ "generated_utc": "2026-11-19T00:36:40Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "60f36456e6e455db1e9589730d9b2ad558c9a602",
+ "code_version": "4be7bb18c9299e4cebd4c9d89973a59d771d4c3c",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "Processing, transcription and checks were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at the direction of the ShakeReady project lead. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
@@ -404,23 +404,82 @@
    "basis": "A single source for the converters, in the browser and on the command line, so that the public tool and the one this site uses cannot drift apart."
   }
  ],
+ "scenario_decisions": [
+  {
+   "id": "SB-01",
+   "topic": "Ground-motion model",
+   "choice": "Scenarios are computed with the model of Boore, Stewart, Seyhan and Atkinson (2014), Earthquake Spectra 30(3), 1057-1085: its base model, for the RotD50 horizontal component.",
+   "basis": "A widely used model for shallow crustal earthquakes in California that needs only magnitude, style of faulting, distance to the fault and Vs30. It is the first model offered; others can be added beside it."
+  },
+  {
+   "id": "SB-02",
+   "topic": "Where the model's numbers come from",
+   "choice": "The equations were written from the paper. The coefficient values were taken from the table in the OpenQuake engine's implementation of the model.",
+   "basis": "No number enters the tool from memory. The code is then held to that engine's verification tables (see the checks)."
+  },
+  {
+   "id": "SB-03",
+   "topic": "Regional and basin terms",
+   "choice": "No regional adjustment to attenuation and no basin-depth term are applied.",
+   "basis": "The base model is the authors' recommendation for California. The basin term needs the depth to a velocity horizon at each site, which a single-Vs30 scenario does not have."
+  },
+  {
+   "id": "SB-04",
+   "topic": "Ground condition",
+   "choice": "One Vs30 is used everywhere in a scenario. The default is 760 m/s.",
+   "basis": "Keeps the scenario fully described by a handful of inputs. Shaking on softer ground than the chosen Vs30 is understated; the layer says which Vs30 was used."
+  },
+  {
+   "id": "SB-05",
+   "topic": "The rupture",
+   "choice": "The rupture is a flat rectangle: a straight trace between two points, a dip, and a down-dip width. A dipping fault dips to the right of the direction from the first point to the second. The trace's length is whatever the two points give; it is not adjusted to the magnitude.",
+   "basis": "The model needs only the distance to the rupture's surface projection. Leaving the length to the user avoids building in a magnitude-length relation; the user is responsible for a length that suits the magnitude."
+  },
+  {
+   "id": "SB-06",
+   "topic": "Measuring distance",
+   "choice": "Distances are measured in a flat local frame centered on the fault, with a spherical Earth of radius 6,371 km.",
+   "basis": "Accurate to well under one percent over the few hundred kilometers a scenario covers, and simple enough to be identical in the browser and on the command line."
+  },
+  {
+   "id": "SB-07",
+   "topic": "Shaking levels other than the median",
+   "choice": "A scenario can be the median or the median shifted by a chosen number of standard deviations, applied equally at every point. The nonlinear site term always uses the median shaking on rock, as the model specifies.",
+   "basis": "A uniform shift is a simple way to look at a stronger or weaker outcome. It is not a simulated realization of the event, which would vary from place to place, and the layer says so."
+  },
+  {
+   "id": "SB-08",
+   "topic": "Limits of the model",
+   "choice": "The tool refuses magnitudes outside 3 to 8.5 (3 to 7 for normal faulting) and Vs30 outside 150 to 1500 m/s, and does not let the grid extend more than 250 km beyond the fault.",
+   "basis": "These are the ranges the authors give for the model."
+  },
+  {
+   "id": "SB-09",
+   "topic": "Who made a scenario",
+   "choice": "A scenario cannot be built without naming who made it, and every input is written into the layer.",
+   "basis": "A computed scenario has no outside source to point to, so its maker and its inputs are its provenance. With them, anyone can recompute it."
+  }
+ ],
  "hazard_layers": [],
  "tools": {
   "SR-HazardMaker": {
    "repository": "https://github.com/TRG-UCLA/SR-HazardMaker",
-   "tag": "v0.2.0",
-   "commit": "0b7ba0f255eef68ff87a9821a367bc7e98f3a6c4",
-   "synced_utc": "2026-11-18T23:38:09Z",
+   "tag": "v0.3.0",
+   "commit": "854a1e4c3f28943479f9a7d21c6f47a2c420b5eb",
+   "synced_utc": "2026-11-19T00:36:39Z",
    "files": {
-    "hazardmaker/lib/sr-hazard.js": "b7ba3dceef4b28581bdbeb66ad154df4ba864ab1c9db2a6cf1e7df021067ef1c",
+    "hazardmaker/lib/sr-hazard.js": "1b675299dedc89eb3af0099d4cbcb30ad01930d3621da0253d95a91a5acab11a",
     "hazardmaker/lib/converters.js": "7d8918065ebff2d0ec6fcef29d9816442a7234296e0368e44daa44fdae678ba4",
-    "hazardmaker/lib/app.js": "40095e74a3ea5535d0b0439364961c72f58c1339b83791a6c6894970cab80ce1",
+    "hazardmaker/lib/scenario.js": "bdf3d9edb0d48f168e8246c444cef71eda5ebe4629941f39eae360fefea28fae",
+    "hazardmaker/lib/app.js": "57795f42407cac0390e1c02ca1933e47d976f46d23cfbf76df0d347c7320ce1b",
     "hazardmaker/lib/app.css": "af5f9ddea1fedfe1e960b9d22dae0664cea7424d9e6ac183e68c5586247cb2c3",
-    "tools/vendor/sr_hazardmaker/__init__.py": "fecf58e29284c596c15470256546e48101168871c099146cab6199162b3b2928",
+    "tools/vendor/sr_hazardmaker/__init__.py": "e25fa656097d520733bee99b710f483a573aded211b8a93d2544d821553a29c3",
     "tools/vendor/sr_hazardmaker/__main__.py": "1cdea0dae8cf695aaf088eeec687ec3da945152585078a8b5baa83d515d8a01a",
-    "tools/vendor/sr_hazardmaker/cli.py": "947cf978952c8573bfef14775f0866be5e9944e592be8817256cbe976dab2c96",
+    "tools/vendor/sr_hazardmaker/bssa14.py": "863a1bda015eefcdd8d835ebf1e1c7228f809e2fe885cdb6c7414cabcd0db3e6",
+    "tools/vendor/sr_hazardmaker/cli.py": "8d119ebd2ee9e5822949fe7c320e8a13a4df95b00fe810fbc7cd7f6df64fbf4c",
     "tools/vendor/sr_hazardmaker/grid.py": "18e3e75ea326bfda70279282ed880f2bf3f3f360013d28fc813056c46346e1bc",
     "tools/vendor/sr_hazardmaker/nshm.py": "88456c0034cae85fcae5732840c813fce45792752cff59690156a9049f0c2399",
+    "tools/vendor/sr_hazardmaker/scenario.py": "af79a6299a20adec1e0a468d3acfc9b247c53de62d6f735ab9c28fdf448af73c",
     "tools/vendor/sr_hazardmaker/shakemap.py": "85fefb9046fa1ac9119700a6497eb97b76ebfb050d0720f5edc2cbf0c8bb3853",
     "tools/vendor/sr_hazardmaker/table.py": "be2952588574a298f80e0c1607a468c1bdd3cadaee87aca55d20a7ac9ca85662",
     "hazardmaker/lib/LICENSE": "b8a41c4112bb6f79acc46fbbc3187874231b94f7c83943c1616514aa09eb6507",
@@ -513,6 +572,14 @@
   {
    "check": "A layer file opened on the map",
    "result": "A layer file opened from the computer on the map gives the same damage table as the reference code for all 25,974 bridges. A file that is not a layer is refused."
+  },
+  {
+   "check": "The ground-motion model against reference values",
+   "result": "The model as implemented was compared with all 600 cases of the verification tables distributed with the OpenQuake engine for Boore et al. (2014): magnitudes 3 to 8, three styles of faulting and unspecified, distances to 100 km, Vs30 from 200 to 760 m/s, for PGA and spectral acceleration at 0.3 s and 1.0 s. The 1,800 medians agree to within 5 parts per million and the 1,800 standard deviations to within 0.00005, the precision of the tables. A subset of 69 cases is checked automatically on every change to the tool."
+  },
+  {
+   "check": "The scenario builder",
+   "result": "Distances to a vertical and to a dipping fault match hand-computed values. A scenario built on the page and the same scenario built on the command line are the same layer, value for value (43,248 values in the case tested), and three further scenarios agree in the tool's own tests. A scenario layer opened on the map gives a damage table identical to the reference code."
   }
  ],
  "limits": [

@@ -12,6 +12,7 @@ const SRHazardMakerApp = (() => {
     nshm: `Add the USGS archive for one site condition (a large <code>.zip</code>; only the three tables needed are read from it), or the <code>map.csv</code> files for SA1P0, SA0P3 and PGA with those names in the file names. The layer is cropped to California and its surroundings.`,
     shakemap: `Add the ShakeMap's <code>grid.xml</code>, or the <code>grid.xml.zip</code> as downloaded. On a USGS event page it is under ShakeMap, Downloads.`,
     table: `Add one CSV file. Each row is a grid point: longitude, latitude, and spectral acceleration at 1.0 second. Spectral acceleration at 0.3 second and peak ground acceleration are optional. The points must form an evenly spaced grid.`,
+    scenario: `The fault is a straight line between two points, and the same ground condition is used everywhere. The shaking is computed with the ground-motion model of Boore, Stewart, Seyhan and Atkinson (2014), for magnitudes 3 to 8.5 (to 7 for normal faulting).`,
   };
   const MARKUP = `
   <section class="hm-step" id="step1">
@@ -20,10 +21,11 @@ const SRHazardMakerApp = (() => {
       <label class="hm-card"><input type="radio" name="kind" value="nshm"><b>USGS national hazard model files</b><span>The archive for one site condition from the National Seismic Hazard Model, or the <code>map.csv</code> tables from inside it.</span></label>
       <label class="hm-card"><input type="radio" name="kind" value="shakemap"><b>A USGS ShakeMap</b><span>The <code>grid.xml</code> file of a recorded or scenario earthquake, zipped or not.</span></label>
       <label class="hm-card"><input type="radio" name="kind" value="table"><b>A table of points</b><span>A CSV file with longitude, latitude and ground motion on an evenly spaced grid, such as the output of a simulation.</span></label>
+      <label class="hm-card"><input type="radio" name="kind" value="scenario"><b>An earthquake to describe</b><span>No file needed. Give the magnitude, the fault and the ground condition, and the shaking is computed with a ground-motion model.</span></label>
     </div>
   </section>
   <section class="hm-step" id="step2" hidden>
-    <h2><span class="num">2</span>Add the file</h2>
+    <h2><span class="num">2</span><span id="step2-title">Add the file</span></h2>
     <p id="file-help"></p>
     <div class="hm-drop" id="drop"><input type="file" id="files" multiple aria-label="Choose files"><span>or drop files here</span></div>
     <p class="hm-status" id="status" role="status"></p>
@@ -88,7 +90,7 @@ const SRHazardMakerApp = (() => {
     const canOpenMap = !!(mapUrl && mapUrl.origin === location.origin);          // kept layers are only visible to pages of the same site
     root.classList.add("srhm"); root.innerHTML = MARKUP;
     const $ = id => root.querySelector("#" + id);
-    const S = {kind: null, files: [], nshm: null, group: null, sm: null, table: null, layer: null, text: null, sha: null, idEdited: false};
+    const S = {kind: null, files: [], nshm: null, group: null, sm: null, table: null, scn: null, layer: null, text: null, sha: null, idEdited: false};
     SRHazardMakerApp.state = S;
     const status = (msg, bad) => { $("status").textContent = msg || ""; $("status").classList.toggle("bad", !!bad); };
     const mapLink = id => { const u = new URL(mapUrl); u.searchParams.set("hazard", "local:" + id); return u.href; };
@@ -106,10 +108,12 @@ const SRHazardMakerApp = (() => {
       + `<p><b>To publish it</b> for everyone, send the two downloaded files to the ShakeReady maintainers, or open a pull request that adds them to the <a href="https://github.com/TRG-UCLA/ShakeReady/tree/main/hazards" rel="noopener">ShakeReady hazard repository</a>. A layer is reviewed before it is listed.</p>`;
 
     root.querySelectorAll('input[name="kind"]').forEach(r => r.addEventListener("change", () => {
-      S.kind = r.value; S.files = []; S.nshm = S.sm = S.table = S.group = null; S.idEdited = false;
+      S.kind = r.value; S.files = []; S.nshm = S.sm = S.table = S.scn = S.group = null; S.idEdited = false;
       resetFrom(3); $("step2").hidden = false;
       $("file-help").innerHTML = HELP[S.kind]; $("file-report").innerHTML = ""; $("choices").innerHTML = ""; status("");
       $("files").value = ""; $("files").multiple = S.kind === "nshm";
+      $("drop").hidden = S.kind === "scenario"; $("step2-title").textContent = S.kind === "scenario" ? "Describe the earthquake" : "Add the file";
+      if (S.kind === "scenario") showScenarioForm();
       ["f-title","f-id","f-site","f-desc","f-stitle","f-pub","f-ver","f-doi","f-url","f-contact"].forEach(id => $(id).value = "");
       $("f-date").value = new Date().toISOString().slice(0, 10);
     }));
@@ -195,6 +199,40 @@ const SRHazardMakerApp = (() => {
       status(""); $("step3").hidden = false;
     }
 
+    /* ----- an earthquake to describe ----- */
+    function showScenarioForm(){
+      const D = SRScenario.DEFAULTS;
+      $("choices").innerHTML = `<div class="hm-form">
+        <label>Magnitude *<input id="s-mag" type="number" step="0.1" min="3" max="8.5"></label>
+        <label>Style of faulting *<select id="s-mech"><option value="strike-slip">Strike-slip</option><option value="reverse">Reverse</option><option value="normal">Normal</option><option value="unspecified">Unspecified</option></select></label>
+        <label>Fault, first end: latitude *<input id="s-lat1" type="number" step="any" placeholder="34.40"></label>
+        <label>Fault, first end: longitude *<input id="s-lon1" type="number" step="any" placeholder="-118.80"></label>
+        <label>Fault, second end: latitude *<input id="s-lat2" type="number" step="any" placeholder="34.10"></label>
+        <label>Fault, second end: longitude *<input id="s-lon2" type="number" step="any" placeholder="-118.30"></label>
+        <label>Dip, degrees<input id="s-dip" type="number" step="any" value="${D.dip}"><small>90 is vertical. A dipping fault dips to the right of the direction from the first end to the second.</small></label>
+        <label>Down-dip width, km<input id="s-width" type="number" step="any" value="${D.width_km}"><small>Matters only for a dipping fault.</small></label>
+        <label>Vs30 used everywhere, m/s<input id="s-vs30" type="number" step="any" value="${D.vs30}"><small>760 is the reference rock condition. 150 to 1500.</small></label>
+        <label>Shaking level<select id="s-eps"><option value="0">Median</option><option value="1">Median plus 1 standard deviation</option><option value="-1">Median minus 1 standard deviation</option></select></label>
+        <label>Grid spacing<select id="s-spacing"><option value="0.01">0.01° (about 1 km)</option><option value="0.02" selected>0.02° (about 2 km)</option><option value="0.05">0.05° (about 5 km)</option></select></label>
+        <label>Distance covered beyond the fault, km<input id="s-margin" type="number" step="any" value="${D.margin_km}"></label>
+      </div><p><button class="btn" id="s-continue">Continue</button></p>`;
+      $("s-continue").addEventListener("click", () => {
+        resetFrom(3);
+        try {
+          const need = [["s-mag", "the magnitude"], ["s-lat1", "the first end's latitude"], ["s-lon1", "the first end's longitude"], ["s-lat2", "the second end's latitude"], ["s-lon2", "the second end's longitude"]];
+          const missing = need.filter(([id]) => $(id).value.trim() === "").map(x => x[1]);
+          if (missing.length) throw new Error("Please give " + missing.join(", ") + ".");
+          const v = id => $(id).value.trim() === "" ? null : Number($(id).value);
+          S.scn = SRScenario.checkParams({magnitude: v("s-mag"), mechanism: $("s-mech").value, trace: [[v("s-lat1"), v("s-lon1")], [v("s-lat2"), v("s-lon2")]],
+            dip: v("s-dip"), width_km: v("s-width"), vs30: v("s-vs30"), epsilon: Number($("s-eps").value), spacing: Number($("s-spacing").value), margin_km: v("s-margin")});
+          const d = SRScenario.defaults(S.scn), g = SRScenario.geometry(S.scn);
+          setForm({"f-title": d.title, "f-site": d.site_condition, "f-desc": d.description, "f-stitle": d.source.title, "f-ver": d.source.version, "f-doi": "", "f-url": ""});
+          status(`A fault ${g.length.toFixed(1)} km long. Say who made this scenario under “Source: publisher or author”, then build it.`);
+          $("step3").hidden = false;
+        } catch (err){ status(err.message || String(err), true); }
+      });
+    }
+
     /* ----- build ----- */
     function readMeta(){
       const need = [["f-title", "a title"], ["f-id", "an identifier"], ["f-site", "the ground condition"], ["f-stitle", "the source's title"], ["f-pub", "the source's publisher or author"], ["f-date", "the date"]];
@@ -212,6 +250,7 @@ const SRHazardMakerApp = (() => {
         bs.textContent = "Building …"; await new Promise(r => setTimeout(r, 30));
         if (S.kind === "nshm") S.layer = await SRConvert.nshmBuild(S.nshm.groups[S.group], meta, msg => { bs.textContent = msg; });
         else if (S.kind === "shakemap") S.layer = SRConvert.shakemapBuild(S.sm.parsed, meta, S.sm.name);
+        else if (S.kind === "scenario") S.layer = SRScenario.build(S.scn, meta);
         else {
           const map = {}; for (const k of ["lon", "lat", "SA1P0", "SA0P3", "PGA"]) map[k] = Number($("c-" + k).value);
           S.layer = SRConvert.tableBuild(S.table.t, map, $("c-unit").value, Object.assign(meta, {kind: $("c-kind").value, level_label: $("c-level").value.trim(), file_name: S.table.name}));

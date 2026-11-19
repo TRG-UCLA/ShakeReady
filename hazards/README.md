@@ -34,8 +34,9 @@ Spectral accelerations are 5% damped.
 1. Convert your ground motions to the format above with **SR-HazardMaker**
    (<https://github.com/TRG-UCLA/SR-HazardMaker>). Use it in a browser, on the ShakeReady site at
    `/hazardmaker/` or on its own page, or from the command line. It reads USGS hazard-model files, USGS
-   ShakeMap `grid.xml` files and plain tables of points on a regular grid, asks for the layer's source,
-   checks the result, and gives you the layer file and its index entry.
+   ShakeMap `grid.xml` files and plain tables of points on a regular grid, or computes a scenario from a
+   described earthquake. It asks for the layer's source, checks the result, and gives you the layer file
+   and its index entry.
 2. Run `sr-hazardmaker check <your-file>.json`. It checks the structure, units and coverage, and prints
    the checksum. (The browser page runs the same checks.)
 3. Add an entry for the layer to `index.json` (id, title, kind, file, site condition, levels, source,

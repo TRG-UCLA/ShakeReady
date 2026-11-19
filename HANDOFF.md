@@ -149,8 +149,18 @@ The owner's rule: anyone using results from this site must be able to tell where
     organization); the next GitHub Release then gets a DOI. Put that DOI in `__doi__`
     (`src/sr_hazardmaker/__init__.py`), `DOI` (`docs/sr-hazard.js`), `CITATION.cff` and the README, and
     release again. His ORCID iD, once given, goes in `CITATION.cff`.
-  - **Open with the owner:** which ground-motion models the scenario builder should offer. The ShakeReady
-    site and its data have no license of their own yet. **Next, as agreed: the
+  - **Scenario builder (since 0.3.0):** magnitude, style of faulting, a straight fault trace, dip and
+    width, one Vs30, median or a uniform shift in standard deviations. Model: Boore, Stewart, Seyhan and
+    Atkinson (2014), base model, written from the paper with coefficients taken from the OpenQuake
+    engine's table and checked against all 600 rows of that engine's verification tables. The owner asked
+    to keep building and was told this model was chosen to start; **he has not yet said which other models
+    he wants.** Decisions SB-01 to SB-09 are on the Methods page. Ideas not yet built: more models,
+    picking the fault on a map, Vs30 that varies by place, spatially correlated realizations.
+  - **DOI:** the first archived release is on Zenodo (version DOI 10.5281/zenodo.24356050 for 0.2.1).
+    The all-versions DOI is expected to be 10.5281/zenodo.24356049 but **the owner has not confirmed
+    it**; do not put a DOI into the citation until he does. Zenodo archives each new GitHub Release
+    automatically.
+  - The ShakeReady site and its data have no license of their own yet. **Next, as agreed: the
     scenario builder**, with models implemented from published coefficients and checked against an
     established implementation.
 - **Never publish a made-up hazard layer.** Test layers are generated in a scratch copy of the site and
