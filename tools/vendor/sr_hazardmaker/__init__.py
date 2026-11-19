@@ -4,12 +4,12 @@ Copyright (c) 2026, E. Taciroglu. Free to use under the BSD 3-Clause license (se
 If you use it, please cite it: run `sr-hazardmaker cite`.
 """
 # SPDX-License-Identifier: BSD-3-Clause
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __author__ = "E. Taciroglu"
 __year__ = "2026"
 __license__ = "BSD-3-Clause"
 __url__ = "https://github.com/TRG-UCLA/SR-HazardMaker"
-__doi__ = ""          # set once a DOI has been issued for the tool
+__doi__ = "10.5281/zenodo.24356049"          # for all versions; each release also has its own, listed on the Zenodo record
 
 
 def citation():

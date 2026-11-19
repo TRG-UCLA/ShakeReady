@@ -5,10 +5,10 @@
    This file and src/sr_hazardmaker/grid.py implement the same rules and are tested to agree. */
 "use strict";
 const SRHazard = (() => {
-  const VERSION = "0.3.0";
+  const VERSION = "0.3.1";
   const MAKER = "E. Taciroglu", YEAR = "2026", LICENSE = "BSD-3-Clause", URL = "https://github.com/TRG-UCLA/SR-HazardMaker";
-  const DOI = "";            // set once a DOI has been issued for the tool
-  const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://github.com/TRG-UCLA/SR-HazardMaker)";     // written into every layer
+  const DOI = "10.5281/zenodo.24356049";            // for all versions; each release also has its own, listed on the Zenodo record
+  const MADE_WITH = "SR-HazardMaker, made by E. Taciroglu (https://doi.org/10.5281/zenodo.24356049)";     // written into every layer
   const FORMAT = "shakeready-hazard-grid/1";
   const MEASURES = ["SA1P0", "SA0P3", "PGA"];
   const MEASURE_NAMES = {SA1P0: "Sa(1.0 s)", SA0P3: "Sa(0.3 s)", PGA: "PGA"};

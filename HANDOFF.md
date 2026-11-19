@@ -156,10 +156,10 @@ The owner's rule: anyone using results from this site must be able to tell where
     to keep building and was told this model was chosen to start; **he has not yet said which other models
     he wants.** Decisions SB-01 to SB-09 are on the Methods page. Ideas not yet built: more models,
     picking the fault on a map, Vs30 that varies by place, spatially correlated realizations.
-  - **DOI:** the first archived release is on Zenodo (version DOI 10.5281/zenodo.24356050 for 0.2.1).
-    The all-versions DOI is expected to be 10.5281/zenodo.24356049 but **the owner has not confirmed
-    it**; do not put a DOI into the citation until he does. Zenodo archives each new GitHub Release
-    automatically.
+  - **DOI: 10.5281/zenodo.24356049** (all versions; confirmed by the owner). It is in the tool's citation, `CITATION.cff`,
+    the guide, the page and each layer's record. Zenodo archives every new GitHub Release automatically
+    and gives it a version DOI of its own; nothing needs doing per release beyond publishing the Release.
+    The owner's ORCID iD has been asked for twice and not given; add it to `CITATION.cff` if he offers it.
   - The ShakeReady site and its data have no license of their own yet. **Next, as agreed: the
     scenario builder**, with models implemented from published coefficients and checked against an
     established implementation.
