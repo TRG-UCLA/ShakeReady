@@ -22,7 +22,8 @@ import hazus_bridges as hz
 COLUMNS = ['structure_number', 'latitude', 'longitude', 'county', 'year_built', 'hazus_class', 'design', 'main_spans', 'skew_deg',
            'sa10_g', 'sa03_g', 'k_skew', 'k_3d', 'factor_slight',
            'median_slight_g', 'median_moderate_g', 'median_extensive_g', 'median_complete_g',
-           'p_none', 'p_slight', 'p_moderate', 'p_extensive', 'p_complete', 'p_extensive_or_complete', 'most_likely_state',
+           'p_none', 'p_slight', 'p_moderate', 'p_extensive', 'p_complete',
+           'p_slight_or_worse', 'p_moderate_or_worse', 'p_extensive_or_worse', 'most_likely_state',
            'state_with_50pct_chance_or_worse']
 STATES = ['None', 'Slight', 'Moderate', 'Extensive', 'Complete']
 
@@ -47,7 +48,9 @@ def bridge_result(h, level, r, F):
     p = hz.damage_probabilities(cls, spans, skew, sa10, sa03)
     for name, v in zip(('none', 'slight', 'moderate', 'extensive', 'complete'), p):
         out[f'p_{name}'] = v
-    out['p_extensive_or_complete'] = p[3] + p[4]
+    out['p_slight_or_worse'] = 1 - p[0]                     # the probability of reaching or exceeding each state
+    out['p_moderate_or_worse'] = p[2] + p[3] + p[4]
+    out['p_extensive_or_worse'] = p[3] + p[4]
     best = max(range(5), key=lambda i: (p[i], -i))          # a tie goes to the milder state
     out['most_likely_state'] = STATES[best]
     acc, s50 = 0.0, 0                                       # the worst state reached with at least a 50% chance

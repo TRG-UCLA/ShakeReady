@@ -106,6 +106,15 @@ at a screenshot of every new form before publishing. Do not use value-like place
 The dashboard's map draws lines on a canvas (`preferCanvas`), so drawn features are not page elements. To
 test them, ask Leaflet what is on the map and sample the painted pixel, or look at a screenshot.
 
+## Reading damage on the dashboard
+
+"Color bridges by" offers three views. **Probability maps** (the default): each bridge by its probability of
+reaching or exceeding a chosen damage state, slight, moderate, extensive or complete, in seven classes; the
+owner asked for these. **Likely damage state:** the worst state a bridge has at least a 50% chance of
+reaching; this replaced "most likely state", which read "None" even where damage had a sizable chance, as
+the owner noticed. **Shaking at the bridge.** Popups give each state's probability and "this or worse". The
+downloaded table has all of them. See decisions DMG-07 and DMG-09.
+
 ## Credit
 
 The owner, E. Taciroglu, is to be named as the maker of ShakeReady's codes: the bridge inventory builder

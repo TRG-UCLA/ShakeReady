@@ -100,17 +100,20 @@ footer a{color:var(--muted)}
 .legend .sw{display:flex;flex-wrap:wrap;gap:4px 10px}
 .legend .sw span{display:inline-flex;align-items:center;gap:5px}
 .legend-note{margin-top:6px;line-height:1.4}
+.legend-title{color:var(--paper);font-weight:600;margin-bottom:6px}
 .legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
 #dmg-summary{font-size:13px;margin:4px 0 2px}
 #dmg-summary table{width:100%;border-collapse:collapse;margin:6px 0}
 #dmg-summary td{padding:3px 0;border-bottom:1px solid var(--line)}
 #dmg-summary td:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--paper)}
+.dmg-exceed{margin:4px 0 8px;color:var(--paper)}
 #dmg-summary td i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px}
 .dmg-cluster div{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.35);font:600 12px/1 Inter,system-ui,sans-serif;color:#1C1507}
 .dmg-cluster div.dark{color:#fff}
 .pop-dmg{margin-top:9px;padding-top:8px;border-top:1px solid #D8E0E7}
 .pop-dmg table{border-collapse:collapse;margin:4px 0 2px}
-.pop-dmg td{padding:1px 12px 1px 0;font-variant-numeric:tabular-nums}
+.pop-dmg td,.pop-dmg th{padding:1px 14px 1px 0;font-variant-numeric:tabular-nums;text-align:left}
+.pop-dmg th{font-weight:600;font-size:12px;color:#5F7183}
 .pop-frag{margin-top:9px;padding-top:8px;border-top:1px solid #D8E0E7}
 .pop-note{color:#5F7183;font-size:12px}
 .sv-link{display:block;margin-top:9px;font-weight:600}
@@ -170,10 +173,16 @@ footer a{color:var(--muted)}
         <div id="damage-controls">
           <div class="frow"><label for="dmg-metric">Color bridges by</label>
             <select id="dmg-metric">
-              <option value="pext">Probability of extensive or complete damage</option>
-              <option value="pany">Probability of any damage</option>
+              <option value="pex">Probability of reaching a damage state</option>
               <option value="state">Likely damage state (at least a 50% chance of this or worse)</option>
               <option value="sa10">Shaking at the bridge, Sa(1.0 s)</option>
+            </select></div>
+          <div class="frow" id="dmg-state-row"><label for="dmg-state">Damage state to map</label>
+            <select id="dmg-state">
+              <option value="1">Slight or worse (any damage)</option>
+              <option value="2">Moderate or worse</option>
+              <option value="3" selected>Extensive or worse</option>
+              <option value="4">Complete</option>
             </select></div>
           <div class="legend" id="dmg-legend"></div>
           <div id="dmg-summary"></div>
@@ -328,9 +337,11 @@ let HAZ = null, LEVEL = null;                   // the loaded hazard file and th
 let DMG = new Map();                            // bridge row -> result
 let hazOverlay = null;
 const STATES = ["None", "Slight", "Moderate", "Extensive", "Complete"];
-const DMG_RAMP = ["#FFF3B0", "#FDB863", "#F46036", "#C1121F", "#5A0F2E"];
+const DMG_RAMP = ["#FFF3B0", "#FDB863", "#F46036", "#C1121F", "#5A0F2E"];                                   // five classes, for shaking
+const P_RAMP = ["#FFFDE8", "#FFF3B0", "#FED98E", "#FDB863", "#F46036", "#C1121F", "#5A0F2E"];                 // seven classes, for probability
+const STATE_OR_WORSE = ["", "slight damage or worse", "moderate damage or worse", "extensive damage or worse", "complete damage"];
 const STATE_COLORS = ["#B8C4CF", "#FFE08A", "#FDB863", "#F46036", "#8E1B2C"];
-const P_BINS = [0.01, 0.05, 0.2, 0.5], SA_BINS = [0.1, 0.2, 0.4, 0.8];
+const P_BINS = [0.01, 0.05, 0.10, 0.25, 0.50, 0.75], SA_BINS = [0.1, 0.2, 0.4, 0.8];
 const MEASURE_NAMES = SRHazard.MEASURE_NAMES;
 
 function erf(x){                               // accurate to about 1e-15
@@ -383,16 +394,19 @@ function computeDamage(){
   if (!B || !damageActive()) return;
   for (const r of B.rows) DMG.set(r, bridgeDamage(r));
 }
+/* probability of reaching or exceeding a damage state: 1 slight, 2 moderate, 3 extensive, 4 complete */
+const exceedance = (d, k) => k === 1 ? 1 - d.p[0] : k === 2 ? d.p[2] + d.p[3] + d.p[4] : k === 3 ? d.p[3] + d.p[4] : d.p[4];
+const mappedState = () => Number(document.getElementById("dmg-state").value);
 function metricValue(d, metric){
   if (!d || !d.p) return null;
-  return metric === "pext" ? d.pext : metric === "pany" ? 1 - d.p[0] : metric === "state" ? d.state50 : d.sa10;
+  return metric === "pex" ? exceedance(d, mappedState()) : metric === "state" ? d.state50 : d.sa10;
 }
 function metricColor(v, metric){
   if (v === null || v === undefined) return "#FFFFFF";
   if (metric === "state") return STATE_COLORS[Math.round(v)];
   const bins = metric === "sa10" ? SA_BINS : P_BINS;
   let i = 0; while (i < bins.length && v >= bins[i]) i++;
-  return DMG_RAMP[i];
+  return (metric === "sa10" ? DMG_RAMP : P_RAMP)[i];
 }
 const pct = v => v < 0.0005 ? "<0.1%" : v > 0.9995 ? ">99.9%" : (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
 
@@ -404,7 +418,8 @@ function damageBlock(r){
   return `<div class="pop-dmg"><b>Shaking here:</b> Sa(1.0 s) ${d.sa10.toFixed(3)} g` + (d.sa03 !== null ? `, Sa(0.3 s) ${d.sa03.toFixed(3)} g` : "") + `<br>`
     + `<span class="pop-note">${where}. ${esc(HAZ.site_condition)}.</span><br>`
     + `<b>Chance of any damage:</b> ${pct(1 - d.p[0])}<br><b>Chance of extensive or complete damage:</b> ${pct(d.pext)}<br>`
-    + `<b>Probability of each damage state:</b><table>` + STATES.map((s, i) => `<tr><td>${s}</td><td>${pct(d.p[i])}</td></tr>`).join("") + `</table>`
+    + `<table><tr><th>Damage state</th><th>Exactly this</th><th>This or worse</th></tr>`
+    + STATES.map((s, i) => `<tr><td>${s}</td><td>${pct(d.p[i])}</td><td>${i === 0 ? "" : pct(exceedance(d, i))}</td></tr>`).join("") + `</table>`
     + `<span class="pop-note">` + (HAZ.kind === "probabilistic" ? "Evaluated at this site's own hazard level, not for a single earthquake. " : "")
     + `<a href="methods.html#damage" target="_blank" rel="noopener">Source and method</a></span></div>`;
 }
@@ -495,7 +510,8 @@ function renderBridges(){
     let s = 0, n = 0;
     for (const mk of cluster.getAllChildMarkers()){ const v = mk.options.metric; if (v !== null && v !== undefined){ s += v; n++; } }
     const col = n ? metricColor(s / n, metric) : "#B8C4CF", count = cluster.getChildCount();
-    const size = count < 100 ? 34 : count < 1000 ? 40 : 46, dark = [DMG_RAMP[3], DMG_RAMP[4], STATE_COLORS[4]].includes(col);
+    const rgb = [1, 3, 5].map(i => parseInt(col.slice(i, i + 2), 16)), dark = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] < 110;
+    const size = count < 100 ? 34 : count < 1000 ? 40 : 46;
     return L.divIcon({html: `<div style="background:${col}" class="${dark ? "dark" : ""}"><span>${fmt(count)}</span></div>`, className: "dmg-cluster", iconSize: [size, size]});
   };
   bridgeCluster = L.markerClusterGroup(opts);
@@ -523,6 +539,11 @@ function renderDamageSummary(rows){
   box.innerHTML = `Expected number of bridges in each damage state, of the ${fmt(rows.length)} shown:`
     + `<table>` + STATES.map((s, i) => `<tr><td><i style="background:${STATE_COLORS[i]}"></i>${s}</td><td>${fmt(Math.round(sums[i]))}</td></tr>`).join("")
     + (without ? `<tr><td>No estimate (outside the hazard layer)</td><td>${fmt(without)}</td></tr>` : "") + `</table>`
+    + (document.getElementById("dmg-metric").value === "pex" ? (() => {
+        const k = mappedState(); let expected = 0, likely = 0;
+        for (const r of rows){ const d = DMG.get(r); if (d && d.p){ const v = exceedance(d, k); expected += v; if (v >= 0.5) likely++; } }
+        return `<div class="dmg-exceed">Reaching ${STATE_OR_WORSE[k]}: <b>${fmt(Math.round(expected))}</b> expected; <b>${fmt(likely)}</b> bridge${likely === 1 ? " has" : "s have"} at least a 50% chance.</div>`;
+      })() : "")
     + (HAZ.kind === "probabilistic" ? `<span class="haz-note">Each bridge is evaluated at its own site's hazard level. These are not the losses of one earthquake.</span>` : "");
 }
 
@@ -532,10 +553,13 @@ function renderLegends(){
   else if (metric === "state") lg.innerHTML = `<div class="sw">` + STATES.map((s, i) => `<span><i style="background:${STATE_COLORS[i]}"></i>${s}</span>`).join("") + `</div>`
     + `<div class="legend-note">The worst state a bridge has at least an even chance of reaching. “None” means damage of any kind is less likely than not. It does not mean no risk: see “Probability of any damage”.</div>`;
   else {
-    const bins = metric === "sa10" ? SA_BINS : P_BINS, f = metric === "sa10" ? (v => v + " g") : (v => v * 100 + "%");
+    const sa = metric === "sa10", bins = sa ? SA_BINS : P_BINS, ramp = sa ? DMG_RAMP : P_RAMP, f = sa ? (v => v + " g") : (v => Math.round(v * 100) + "%");
     const labels = [`under ${f(bins[0])}`].concat(bins.slice(0, -1).map((b, i) => `${f(b)} to ${f(bins[i + 1])}`)).concat([`over ${f(bins[bins.length - 1])}`]);
-    lg.innerHTML = `<div class="sw">` + labels.map((s, i) => `<span><i style="background:${DMG_RAMP[i]}"></i>${s}</span>`).join("") + `</div>`;
+    lg.innerHTML = (sa ? "" : `<div class="legend-title">Probability of ${STATE_OR_WORSE[mappedState()]}</div>`)
+      + `<div class="sw">` + labels.map((s, i) => `<span><i style="background:${ramp[i]}"></i>${s}</span>`).join("") + `</div>`
+      + (sa ? "" : `<div class="legend-note">A numbered circle shows the average over the bridges it stands for.</div>`);
   }
+  document.getElementById("dmg-state-row").hidden = metric !== "pex";
   const hl = document.getElementById("haz-legend");
   if (!HAZ || !document.getElementById("haz-show").checked){ hl.innerHTML = ""; return; }
   hl.innerHTML = SRHazard.legendHtml(document.getElementById("haz-measure").value);
@@ -601,14 +625,14 @@ function selectHazard(id){
 }
 
 /* the asset-by-asset table, with its sources and method written at the top */
-const DMG_COLUMNS = ["structure_number","latitude","longitude","county","year_built","hazus_class","design","main_spans","skew_deg","sa10_g","sa03_g","k_skew","k_3d","factor_slight","median_slight_g","median_moderate_g","median_extensive_g","median_complete_g","p_none","p_slight","p_moderate","p_extensive","p_complete","p_extensive_or_complete","most_likely_state","state_with_50pct_chance_or_worse"];
+const DMG_COLUMNS = ["structure_number","latitude","longitude","county","year_built","hazus_class","design","main_spans","skew_deg","sa10_g","sa03_g","k_skew","k_3d","factor_slight","median_slight_g","median_moderate_g","median_extensive_g","median_complete_g","p_none","p_slight","p_moderate","p_extensive","p_complete","p_slight_or_worse","p_moderate_or_worse","p_extensive_or_worse","most_likely_state","state_with_50pct_chance_or_worse"];
 const f4 = v => (v === null || v === undefined) ? "" : v.toFixed(4);
 const csvCell = s => /[",\n]/.test(String(s)) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
 function damageRow(r){
   const d = DMG.get(r), has = d && d.p;
   return [r[F.structure_num], r[F.lat].toFixed(5), r[F.lng].toFixed(5), B.counties[r[F.county_i]], r[F.year_built], d.cls, d.design, r[F.spans_main], r[F.skew],
     has ? f4(d.sa10) : "", has ? f4(d.sa03) : "", f4(d.kskew), f4(d.k3d), has ? f4(d.fslight) : "",
-    ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), has ? f4(d.pext) : "", has ? STATES[d.state] : "", has ? STATES[d.state50] : ""].map(csvCell).join(",");
+    ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), ...(has ? [1, 2, 3].map(k => f4(exceedance(d, k))) : ["", "", ""]), has ? STATES[d.state] : "", has ? STATES[d.state50] : ""].map(csvCell).join(",");
 }
 function damageCsv(rows, prov){
   const src = HAZ.source || {}, now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -634,7 +658,7 @@ function damageCsv(rows, prov){
     prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
     "Limits: the curves describe classes of bridges, not individual structures. Seismic retrofits are not reflected. Culverts are included. Only ground shaking is considered.",
     "",
-    "Columns: sa10_g and sa03_g are spectral accelerations at 1.0 s and 0.3 s at the bridge, in g. k_skew and k_3d are the skew and span factors; factor_slight is the spectral-shape factor applied to the slight median. median_* are the adjusted medians in g. p_* are damage-state probabilities and sum to 1. most_likely_state is the single most likely of the five states; it can be None even where damage has a sizable chance, because that chance is split among four states. state_with_50pct_chance_or_worse is the worst state the bridge has at least an even chance of reaching. Blank cells mean the bridge lies outside the hazard layer.",
+    "Columns: sa10_g and sa03_g are spectral accelerations at 1.0 s and 0.3 s at the bridge, in g. k_skew and k_3d are the skew and span factors; factor_slight is the spectral-shape factor applied to the slight median. median_* are the adjusted medians in g. p_none to p_complete are the probabilities of each damage state and sum to 1. p_slight_or_worse, p_moderate_or_worse and p_extensive_or_worse are the probabilities of reaching or exceeding that state; for complete damage that is p_complete itself. most_likely_state is the single most likely of the five states; it can be None even where damage has a sizable chance, because that chance is split among four states. state_with_50pct_chance_or_worse is the worst state the bridge has at least an even chance of reaching. Blank cells mean the bridge lies outside the hazard layer.",
   ].filter(l => l !== null).map(l => l === "" ? "#" : "# " + l);
   return head.concat([DMG_COLUMNS.join(",")], rows.map(damageRow)).join("\n") + "\n";
 }
@@ -760,6 +784,7 @@ document.getElementById("fragility").addEventListener("change", () => {
   refreshHazardViews();
 });
 document.getElementById("dmg-metric").addEventListener("change", () => { renderBridges(); renderLegends(); });
+document.getElementById("dmg-state").addEventListener("change", () => { renderBridges(); renderLegends(); });
 document.getElementById("haz-show").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
 document.getElementById("haz-fault").addEventListener("change", drawHazardSource);
 document.getElementById("haz-measure").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
