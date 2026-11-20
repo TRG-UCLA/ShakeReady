@@ -133,7 +133,24 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     mean and spread after Jayaram, Lin and Baker (2011). Run on the real NGA-West2 spectra from Baker's
     table (downloaded for testing only, never to be redistributed): for a conditional target it chose 11
     records with the mean within 3.2% and the spread within 0.06, in a tenth of a second.
-  - Not yet built: reading the PEER flatfile and simulated motions; computing spectra from time series; the
+  - **The owner's records.** His group keeps a copy of an **older PEER set** (not NGA-West2) on the group's
+    Shared Google Drive, "TRG G-Drive", under `data / PEER GM Database`: two archives (a 518 MB `.rar` and a
+    10.5 MB `.zip`). He unpacked the small one there as `data2`: one folder per record named by its NGA record
+    number (`NGA0006`, ...), each holding AT2 files named like `IMPVALL_I-ELC-UP.AT2`, plus a 2019 script
+    `PEER_GMs_Process.py`. The Drive connection (account ertugrul.taciroglu@gmail.com, added to the Shared
+    Drive) can list these but cannot usefully read them: AT2 is not a type it returns, and bulk reading
+    through the conversation is impractical. Ask for files to be attached in chat. Only read from that drive.
+  - Built and tested on two of his files (record 16, attached in chat; do not put PEER files in any
+    repository): `at2.py` reads both layouts of the AT2 header; `spectra.py` computes response spectra and
+    RotD50. Checked against direct numerical integration (4 parts in ten million), the pyrotd library
+    (within 1% from 0.02 to 1 s) and PEER's published values.
+  - **Finding to act on:** for record 16 the spectrum from his file matches PEER's published NGA-West2
+    spectrum within about 10% up to 0.5 s, but is only 0.4 to 0.6 of it beyond 0.75 s. His older files are a
+    different processing of the same recordings. So spectra for his database must be **computed from his
+    files**, not taken from the NGA-West2 flatfile; the flatfile can supply magnitude, distance and Vs30 by
+    record number. The usable period range of the older files is not known; the older set's own flatfile,
+    if he has it, would give the filter corners. One record is thin evidence: check more when available.
+  - Not yet built: indexing a whole folder of records into a record set; reading simulated motions; the
     browser page (must give the same selection as Python for the same seed); the command line; the suite
     file's provenance; a public release.
   - The owner chose: all three kinds of target; records from both NGA-West2 and his group's simulations.
