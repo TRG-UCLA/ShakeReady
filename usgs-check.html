@@ -33,7 +33,7 @@ pre{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:
 <body>
 <main>
   <p class="note"><a href="index.html">ShakeReady</a> · a diagnostic page, not part of the site's menu</p>
-  <h1>USGS connection check</h1>
+  <h1>USGS connection check <span style="font-size:14px;font-weight:600;background:#E3F3E6;color:#1E6B33;border-radius:12px;padding:3px 11px;vertical-align:middle">Version 2 · seven requests</span></h1>
   <p>This page asks USGS, from your browser, for the hazard at one site, its disaggregation, and the ground motions its own models give for the controlling earthquake. It shows what comes back. It exists so that ShakeReady's local analysis can be built against real answers from USGS.</p>
   <p class="note">The requests go from your browser straight to <b>earthquake.usgs.gov</b>. Nothing is sent anywhere else. There are seven requests, and the whole run takes about two minutes: please leave the page open until the button at the bottom becomes active.</p>
 
@@ -106,7 +106,7 @@ $("run").addEventListener("click", async () => {
   if (![lat, lon, vs30, rp].every(Number.isFinite)){ $("overall").textContent = "Please fill in every box with a number."; return; }
   for (const k of Object.keys(RESULTS)) delete RESULTS[k];
   $("steps").innerHTML = ""; $("results").hidden = false; $("run").disabled = true; $("save").disabled = true; $("overall").textContent = "Working…";
-  RESULTS.inputs = {model: base, latitude: lat, longitude: lon, vs30, return_period: rp, imt, page: location.href, browser: navigator.userAgent, when: new Date().toISOString()};
+  RESULTS.inputs = {page_version: 2, model: base, latitude: lat, longitude: lon, vs30, return_period: rp, imt, page: location.href, browser: navigator.userAgent, when: new Date().toISOString()};
   const GMM = "https://earthquake.usgs.gov/ws/nshmp/data/gmm/spectra";
   const hu = await step("hazard_usage", "1. How a hazard request is written", `${base}/hazard`, 30000);
   await step("hazard", "2. Hazard curves at the site", `${base}/hazard/${lon}/${lat}/${vs30}`, 180000);
