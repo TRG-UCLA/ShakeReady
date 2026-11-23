@@ -1,0 +1,11 @@
+{
+ "tool": "SR-SuiteMaker",
+ "maker": "E. Taciroglu",
+ "state": "in development; not yet released",
+ "source": "https://github.com/TRG-UCLA/SR-SuiteMaker (private until its first release)",
+ "commit": "d201b9e947a50a91f8e5dcd742da2fd9a928d984",
+ "files": {
+  "suite-core.js": "35321c341f9db2ef374fe8db86e1cfd96268b5f0b6e6c0f24add82382c2e656a",
+  "suite-plots.js": "6df4e037134016ff50fa05019d3c7936f52762b65eb29368859791e8970ff97f"
+ }
+}

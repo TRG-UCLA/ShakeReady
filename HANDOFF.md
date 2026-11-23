@@ -171,6 +171,21 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     that target as hazard-consistent. Ways forward: take medians and sigmas from USGS's own ground-motion
     service; or implement the hazard model's models with basin terms; or use the full disaggregation. The conditional mean spectrum built so far is the approximate form (one magnitude and
     distance, one model); say so. Component definitions (RotD50 against maximum direction) are not handled.
+  - **Local analysis is live as `local.html` (2026-11-23), in the menu after Regional analysis.** It holds
+    Site, Hazard, Disaggregation and Target; Suite is a note that it comes next. On "Get the hazard from USGS"
+    it sends two requests (hazard curves, then the detailed disaggregation), reuses the hazard curves when
+    only the return period or period changes, and shows: the uniform hazard spectrum with the target, the
+    hazard curve, the disaggregation as bars and as a map seen from above, shares by ground-motion model,
+    the largest sources, and the target with its limits stated. Downloads: spectra (CSV), the target with
+    its record (JSON), USGS's replies (JSON). The target is a conditional mean spectrum from the one model,
+    with the Joyner-Boore distance set so the model's epsilon equals USGS's for that model.
+    The page's code is SR-SuiteMaker's `docs/suite-core.js` and `docs/suite-plots.js`, copied to
+    `local/lib/` with `local/lib/VERSION.json` recording the commit and checksums; copy them again after any
+    change there. Tested with the owner's real USGS replies standing in for the service, the page's figures
+    equal to Python's. **Not yet run against the live service by anyone:** the owner was asked to try it.
+    Still to do: the Suite part; picking the site on a map and "Analyze this site" from the regional
+    dashboard (`local.html` already accepts `?lat=&lon=&vs30=`); a Methods section for this page; the
+    maximum-direction component; the other ground-motion models.
   - **The owner's records.** His group keeps a copy of an **older PEER set** (not NGA-West2) on the group's
     Shared Google Drive, "TRG G-Drive", under `data / PEER GM Database`: two archives (a 518 MB `.rar` and a
     10.5 MB `.zip`). He unpacked the small one there as `data2`: one folder per record named by its NGA record

@@ -40,7 +40,8 @@ working. "Local analysis" does not go in the menu as an empty page.
    target's mean, or its mean and spread). Still to do: reading the NGA-West2 flatfile and the group's
    simulated motions (both need files from the owner); then the tool itself (browser page, command line,
    outputs, public repository, citation).
-2. **Local analysis.** The dashboard on top of it. It can open with targets alone.
+2. **Local analysis.** Live since 2026-11-23 with Site, Hazard, Disaggregation and Target, the hazard asked
+   of USGS directly. The Suite part is next.
 3. **The link and the menu.**
 
 ## What exists today
