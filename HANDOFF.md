@@ -141,9 +141,18 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     `conus-2018.R1`; list at `/ws/nshmp/hazard/dynamic/nshms`), with `/hazard/{lon}/{lat}/{vs30}` and
     `/disagg/...`; it takes any Vs30 from 150 to 1500 and return periods from 1 to 20,000 years. The exact
     form of a disaggregation request and the shape of the answers are **not confirmed**: this workspace
-    cannot reach USGS. `usgs-check.html` (not in the menu) makes the requests from the owner's browser and
-    saves the answers as `usgs-check.json`. **Build the hazard client against that file when he sends it,
-    not before.** The conditional mean spectrum built so far is the approximate form (one magnitude and
+    cannot reach USGS. `usgs-check.html` (not in the menu) makes the requests from a browser and saves the
+    answers. **The owner ran it on 2026-11-23 and it worked:** a page on trg-ucla.github.io may read USGS's
+    replies for `/hazard/{lon}/{lat}/{vs30}` (25 s) and `/disagg/{lon}/{lat}/{vs30}/{returnPeriod}?imt=SA1P0`
+    (34 s); only the model listing was refused, and it is not needed. `usgs.py` in SR-SuiteMaker reads both
+    replies, built against his file; a trimmed sample is in its tests. The uniform hazard value it derives
+    (0.70923 g at 1.0 s, 2,475 years, downtown Los Angeles, Vs30 760) equals the one USGS states.
+    **Open problem, told to the owner:** the conditional mean spectrum from the single model (Boore et al.
+    2014, base, no basin term; USGS's rRup used as Rjb; mechanism unspecified) needs epsilon 2.03 to reach
+    that value, where USGS reports 1.03 for the hazard. The model's median is about half of what the
+    hazard model's own models give at this basin site, so the target's shape is too peaked. Do not present
+    that target as hazard-consistent. Ways forward: take medians and sigmas from USGS's own ground-motion
+    service; or implement the hazard model's models with basin terms; or use the full disaggregation. The conditional mean spectrum built so far is the approximate form (one magnitude and
     distance, one model); say so. Component definitions (RotD50 against maximum direction) are not handled.
   - **The owner's records.** His group keeps a copy of an **older PEER set** (not NGA-West2) on the group's
     Shared Google Drive, "TRG G-Drive", under `data / PEER GM Database`: two archives (a 518 MB `.rar` and a
