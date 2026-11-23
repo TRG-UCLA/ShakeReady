@@ -38,6 +38,6 @@
 SRHazardMakerApp.mount(document.getElementById("app"), {mapUrl: "../dashboard.html"});
 fetch("lib/VERSION.json").then(r => r.json()).then(v => { document.getElementById("hm-version").textContent = (v.tag || v.commit.slice(0, 7)); }).catch(() => { document.getElementById("hm-version").textContent = SRHazard.VERSION; });
 </script>
-<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers.</div></footer>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers. <a href="../feedback.html" style="color:inherit;text-decoration:underline;white-space:nowrap">Report a problem or suggest an improvement</a>.</div></footer>
 </body>
 </html>

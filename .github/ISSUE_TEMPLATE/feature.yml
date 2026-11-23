@@ -1,0 +1,37 @@
+name: Suggest an improvement
+description: A feature you would like, something that is hard to use, or data you would like to see added.
+title: "Suggestion: "
+labels: ["suggestion", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Suggestions from people who use the tools are the most useful kind.
+        **This suggestion is public.** Please do not include anything private.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part is this about?
+      options:
+        - Regional analysis (inventory, hazard layers, bridge damage)
+        - Local analysis (site hazard, disaggregation, target spectrum)
+        - SR-HazardMaker (making hazard layers)
+        - Data and methods
+        - The website itself
+        - Something new
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like?
+      description: Describe it in your own words. An example of how you would use it helps.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What are you trying to do?
+      description: The work this would help with. It often shows a better way to meet the need.
+    validations:
+      required: false

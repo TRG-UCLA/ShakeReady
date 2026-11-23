@@ -80,13 +80,14 @@ main.page.local{max-width:1180px}
         <div class="la-card"><h2>Target</h2><p class="sub">A conditional mean spectrum: the spectrum to expect, given that the uniform hazard value is reached at the period of interest.</p>
           <div class="la-facts" id="tg-facts"></div>
           <div class="la-note" id="tg-note"></div>
-          <p style="margin:14px 0 0"><button class="la-btn" id="dl-csv">Download the spectra (CSV)</button><button class="la-btn" id="dl-json">Download the target with its record (JSON)</button><button class="la-btn" id="dl-raw">Download USGS's replies (JSON)</button></p></div>
+          <p style="margin:14px 0 0"><button class="la-btn" id="dl-csv">Download the spectra (CSV)</button><button class="la-btn" id="dl-json">Download the target with its record (JSON)</button><button class="la-btn" id="dl-raw">Download USGS's replies (JSON)</button></p>
+          <p class="sub" style="margin:14px 0 0">Does something here look wrong? <a id="report" href="feedback.html" rel="noopener">Report a problem with these results</a>. The site, the settings and the figures above are carried into the form.</p></div>
         <div class="la-card"><h2>Suite</h2><p class="sub" style="margin:0">Choosing and scaling ground motions to this target comes next. The selection is built and tested; it is being connected to this page.</p></div>
       </div>
     </div>
   </div>
 </main>
-<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers.</div></footer>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers. <a href="feedback.html" style="color:inherit;text-decoration:underline;white-space:nowrap">Report a problem or suggest an improvement</a>.</div></footer>
 <script src="local/lib/suite-core.js"></script>
 <script src="local/lib/suite-plots.js"></script>
 <script>
@@ -178,6 +179,12 @@ function render(){
       + ` It lies on or below the uniform hazard spectrum and meets it at ${I.period} s.`;
   } else { $("tg-facts").innerHTML = ""; $("tg-note").innerHTML = `<b>No target could be built here.</b> ${esc(S.targetError || "")}`; }
   for (const id of ["dl-csv", "dl-json"]) $(id).hidden = !t;
+  const ctx = [`Page: Local analysis (${location.origin}${location.pathname})`, `Site: latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s`, `Hazard model: ${SRSuite.MODELS[I.model]}; return period ${I.rp} years; period of interest ${I.period} s`,
+    `Uniform hazard value shown: ${sa.toFixed(4)} g at ${I.period} s; PGA ${u.pga.toFixed(4)} g; USGS disaggregated ${D.ground_motion_g} g`,
+    `Disaggregation mean: M ${D.mean.magnitude}, ${D.mean.distance_km} km, epsilon ${D.mean.epsilon}`,
+    t ? `Target: M ${t.definition.usgs.mean_magnitude}, Joyner-Boore distance ${t.definition.calibration.joyner_boore_distance_km.toFixed(2)} km, epsilon ${t.definition.calibration.epsilon_of_this_model_there.toFixed(3)} (USGS ${t.definition.usgs.epsilon})` : `Target: none (${S.targetError})`,
+    `Tool: ${SRSuite.MADE_WITH}, ${SRSuite.VERSION}`].join("\n");
+  $("report").href = "https://github.com/TRG-UCLA/ShakeReady/issues/new?" + new URLSearchParams({template: "problem.yml", title: `Problem: Local analysis at ${I.lat}, ${I.lon}`, context: ctx});
   $("results").scrollIntoView({behavior: "smooth", block: "start"});
 }
 function save(name, text, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }

@@ -1,0 +1,51 @@
+name: Report a problem
+description: A result that looks wrong, something that does not work, or an error in the data or the text.
+title: "Problem: "
+labels: ["problem", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. Reports like this are how the tools get better.
+        **This report is public.** Please do not include anything private.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part is this about?
+      options:
+        - Regional analysis (inventory, hazard layers, bridge damage)
+        - Local analysis (site hazard, disaggregation, target spectrum)
+        - SR-HazardMaker (making hazard layers)
+        - Data and methods
+        - The website itself
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you saw, and what you expected to see instead.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Settings and values
+      description: The site or hazard layer, the settings you chose, and the numbers that look wrong. If you came here from a link on a results page, this is already filled in.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why do you think it is wrong?
+      description: A reference value, another tool's answer, or a source. Files can be attached by dragging them here, such as a downloaded damage table or the USGS replies.
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      description: For example "Chrome on Windows". Only needed if something did not work.
+    validations:
+      required: false
