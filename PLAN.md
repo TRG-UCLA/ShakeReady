@@ -67,8 +67,23 @@ What was found about TACC (DesignSafe training pages, read 2026-11-23):
 5. Should ShakeReady register its own Tapis app, pinned to an OpenSees version for repeatability?
 6. Limits on file staging and polling; whether jobs can notify on completion.
 
-Still open with the owner: which model language ModelMaker reads first (Python or Tcl), and which kind of
-structure the first from-scratch template is.
+### Decided 2026-11-23: OpenSeesPy only
+
+The owner decided that only OpenSeesPy models are allowed: no Tcl, in SR-ModelMaker, in the run package, or
+at TACC. What follows from it:
+
+- **Reading a model:** run the user's Python script in the browser (Pyodide) against a stand-in for
+  `openseespy.opensees` that records what is built (nodes, elements, materials, sections, constraints, masses,
+  loads) and does nothing for analysis commands. One mechanism reads any Python model however it is written.
+  Things to handle: scripts split over several files, scripts that read data files, scripts that import other
+  libraries, and scripts that run their own analysis.
+- **The run package** is a Python package: the model, the motions, a run script, a manifest. The OpenSeesPy
+  version used is recorded with the results.
+- **At TACC** the target is DesignSafe's OpenSeesPy app (`designsafe-openseespy-s3`), which is new in 2026;
+  ask the collaborators how settled it is.
+- A user with a Tcl model must convert it. No automatic conversion is promised.
+
+Still open with the owner: which kind of structure the first from-scratch template is.
 
 ## The idea
 
