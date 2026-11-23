@@ -182,7 +182,8 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     The page's code is SR-SuiteMaker's `docs/suite-core.js` and `docs/suite-plots.js`, copied to
     `local/lib/` with `local/lib/VERSION.json` recording the commit and checksums; copy them again after any
     change there. Tested with the owner's real USGS replies standing in for the service, the page's figures
-    equal to Python's. **Not yet run against the live service by anyone:** the owner was asked to try it.
+    equal to Python's. **Run against the live service by the owner on 2026-11-23: it worked**, and his saved replies gave the
+    same figures here as on the page. USGS's replies name only the path asked; the page records the full address.
     Still to do: the Suite part; picking the site on a map and "Analyze this site" from the regional
     dashboard (`local.html` already accepts `?lat=&lon=&vs30=`); a Methods section for this page; the
     maximum-direction component; the other ground-motion models.

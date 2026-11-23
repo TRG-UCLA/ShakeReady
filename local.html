@@ -141,6 +141,8 @@ $("go").addEventListener("click", async () => {
     S.detailReply = await ask(U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true), "disaggregation", 360);
     clearInterval(tick); line("st-dg", `Disaggregation received in ${Math.round((performance.now() - s2) / 1000)} s.`, "done");
     S.hazard = U.readHazard(S.hazardReply); S.detail = U.readDisaggregationDetail(S.detailReply); S.inputs = I;
+    // USGS's replies name only the path they were asked at; the record keeps the full address that was used
+    S.hazard.service.url = U.hazardUrl(I.lon, I.lat, I.vs30, I.model); S.detail.service.url = U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true);
     S.uhs = U.uniformHazardSpectrum(S.hazard, I.rp); S.target = null; S.targetError = null;
     try { S.target = U.target(S.hazard, S.detail)[0]; } catch (err){ S.targetError = err.message; }
     render();
