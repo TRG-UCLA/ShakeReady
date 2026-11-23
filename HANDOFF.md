@@ -147,7 +147,24 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     (34 s); only the model listing was refused, and it is not needed. `usgs.py` in SR-SuiteMaker reads both
     replies, built against his file; a trimmed sample is in its tests. The uniform hazard value it derives
     (0.70923 g at 1.0 s, 2,475 years, downtown Los Angeles, Vs30 760) equals the one USGS states.
-    **Open problem, told to the owner:** the conditional mean spectrum from the single model (Boore et al.
+    **Second and third runs (2026-11-23).** Asking for the disaggregation with
+    `&out=DISAGG_DATA,GMM,SOURCE` works (34 s, about 550 KB): it returns the bins (distance step 20 km,
+    magnitude step 0.2, twelve epsilon ranges), the breakdown by ground-motion model (at downtown Los
+    Angeles: four NGA-West2 models in three variants each, plain 56%, basin 22%, CyberShake 22%) and by
+    source type, each with its own mean magnitude, distance and epsilon. The owner wants a **disaggregation
+    plot** on the dashboard; a prototype drawn from the real reply is in SR-SuiteMaker's `prototypes/`, with
+    a trimmed sample of the reply in its tests. **USGS's ground-motion service
+    (`/ws/nshmp/data/gmm/spectra`) could not be read from our page** ("Failed to fetch": refused to other
+    sites, or not at that address), so medians cannot be taken from USGS in the browser.
+    **The epsilon gap is explained.** USGS reports distance as closest distance to the rupture (rRup); the
+    Boore et al. model wants Joyner-Boore distance. Downtown Los Angeles sits over thrust faults, so rRup
+    is about 10 km while Rjb is about 0. For USGS's own plain Boore et al. component (mean M 7.29, rRup
+    10.44 km, epsilon 0.91), this implementation needs epsilon 0.91 to 0.95 at Rjb = 0, and 1.9 at Rjb =
+    10.44. So the implementation agrees with USGS's; the earlier target used the wrong distance. Proposed
+    to the owner: find the Rjb at which this model's epsilon equals the one USGS reports for the same
+    model, and build the target from that. Still a single-model target; the other three models need
+    rupture geometry the disaggregation does not give.
+    **Earlier statement of the problem, now superseded:** the conditional mean spectrum from the single model (Boore et al.
     2014, base, no basin term; USGS's rRup used as Rjb; mechanism unspecified) needs epsilon 2.03 to reach
     that value, where USGS reports 1.03 for the hazard. The model's median is about half of what the
     hazard model's own models give at this basin site, so the target's shape is too peaked. Do not present
