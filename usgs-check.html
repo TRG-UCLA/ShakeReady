@@ -34,8 +34,8 @@ pre{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:
 <main>
   <p class="note"><a href="index.html">ShakeReady</a> · a diagnostic page, not part of the site's menu</p>
   <h1>USGS connection check</h1>
-  <p>This page asks the USGS hazard service for the hazard curves and the disaggregation at one site, from your browser, and shows what comes back. It exists so that ShakeReady's local analysis can be built against real answers from USGS.</p>
-  <p class="note">The requests go from your browser straight to <b>earthquake.usgs.gov</b>. Nothing is sent anywhere else. A disaggregation can take a minute.</p>
+  <p>This page asks USGS, from your browser, for the hazard at one site, its disaggregation, and the ground motions its own models give for the controlling earthquake. It shows what comes back. It exists so that ShakeReady's local analysis can be built against real answers from USGS.</p>
+  <p class="note">The requests go from your browser straight to <b>earthquake.usgs.gov</b>. Nothing is sent anywhere else. There are seven requests, and the whole run takes about two minutes: please leave the page open until the button at the bottom becomes active.</p>
 
   <div class="card">
     <div class="grid">
@@ -107,16 +107,39 @@ $("run").addEventListener("click", async () => {
   for (const k of Object.keys(RESULTS)) delete RESULTS[k];
   $("steps").innerHTML = ""; $("results").hidden = false; $("run").disabled = true; $("save").disabled = true; $("overall").textContent = "Working…";
   RESULTS.inputs = {model: base, latitude: lat, longitude: lon, vs30, return_period: rp, imt, page: location.href, browser: navigator.userAgent, when: new Date().toISOString()};
-  await step("models", "1. Which hazard models USGS offers", "https://earthquake.usgs.gov/ws/nshmp/hazard/dynamic/nshms", 30000);
-  await step("hazard_usage", "2. How a hazard request is written", `${base}/hazard`, 30000);
-  await step("hazard", "3. Hazard curves at the site", `${base}/hazard/${lon}/${lat}/${vs30}`, 180000);
-  await step("disagg_usage", "4. How a disaggregation request is written", `${base}/disagg`, 30000);
-  const d = await step("disagg", `5. Disaggregation at ${rp} years`, `${base}/disagg/${lon}/${lat}/${vs30}/${rp}?imt=${imt}`, 300000);
-  if (!d.ok) await step("disagg_plain", "5b. Disaggregation, written without the period", `${base}/disagg/${lon}/${lat}/${vs30}/${rp}`, 300000);
-  const n = ["hazard", "disagg", "disagg_plain"].filter(k => RESULTS[k] && RESULTS[k].ok).length;
-  $("overall").textContent = RESULTS.hazard.ok && (RESULTS.disagg.ok || (RESULTS.disagg_plain && RESULTS.disagg_plain.ok))
-    ? "USGS answered both the hazard and the disaggregation request. Please save the file and send it."
-    : n ? "USGS answered some of the requests. Please save the file and send it anyway." : "USGS did not return data for these requests. Please save the file and send it anyway: what went wrong is useful too.";
+  const GMM = "https://earthquake.usgs.gov/ws/nshmp/data/gmm/spectra";
+  const hu = await step("hazard_usage", "1. How a hazard request is written", `${base}/hazard`, 30000);
+  await step("hazard", "2. Hazard curves at the site", `${base}/hazard/${lon}/${lat}/${vs30}`, 180000);
+  const d = await step("disagg", `3. Disaggregation at ${rp} years`, `${base}/disagg/${lon}/${lat}/${vs30}/${rp}?imt=${imt}`, 300000);
+  // the same, asking for its breakdown by ground-motion model and by source; two spellings of the option are tried
+  const parts = r => r.ok && r.body.response && r.body.response.disaggs && r.body.response.disaggs[0].data.length > 1;
+  let dd = await step("disagg_detail", "4. Disaggregation, with its breakdown by ground-motion model and source", `${base}/disagg/${lon}/${lat}/${vs30}/${rp}?imt=${imt}&out=DISAGG_DATA,GMM,SOURCE`, 300000);
+  if (!parts(dd)) dd = await step("disagg_detail_2", "4b. The same, with the option spelled another way", `${base}/disagg/${lon}/${lat}/${vs30}/${rp}?imt=${imt}&out=GMM&out=SOURCE&out=DISAGG_DATA`, 300000);
+  await step("service_root", "5. What the hazard service lists at its own address", base, 30000);
+  const gu = await step("gmm_usage", "6. How a ground-motion request is written", GMM, 30000);
+
+  // the mean earthquake from the disaggregation, if it was read; otherwise a stand-in
+  let M = 7.3, R = 12;
+  try {
+    const sum = d.body.response.disaggs[0].data.find(c => c.component === "Total").summary.find(x => x.name.startsWith("Mean")).data;
+    M = sum.find(x => x.name === "m").value; R = sum.find(x => x.name === "r").value;
+  } catch (e){ /* keep the stand-in */ }
+  RESULTS.inputs.scenario_for_ground_motion = {magnitude: M, distance_km: R};
+  // the hazard model's own models for active crust, as its usage reply lists them
+  let ids = ["ASK_14", "BSSA_14", "CB_14", "CY_14", "ASK_14_BASIN", "BSSA_14_BASIN", "CB_14_BASIN", "CY_14_BASIN", "ASK_14_CYBERSHAKE", "BSSA_14_CYBERSHAKE", "CB_14_CYBERSHAKE", "CY_14_CYBERSHAKE"];
+  try { const got = hu.body.response.model.gmms.filter(g => g.type === "ACTIVE_CRUST").map(g => g.id); if (got.length) ids = got; } catch (e){ /* keep the list above */ }
+  // the service's own spelling of each parameter, where its usage reply shows one
+  const names = new Set();
+  (function walk(v){ if (v && typeof v === "object"){ for (const k of Object.keys(v)){ names.add(k); walk(v[k]); } } })(gu.body || {});
+  const spell = (...opts) => [...names].find(n => opts.some(o => o.toLowerCase() === n.toLowerCase())) || opts[0];
+  const q = new URLSearchParams();
+  for (const id of ids) q.append(spell("gmm"), id);
+  for (const [k, v] of [[spell("Mw"), M], [spell("rRup"), R], [spell("rJB"), R], [spell("rX"), R], [spell("dip"), 90], [spell("width"), 15], [spell("zTop", "zTor"), 0], [spell("rake"), 0], [spell("vs30"), vs30], [spell("vsInf"), true]]) q.append(k, v);
+  await step("gmm", `7. Ground motions for magnitude ${M} at ${R} km, from the hazard model's own models`, `${GMM}?${q}`, 120000);
+
+  const got = k => RESULTS[k] && RESULTS[k].ok;
+  $("overall").textContent = got("hazard") && got("disagg") && got("gmm") ? "USGS answered the hazard, the disaggregation and the ground-motion requests. Please save the file and send it."
+    : "USGS answered " + ["hazard", "disagg", "disagg_detail", "gmm_usage", "gmm"].filter(got).length + " of the main requests. Please save the file and send it anyway: what went wrong is useful too.";
   $("run").disabled = false; $("save").disabled = false;
 });
 $("save").addEventListener("click", () => download("usgs-check.json", JSON.stringify(RESULTS)));
