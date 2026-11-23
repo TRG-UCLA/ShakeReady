@@ -133,6 +133,18 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     mean and spread after Jayaram, Lin and Baker (2011). Run on the real NGA-West2 spectra from Baker's
     table (downloaded for testing only, never to be redistributed): for a conditional target it chose 11
     records with the mean within 3.2% and the spread within 0.06, in a tenth of a second.
+  - **Hazard for a site comes first (the owner's point, 2026-11-20).** The workflow is: site, hazard curve and
+    uniform hazard spectrum, disaggregation, target, records, selection, check. So Local analysis has four
+    parts: **Site, Hazard, Target, Suite**. What is built covers target and selection; hazard and
+    disaggregation are not built. The owner chose to get them **from USGS directly**, in the browser. The
+    service is at `https://earthquake.usgs.gov/ws/nshmp/<model>/dynamic` (`conus-2023.R2`, `conus-2023.R1`,
+    `conus-2018.R1`; list at `/ws/nshmp/hazard/dynamic/nshms`), with `/hazard/{lon}/{lat}/{vs30}` and
+    `/disagg/...`; it takes any Vs30 from 150 to 1500 and return periods from 1 to 20,000 years. The exact
+    form of a disaggregation request and the shape of the answers are **not confirmed**: this workspace
+    cannot reach USGS. `usgs-check.html` (not in the menu) makes the requests from the owner's browser and
+    saves the answers as `usgs-check.json`. **Build the hazard client against that file when he sends it,
+    not before.** The conditional mean spectrum built so far is the approximate form (one magnitude and
+    distance, one model); say so. Component definitions (RotD50 against maximum direction) are not handled.
   - **The owner's records.** His group keeps a copy of an **older PEER set** (not NGA-West2) on the group's
     Shared Google Drive, "TRG G-Drive", under `data / PEER GM Database`: two archives (a 518 MB `.rar` and a
     10.5 MB `.zip`). He unpacked the small one there as `data2`: one folder per record named by its NGA record

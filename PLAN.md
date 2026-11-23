@@ -15,7 +15,7 @@ ShakeReady would have two dashboards, because there are two different questions.
 | The question | What happens across a whole inventory? | What does one site need for analysis? |
 | You give it | A hazard layer | A site and a target spectrum |
 | You get | Damage probabilities for every structure | A suite of ground motions |
-| Its parts | Inventory, Hazard, Damage | Site, Target, Suite |
+| Its parts | Inventory, Hazard, Damage | Site, Hazard, Target, Suite |
 | The tool behind it | SR-HazardMaker | SR-SuiteMaker |
 
 Each dashboard has three parts that read in the order you work. The tools remain tools, each with its own
