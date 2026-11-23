@@ -6,6 +6,36 @@ SR-SuiteMaker is being built first; the Local analysis dashboard follows it.**
 A mock-up and a diagram of this plan are on the design canvas ("Plan — two dashboards" and "Mock-up — Local
 analysis dashboard"): <https://claude.ai/artifact/8qNks7eM7wySai6Nj2iZjq>
 
+## Reorganization asked for by the owner on 2026-11-23 (supersedes parts of what follows)
+
+The owner redefined Local analysis and the tools around it. **Not yet built; design questions are open.**
+
+- **Local analysis** becomes: bring a suite (which may be a single motion), bring a model, analyze damage
+  and loss. Models are, for now, OpenSees models.
+- **SR-SuiteMaker becomes a tool of its own**, like SR-HazardMaker: site, hazard, disaggregation, target,
+  suite. What `local.html` does today (hazard, disaggregation, target) is the front half of that tool and
+  moves to it. Its output, a suite, is brought to Local analysis.
+- **SR-ModelMaker is a new tool**: bring your own OpenSees model, see it and edit it if necessary; or make
+  an OpenSees model from scratch.
+
+So the site is symmetric: Regional analysis takes an inventory and a hazard layer (SR-HazardMaker) and
+gives damage; Local analysis takes a suite (SR-SuiteMaker) and a model (SR-ModelMaker) and gives response,
+damage and loss.
+
+Told to the owner, and to be settled with him before building:
+
+1. **Where OpenSees runs.** No build of OpenSees for the browser was found (searched 2026-11-23), so analyses
+   cannot run in the page. Choices: the user's own computer (the page prepares a ready-to-run package and
+   reads the results back); a remote computer; or a small built-in solver for simple models, labeled as
+   not OpenSees.
+2. **Bringing a model.** An OpenSees model is a program, not data. Proposed: run the user's script in the
+   browser against a stand-in that records nodes and elements instead of solving (Python in the browser
+   exists, via Pyodide; Tcl would need an interpreter). Editing means changing properties and exporting a
+   flat script, not preserving the original program.
+3. **From scratch** means parametric templates for particular kinds of structure, not a general modeler.
+4. **Damage and loss** need fragility and consequence data and a method, which are the owner's choices.
+5. NHERI SimCenter's tools cover related ground; decide whether to interoperate.
+
 ## The idea
 
 ShakeReady would have two dashboards, because there are two different questions.

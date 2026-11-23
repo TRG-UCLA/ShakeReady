@@ -108,6 +108,11 @@ test them, ask Leaflet what is on the map and sample the painted pixel, or look 
 
 ## Two dashboards (the owner's plan)
 
+**Changed by the owner on 2026-11-23: read the top section of `PLAN.md` first.** Local analysis is to become
+"bring a suite, bring a model, analyze damage and loss" with OpenSees models; SR-SuiteMaker is to become its
+own tool (today's `local.html` content moves into it); SR-ModelMaker is a new tool. Nothing of this is built,
+and the open design questions are listed there. Do not build until the owner has answered them.
+
 **The owner agreed to the plan on 2026-11-19 ("let's go ahead with your plans"), after first asking to plan and
 mock up before building. Follow the order of work in `PLAN.md`: SR-SuiteMaker, then Local analysis, then the
 link and the menu. The three-part panel on the regional dashboard stays.** The plan is in `PLAN.md`; a diagram and a mock-up of Local analysis are on the
