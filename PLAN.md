@@ -36,6 +36,40 @@ Told to the owner, and to be settled with him before building:
 4. **Damage and loss** need fragility and consequence data and a method, which are the owner's choices.
 5. NHERI SimCenter's tools cover related ground; decide whether to interoperate.
 
+### Decided 2026-11-23: analyses run on the user's own computer first; TACC explored alongside
+
+The owner chose the user's own computer to start, and asked how models could be run at the Texas Advanced
+Computing Center, where the group has collaborators who can help with APIs and connections.
+
+**The design rule that follows:** Local analysis produces one **run package** (the model, the motions, a run
+script, a manifest) and reads back one **results format**. Running on the user's computer and running at
+TACC then differ only in who executes the package. Define those two formats before anything else.
+
+What was found about TACC (DesignSafe training pages, read 2026-11-23):
+
+- TACC's programmable interface is **Tapis** (`https://tacc.tapis.io`). DesignSafe publishes OpenSees apps on
+  it: OpenSees-EXPRESS (single core, on a virtual machine, no queue, starts at once), OpenSeesSP and
+  OpenSeesMP (Stampede3, through the SLURM queue), and a new OpenSeesPy app (`designsafe-openseespy-s3`).
+- A job is submitted by program: authenticate, inspect the app, build a job description (input folder on a
+  storage system, main script, cores, wall time, queue, allocation), submit, poll its status, fetch outputs.
+  Inputs and outputs live on DesignSafe storage. The Python client is `tapipy`; plain HTTP works too.
+- The apps' definitions are open (the WMA-Tapis-Templates repository), so ShakeReady could register an app of
+  its own that wraps its run package.
+
+**Questions for the TACC collaborators** (not answerable from documentation):
+
+1. How may a page on another site sign a user in? The examples use a username and password, which a web
+   page must never ask for. Is there an authorization-code flow for a registered outside application?
+2. Will the Tapis Files and Jobs services accept requests from a browser on another site?
+3. Whose allocation pays: each user's own, or one held for ShakeReady?
+4. For a suite of 11 to 40 independent runs of one model, what is the recommended pattern: one job per
+   motion, one parallel job, or a launcher?
+5. Should ShakeReady register its own Tapis app, pinned to an OpenSees version for repeatability?
+6. Limits on file staging and polling; whether jobs can notify on completion.
+
+Still open with the owner: which model language ModelMaker reads first (Python or Tcl), and which kind of
+structure the first from-scratch template is.
+
 ## The idea
 
 ShakeReady would have two dashboards, because there are two different questions.
