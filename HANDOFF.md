@@ -238,9 +238,12 @@ own schedule; it checks when the owner asks** ("check the feedback"). He was tol
   `feedback.html` explains them; every page's footer links to it; the Damage part of the regional dashboard
   and the Target card of Local analysis have "Report a problem with these results" links that carry the
   current settings and figures into the form's "Settings and values" field.
-- **To check:** list open issues, newest first. The repository is public, so no token is needed to read:
-  `curl -s "https://api.github.com/repos/TRG-UCLA/ShakeReady/issues?state=open&per_page=50"` (pull requests
-  appear in that list too; skip entries with a `pull_request` key). Read each one in full, including comments.
+- **To check:** list open issues, newest first:
+  `curl -s -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/TRG-UCLA/ShakeReady/issues?state=open&per_page=50"`
+  (pull requests appear in that list too; skip entries with a `pull_request` key). The repository is public,
+  but from this workspace requests without a token are refused as over the rate limit, so use the owner's
+  token; if it has expired, ask him for a new one, or read <https://github.com/TRG-UCLA/ShakeReady/issues>
+  with the web tools. Read each one in full, including comments.
   Also look at SR-HazardMaker's issues, where people who find the tool on GitHub may write.
 - **For each report:** try to reproduce it with the settings given; say whether it is a real fault, a
   misunderstanding the page should prevent, or a reasonable request. Then tell the owner, grouped as: needs
