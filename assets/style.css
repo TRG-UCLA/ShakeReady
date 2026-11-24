@@ -32,9 +32,15 @@ body{margin:0;font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-seri
 .site-nav a.navlink{display:block;color:#AEBDCB;text-decoration:none;font-size:14px;padding:7px 11px;border-radius:6px}
 .site-nav a.navlink:hover{color:#EFF3F6;background:var(--ink-2)}
 .site-nav a.navlink[aria-current="page"]{color:var(--ink);background:var(--amber);font-weight:600}
+.site-nav .tools{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:0 20px;height:36px;border-top:1px solid var(--line-dark);font-size:13.5px}
+.site-nav .tools a{color:#C9D5E0;text-decoration:none;padding:4px 11px;border-radius:6px}
+.site-nav .tools a:hover{color:#EFF3F6;background:var(--ink-2)}
+.site-nav .tools a.lab{color:#8FA3B8;padding-left:0;margin-right:4px}
+.site-nav .tools a[aria-current="page"]{color:var(--amber);font-weight:600}
 @media (max-width:720px){
   .site-nav .inner{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
   .site-nav ul{margin-left:0;width:100%}
+  .site-nav .tools{height:auto;padding:8px 14px;flex-wrap:wrap}
 }
 
 /* ---- content pages ---- */

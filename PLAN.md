@@ -121,8 +121,11 @@ In a new private repository, <https://github.com/TRG-UCLA/SR-ModelMaker> (privat
   Its browser code is SR-ModelMaker's `docs/templates.js` and `docs/modelmaker-core.js`, copied to
   `local/lib/` with a record of the commit. The page recognizes results from its own package by checksum,
   and says so when the model was edited afterwards.
-- **The menu** is Home, Regional analysis, Local analysis, Tools, Data, Methods, Projects, Publications,
-  People. `tools.html` lists the three tools and the codes; `code.html` redirects to it.
+- **The menu has two rows** (changed the same day, after the owner could not find the tools under a single
+  "Tools" item and missed the Code tab). First row: Home, Regional analysis, Local analysis, Data, Methods,
+  Projects, Publications, People, Code. Second row, always visible: Tools, SR-HazardMaker, SR-SuiteMaker,
+  SR-ModelMaker. **Each tool has its own page** (`hazardmaker/`, `suitemaker/`, `modelmaker/`); `tools.html`
+  is an overview behind the word "Tools". **Do not fold the tools or the Code page into another item again.**
 - Tested end to end: the page's package, downloaded and unzipped, was run by OpenSees here, and the results
   read back gave the same figures. Files made in the browser are byte for byte those Python makes.
 

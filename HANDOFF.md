@@ -88,6 +88,14 @@ several (data, code, publications, people, projects).
 4. **Logo and hero artwork** are decided (see Decisions). Earlier drafts, including three logo
    concepts and four artwork alternatives, were explored on a design canvas outside this repository.
 
+## The menu
+
+Two rows, built the same on every page (the script that rebuilt them is described in `PLAN.md`). First row:
+Home, Regional analysis, Local analysis, Data, Methods, Projects, Publications, People, Code. Second row:
+Tools, then SR-HazardMaker, SR-SuiteMaker and SR-ModelMaker, each with a page of its own. The owner wants
+the tools and the Code tab visible in the menu: when a consolidated "Tools" item replaced them he could not
+find them. Add a new tool to the second row; do not hide anything behind a single item.
+
 ## Names
 
 The page that began as "the Map" is now **the Dashboard** (`dashboard.html`), renamed at the owner's request

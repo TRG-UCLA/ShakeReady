@@ -1,2 +1,51 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Tools — ShakeReady</title><meta http-equiv="refresh" content="0; url=tools.html"><link rel="canonical" href="tools.html"><script>location.replace("tools.html" + location.search + location.hash);</script></head><body><p>This page has moved to <a href="tools.html">Tools</a>.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code — ShakeReady</title>
+<meta name="description" content="Software and scripts behind ShakeReady.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M5.3 19.6 L5.6 19.6 L6 19.7 L6.4 19.7 L6.8 19.8 L7.1 20 L7.5 20.2 L7.9 20.4 L8.2 20.8 L8.6 21.2 L9 21.7 L9.3 22.3 L9.7 22.9 L10.1 23.6 L10.4 24.3 L10.8 24.8 L11.2 25.2 L11.6 25.2 L11.9 25 L12.3 24.3 L12.7 23.1 L13 21.4 L13.4 19.4 L13.8 17 L14.2 14.6 L14.5 12.1 L14.9 10 L15.3 8.2 L15.6 7.1 L16 6.7 L16.4 7.1 L16.7 8.2 L17.1 10 L17.5 12.1 L17.9 14.6 L18.2 17 L18.6 19.4 L19 21.4 L19.3 23.1 L19.7 24.3 L20.1 25 L20.4 25.2 L20.8 25.2 L21.2 24.8 L21.5 24.3 L21.9 23.6 L22.3 22.9 L22.7 22.3 L23 21.7 L23.4 21.2 L23.8 20.8 L24.1 20.4 L24.5 20.2 L24.9 20 L25.2 19.8 L25.6 19.7 L26 19.7 L26.4 19.6 L26.7 19.6' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body><nav class="site-nav"><div class="inner">
+  <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html">Regional analysis</a></li><li><a class="navlink" href="local.html">Local analysis</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html" aria-current="page">Code</a></li></ul>
+</div>
+<div class="tools"><a class="lab" href="tools.html">Tools</a><a href="hazardmaker/">SR-HazardMaker</a><a href="suitemaker/">SR-SuiteMaker</a><a href="modelmaker/">SR-ModelMaker</a></div></nav>
+<main class="page">
+  <h1>Code</h1>
+  <p class="lede">The software behind the data pipeline and the dashboard.</p>
+  <div class="entry">
+    <h3>This website</h3>
+    <p class="meta">HTML · JavaScript · Leaflet</p>
+    <p>The site itself is open: a static, dependency-light application served from its own repository. The dashboard's map renders 25,000+ structures with marker clustering and client-side filtering, with no server or API keys involved.</p>
+  </div>
+  <div class="entry">
+    <h3>Bridge inventory builder</h3>
+    <p class="meta">Made by E. Taciroglu · Python · standard library only</p>
+    <p>Converts a state file from the FHWA National Bridge Inventory into the dashboard's bridge layer and a labeled CSV: decodes packed coordinates, material and design codes, county codes and condition ratings. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/build_bridges.py" rel="noopener">tools/build_bridges.py</a></p>
+  </div>
+  <div class="entry">
+    <h3>HAZUS bridge fragilities</h3>
+    <p class="meta">Made by E. Taciroglu · Python · standard library only</p>
+    <p>Assigns each National Bridge Inventory record its HAZUS highway bridge class and evaluates the fragility curves: class medians, the skew, span and spectral-shape adjustments, and damage-state probabilities. It checks itself against the worked example in FEMA's manual. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/hazus_bridges.py" rel="noopener">tools/hazus_bridges.py</a></p>
+  </div>
+  <div class="entry">
+    <h3>SR-HazardMaker</h3>
+    <p class="meta">Made by E. Taciroglu · free to use, BSD 3-Clause license · JavaScript in the browser · Python on the command line</p>
+    <p>Makes ShakeReady hazard layers: from USGS hazard-model files, USGS ShakeMaps and plain tables of points, or by computing the shaking of a described earthquake with a ground-motion model. It checks each layer and previews it. The browser and command-line versions are tested to produce the same layers. <a href="hazardmaker/">Use it here</a> · <a href="https://trg-ucla.github.io/SR-HazardMaker/" rel="noopener">standalone page</a> · <a href="https://github.com/TRG-UCLA/SR-HazardMaker" rel="noopener">repository and guide</a> · <a href="https://doi.org/10.5281/zenodo.24356049" rel="noopener">doi:10.5281/zenodo.24356049</a></p>
+  </div>
+  <div class="entry">
+    <h3>Bridge damage, reference calculation</h3>
+    <p class="meta">Made by E. Taciroglu · Python · standard library only</p>
+    <p>An independent implementation of the bridge damage table the dashboard offers for download, used to check the dashboard and to let anyone reproduce a table. <a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/tools/damage_reference.py" rel="noopener">tools/damage_reference.py</a></p>
+  </div>
+  <div class="placeholder">Links to analysis code and data-processing repositories will be listed here.</div>
+</main>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers. <a href="feedback.html" style="color:inherit;text-decoration:underline;white-space:nowrap">Report a problem or suggest an improvement</a>.</div></footer>
+</body>
+</html>
