@@ -114,7 +114,8 @@ own tool (today's `local.html` content moves into it); SR-ModelMaker is a new to
 Decided so far: analyses run on the user's own computer first, with TACC explored alongside; **OpenSeesPy only,
 no Tcl** (though he later answered "both" to an earlier question; unresolved, see `PLAN.md`); the first
 from-scratch template is a **stick model**. The first thing to define is the run package and the results
-format. This was all settled at the end of a very long conversation: start from `PLAN.md`.
+format. Built since: SR-ModelMaker's first stage (private repository TRG-UCLA/SR-ModelMaker): the shear building,
+the run package and the results format, tested against separate solutions. `PLAN.md` lists what comes next.
 
 **The owner agreed to the plan on 2026-11-19 ("let's go ahead with your plans"), after first asking to plan and
 mock up before building. Follow the order of work in `PLAN.md`: SR-SuiteMaker, then Local analysis, then the

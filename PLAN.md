@@ -91,6 +91,31 @@ single-degree-of-freedom oscillator), with a mass and a nonlinear spring per sto
 motion applied at the base; defined either directly (masses, stiffnesses, strengths) or from a target period
 and a yield strength; reporting peak story drift, peak floor acceleration and residual drift.
 
+### Built 2026-11-24: the run package, the results format, and the shear building
+
+In a new private repository, <https://github.com/TRG-UCLA/SR-ModelMaker> (private until its first release):
+
+- `shear_building.py` writes an OpenSeesPy model of a shear building, defined directly or from a first period
+  and a yield coefficient, with second-order effects as an option. Damping is set at the first and third
+  modes (both modes with two stories, the only mode with one).
+- `runpackage.py` writes the **run package**: `manifest.json`, `model.py`, `motions/ID.txt`, `run.py`,
+  `README.txt`. `run.py` needs only Python and OpenSeesPy, runs every motion, and writes `results.json`.
+- `results.py` reads the **results**, and confirms by checksum which package and model produced them.
+- `docs/formats.md` describes both formats and the choices in the run script. Read it before changing either.
+- Tested with OpenSeesPy 3.8.0 against solutions worked out separately in the tests: elastic one-story
+  buildings (drift and floor acceleration within 0.1%), an elastic three-story building (drifts within 0.2%,
+  accelerations within 0.7%), and a yielding story at ductility 3.5 and beyond (peak drift identical,
+  residual within 0.01 mm). Two faults were found and fixed on the way: the run stopped before the building
+  was at rest, and damping for three stories was set at modes one and two instead of one and three.
+- An example package, a three-story building under the owner's Ferndale record as recorded and times six,
+  was given to the owner to run on his own computer. **He has not yet reported running it.**
+
+Next, in order: (1) the owner runs the example package and sends back `results.json`; (2) move the hazard,
+disaggregation and target work out of `local.html` into SR-SuiteMaker's own page, and add the suite step
+that writes motions for a package; (3) the Local analysis page: bring a suite and a model, write the
+package, read the results, and show response; (4) reading a user's own OpenSeesPy model in the browser;
+(5) damage and loss, which need the owner's choice of fragility and consequence data.
+
 ### Unresolved: Tcl
 
 After "only allow OpenSeesPy", the owner answered an earlier question card with "both" for which models
