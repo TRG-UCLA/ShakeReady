@@ -83,7 +83,19 @@ at TACC. What follows from it:
   ask the collaborators how settled it is.
 - A user with a Tcl model must convert it. No automatic conversion is promised.
 
-Still open with the owner: which kind of structure the first from-scratch template is.
+### Decided 2026-11-23: the first from-scratch template is a stick model
+
+Proposed to the owner, awaiting his reaction: a lumped-mass model of one or more stories (one story is a
+single-degree-of-freedom oscillator), with a mass and a nonlinear spring per story, damping, and the ground
+motion applied at the base; defined either directly (masses, stiffnesses, strengths) or from a target period
+and a yield strength; reporting peak story drift, peak floor acceleration and residual drift.
+
+### Unresolved: Tcl
+
+After "only allow OpenSeesPy", the owner answered an earlier question card with "both" for which models
+SR-ModelMaker should read. He was asked which he means and has not said: OpenSeesPy only; or read both and
+convert a Tcl model to OpenSeesPy on the way in, with everything downstream OpenSeesPy only. Either way the
+Python reader is built first. Whether Tcl can be run in the browser has not been checked.
 
 ## The idea
 
