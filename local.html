@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Local analysis — ShakeReady</title>
-<meta name="description" content="Hazard at one site from the USGS national seismic hazard model, its disaggregation, and a target spectrum for selecting ground motions.">
+<meta name="description" content="Bring ground motions and an OpenSeesPy model, run the analysis on your own computer, and read the response here.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M5.3 19.6 L5.6 19.6 L6 19.7 L6.4 19.7 L6.8 19.8 L7.1 20 L7.5 20.2 L7.9 20.4 L8.2 20.8 L8.6 21.2 L9 21.7 L9.3 22.3 L9.7 22.9 L10.1 23.6 L10.4 24.3 L10.8 24.8 L11.2 25.2 L11.6 25.2 L11.9 25 L12.3 24.3 L12.7 23.1 L13 21.4 L13.4 19.4 L13.8 17 L14.2 14.6 L14.5 12.1 L14.9 10 L15.3 8.2 L15.6 7.1 L16 6.7 L16.4 7.1 L16.7 8.2 L17.1 10 L17.5 12.1 L17.9 14.6 L18.2 17 L18.6 19.4 L19 21.4 L19.3 23.1 L19.7 24.3 L20.1 25 L20.4 25.2 L20.8 25.2 L21.2 24.8 L21.5 24.3 L21.9 23.6 L22.3 22.9 L22.7 22.3 L23 21.7 L23.4 21.2 L23.8 20.8 L24.1 20.4 L24.5 20.2 L24.9 20 L25.2 19.8 L25.6 19.7 L26 19.7 L26.4 19.6 L26.7 19.6' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,161 +44,195 @@ main.page.local{max-width:1180px}
 .la-scroll{overflow-x:auto}
 .la-note{background:#FFF7E8;border:1px solid #F3D49B;border-radius:8px;padding:11px 14px;font-size:14px;line-height:1.5;color:#5C3D00}
 .la-btn{display:inline-block;border:1px solid #B9C5D0;border-radius:8px;background:#fff;color:#22303C;font:inherit;font-size:14px;padding:8px 14px;cursor:pointer;margin:6px 8px 0 0}
+.la-card h2 .num{display:inline-block;width:30px;height:30px;border-radius:50%;background:#0F1A2B;color:#F9A03F;font-size:16px;text-align:center;line-height:30px;margin-right:10px;vertical-align:2px}
+.la-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:12px 0}
+.la-form label{display:block;font-size:13.5px;font-weight:600}
+.la-form input,.la-form select,.la-in{display:block;width:100%;margin-top:5px;padding:8px 10px;border:1px solid #B9C5D0;border-radius:6px;font:inherit;background:#fff;color:#22303C}
+.la-form small{display:block;font-weight:400;color:#5F7183;font-size:12.5px;margin-top:4px;line-height:1.4}
+.la-msg{font-size:14px;margin:10px 0 0}.la-msg.bad{color:#B3261E}.la-msg.good{color:#1E6B33}
+.la-primary{border:0;border-radius:8px;background:#F9A03F;color:#1C1507;font:inherit;font-weight:600;padding:11px 18px;cursor:pointer}
+.la-choice{display:flex;gap:22px;flex-wrap:wrap;margin:8px 0 4px;font-size:15px}
+pre.la-src{background:#F6F8FA;border:1px solid #D8E0E7;border-radius:8px;padding:12px;font-size:12.5px;overflow:auto;max-height:340px}
+code.la-cmd{display:block;background:#0F1A2B;color:#EFF3F6;border-radius:8px;padding:12px 14px;font-size:14px;margin:8px 0;white-space:pre}
 .la-empty{border:1px dashed #B9C5D0;border-radius:12px;padding:34px 24px;color:#5F7183;text-align:center}
 </style>
 </head>
 <body><nav class="site-nav"><div class="inner">
   <a class="brand" href="index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
-  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html">Regional analysis</a></li><li><a class="navlink" href="local.html" aria-current="page">Local analysis</a></li><li><a class="navlink" href="hazardmaker/">SR-HazardMaker</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li><li><a class="navlink" href="code.html">Code</a></li></ul>
+  <ul><li><a class="navlink" href="index.html">Home</a></li><li><a class="navlink" href="dashboard.html">Regional analysis</a></li><li><a class="navlink" href="local.html" aria-current="page">Local analysis</a></li><li><a class="navlink" href="tools.html">Tools</a></li><li><a class="navlink" href="data.html">Data</a></li><li><a class="navlink" href="methods.html">Methods</a></li><li><a class="navlink" href="projects.html">Projects</a></li><li><a class="navlink" href="publications.html">Publications</a></li><li><a class="navlink" href="people.html">People</a></li></ul>
 </div></nav>
 <main class="page local">
   <h1>Local analysis</h1>
-  <p class="lede">The hazard at one site, what drives it, and a target spectrum for choosing ground motions. The hazard comes from the U.S. Geological Survey's national seismic hazard model, asked for directly from your browser.</p>
-  <div class="la-grid">
-    <div class="la-panel">
-      <h2>Site</h2>
-      <label>Latitude<input id="lat" type="number" step="any" value="34.05"></label>
-      <label>Longitude<input id="lon" type="number" step="any" value="-118.25"></label>
-      <label>Vs30, m/s<input id="vs30" type="number" step="any" value="760"><small>150 to 1500. The boxes start on downtown Los Angeles, on reference rock, as an example. West longitudes are negative.</small></label>
-      <h2>Hazard</h2>
-      <label>Hazard model<select id="model"></select></label>
-      <label>Return period, years<select id="rp"><option value="475">475 (10% in 50 years)</option><option value="975">975 (5% in 50 years)</option><option value="2475" selected>2,475 (2% in 50 years)</option><option value="other">Another…</option></select></label>
-      <label id="rp-other-wrap" hidden>Return period, years<input id="rp-other" type="number" step="1" min="1" max="20000" value="1000"></label>
-      <label>Period of interest, s<select id="period"></select><small>The target is tied to the hazard at this period, usually the structure's fundamental period.</small></label>
-      <button class="la-go" id="go">Get the hazard from USGS</button>
-      <div class="la-status" id="status">Two requests go to USGS, and together they take about a minute.</div>
-    </div>
-    <div>
-      <div class="la-empty" id="empty">Set the site and the hazard level, then ask USGS. The hazard curves, the uniform hazard spectrum, the disaggregation and the target will appear here.</div>
-      <div id="results" hidden>
-        <div class="la-card"><h2>Hazard</h2><p class="sub" id="hz-sub"></p>
-          <div class="la-facts" id="hz-facts"></div>
-          <div class="la-two"><div><h3>Uniform hazard spectrum and target</h3><div id="ch-spectra"></div></div><div><h3 id="curve-title">Hazard curve</h3><div id="ch-curve"></div></div></div></div>
-        <div class="la-card"><h2>Disaggregation</h2><p class="sub" id="dg-sub"></p>
-          <div class="la-two"><div><h3>Contribution by magnitude, distance and epsilon</h3><div id="ch-bars"></div></div><div><h3>The same from above</h3><div id="ch-map"></div></div></div>
-          <div class="la-pair"><div><h3>By ground-motion model</h3><div class="la-scroll" id="tb-models"></div></div><div><h3>Largest contributing sources</h3><div class="la-scroll" id="tb-sources"></div></div></div></div>
-        <div class="la-card"><h2>Target</h2><p class="sub">A conditional mean spectrum: the spectrum to expect, given that the uniform hazard value is reached at the period of interest.</p>
-          <div class="la-facts" id="tg-facts"></div>
-          <div class="la-note" id="tg-note"></div>
-          <p style="margin:14px 0 0"><button class="la-btn" id="dl-csv">Download the spectra (CSV)</button><button class="la-btn" id="dl-json">Download the target with its record (JSON)</button><button class="la-btn" id="dl-raw">Download USGS's replies (JSON)</button></p>
-          <p class="sub" style="margin:14px 0 0">Does something here look wrong? <a id="report" href="feedback.html" rel="noopener">Report a problem with these results</a>. The site, the settings and the figures above are carried into the form.</p></div>
-        <div class="la-card"><h2>Suite</h2><p class="sub" style="margin:0">Choosing and scaling ground motions to this target comes next. The selection is built and tested; it is being connected to this page.</p></div>
+  <p class="lede">One structure: bring ground motions, bring a model, run the analysis on your own computer with OpenSees, and read the response here. Your files are read on your own computer. Nothing is uploaded.</p>
+
+  <div class="la-card" id="motions"><h2><span class="num">1</span>Ground motions</h2>
+    <p class="sub">A suite, or a single motion. Add record files in PEER's AT2 format, with acceleration in g. To work out what a site calls for, see <a href="suitemaker/">SR-SuiteMaker</a>.</p>
+    <input type="file" id="mfiles" multiple accept=".AT2,.at2,.txt">
+    <div class="la-msg" id="mmsg"></div>
+    <div class="la-scroll" id="mlist"></div></div>
+
+  <div class="la-card" id="model"><h2><span class="num">2</span>Model</h2>
+    <p class="sub">An OpenSeesPy model, from SR-ModelMaker or your own.</p>
+    <div class="la-choice"><label><input type="radio" name="mk" value="make" checked> Make a shear building</label><label><input type="radio" name="mk" value="own"> Bring my own model file</label></div>
+    <div id="mk-make">
+      <p class="sub" style="margin:8px 0 0">Rigid floors that move sideways without rotating, a mass at each floor, and one bilinear spring per story. One story is a single-degree-of-freedom oscillator. It is not a frame analysis.</p>
+      <div class="la-form">
+        <label>Name<input id="b-name" type="text" value="Shear building" autocomplete="off"></label>
+        <label>Stories<input id="b-n" type="number" min="1" max="100" step="1" value="3"></label>
+        <label>Story height, m<input id="b-h" type="number" step="any" value="3.5"></label>
+        <label>Mass of each floor, tonnes<input id="b-m" type="number" step="any" value="100"></label>
+        <label>First period, s<input id="b-t" type="number" step="any" value="0.6"><small>The story stiffness is set to give this period.</small></label>
+        <label>Yield strength, as a fraction of weight<input id="b-cy" type="number" step="any" value="0.15"><small>The base shear at first yield, divided by the building's weight.</small></label>
+        <label>Stiffness after yield, as a fraction<input id="b-b" type="number" step="any" value="0.02"></label>
+        <label>Damping ratio<input id="b-z" type="number" step="any" value="0.05"></label>
+        <label>Second-order effects<select id="b-pd"><option value="0">Off</option><option value="1">On</option></select><small>The weight above each story, acting through its drift.</small></label>
       </div>
+      <div class="la-facts" id="b-facts"></div><div class="la-msg bad" id="b-msg"></div>
+      <details><summary>See the model file this makes</summary><pre class="la-src" id="b-src"></pre></details>
     </div>
-  </div>
+    <div id="mk-own" hidden>
+      <p class="sub" style="margin:8px 0">A Python file that defines <code>build()</code>. It must build the model in OpenSeesPy and return a description of it: the direction of shaking, the base nodes, one node per floor, the story heights, the periods, gravity in the model's units, and the units. The shear building's model file shows the form.</p>
+      <input type="file" id="ownmodel" accept=".py"><div class="la-msg" id="own-msg"></div>
+    </div></div>
+
+  <div class="la-card" id="run"><h2><span class="num">3</span>Run it on your computer</h2>
+    <p class="sub">The motions and the model are packed into one folder with a run script. It needs Python and OpenSeesPy, and nothing else.</p>
+    <div class="la-form"><label>A name for this analysis<input id="p-title" type="text" value="Local analysis" autocomplete="off"></label></div>
+    <p><button class="la-primary" id="make">Download the run package</button></p>
+    <div class="la-msg" id="p-msg"></div>
+    <div id="p-how" hidden><p class="sub" style="margin:14px 0 4px">Unzip it. Then, in that folder:</p><code class="la-cmd">pip install openseespy
+python run.py</code><p class="sub" style="margin:4px 0 0">It writes <b>results.json</b> in the same folder. Bring that file to step 4.</p></div></div>
+
+  <div class="la-card" id="results"><h2><span class="num">4</span>Results</h2>
+    <p class="sub">Add the results.json that the run wrote.</p>
+    <input type="file" id="rfile" accept=".json"><div class="la-msg" id="r-msg"></div>
+    <div id="r-out" hidden>
+      <div class="la-facts" id="r-facts"></div>
+      <div class="la-pair"><div><h3>Peak story drift</h3><div id="ch-drift"></div></div><div><h3>Peak floor acceleration</h3><div id="ch-acc"></div></div></div>
+      <h3>By motion</h3><div class="la-scroll" id="r-table"></div>
+      <p style="margin:14px 0 0"><button class="la-btn" id="r-csv">Download this table (CSV)</button></p></div></div>
+
+  <div class="la-card"><h2><span class="num">5</span>Damage and loss</h2><p class="sub" style="margin:0">Turning this response into damage and loss comes next. It needs a choice of fragility and consequence data for the kind of structure.</p></div>
 </main>
 <footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers. <a href="feedback.html" style="color:inherit;text-decoration:underline;white-space:nowrap">Report a problem or suggest an improvement</a>.</div></footer>
-<script src="local/lib/suite-core.js"></script>
-<script src="local/lib/suite-plots.js"></script>
+<script src="local/lib/templates.js"></script>
+<script src="local/lib/modelmaker-core.js"></script>
 <script>
 "use strict";
-const $ = id => document.getElementById(id), U = SRSuite.usgs;
-const S = {hazardKey: null, hazardReply: null, detailReply: null, hazard: null, detail: null, target: null, uhs: null, busy: false};
+const $ = id => document.getElementById(id), M = SRModel;
+const S = {motions: [], model: null, own: null, pkg: null, results: null};
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const fmt = (v, d) => v === null || v === undefined ? "" : Number(v).toFixed(d);
-for (const [id, name] of Object.entries(SRSuite.MODELS)) $("model").insertAdjacentHTML("beforeend", `<option value="${id}">${esc(name)}</option>`);
-for (const p of [0.1, 0.2, 0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5]) $("period").insertAdjacentHTML("beforeend", `<option value="${p}"${p === 1 ? " selected" : ""}>${p}</option>`);
-const q = new URLSearchParams(location.search);
-for (const k of ["lat", "lon", "vs30"]) if (q.get(k) !== null && q.get(k) !== "" && Number.isFinite(Number(q.get(k)))) $(k).value = q.get(k);
-$("rp").addEventListener("change", () => { $("rp-other-wrap").hidden = $("rp").value !== "other"; });
+const say = (id, text, cls) => { const el = $(id); el.textContent = text; el.className = "la-msg" + (cls ? " " + cls : ""); };
+const fact = (big, small) => `<div class="la-fact"><b>${big}</b><span>${small}</span></div>`;
+function save(name, data, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], {type})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 
-function inputs(){
-  const lat = Number($("lat").value), lon = Number($("lon").value), vs30 = Number($("vs30").value), rp = Number($("rp").value === "other" ? $("rp-other").value : $("rp").value), period = Number($("period").value);
-  if (![$("lat").value, $("lon").value, $("vs30").value].every(v => v.trim() !== "") || ![lat, lon, vs30].every(Number.isFinite)) throw new Error("Please give the latitude, the longitude and Vs30 as numbers.");
-  if (!(lat >= 24.6 && lat <= 50 && lon >= -125 && lon <= -65)) throw new Error("This hazard model covers the conterminous United States: latitude 24.6 to 50, longitude −125 to −65. West longitudes are negative.");
-  if (!(vs30 >= 150 && vs30 <= 1500)) throw new Error("Vs30 must be between 150 and 1500 m/s.");
-  if (!(rp >= 1 && rp <= 20000)) throw new Error("The return period must be between 1 and 20,000 years.");
-  return {lat, lon, vs30, rp, period, model: $("model").value};
+/* ---- 1. ground motions ---- */
+$("mfiles").addEventListener("change", async e => {
+  const bad = [];
+  for (const f of e.target.files){
+    try {
+      const r = M.parseAT2(await f.text(), f.name), id = f.name.replace(/\.[^.]+$/, "");
+      if (S.motions.some(m => m.name === f.name)) continue;
+      S.motions.push({id, name: f.name, description: r.description, dt: r.dt, npts: r.npts, acc: r.acc, pga: Math.max(...r.acc.map(Math.abs)), scale: 1});
+    } catch (err){ bad.push(err.message); }
+  }
+  e.target.value = ""; say("mmsg", bad.join(" "), bad.length ? "bad" : ""); drawMotions();
+});
+function drawMotions(){
+  if (!S.motions.length){ $("mlist").innerHTML = ""; return; }
+  $("mlist").innerHTML = `<table class="la-table" style="margin-top:12px"><tr><th>Motion</th><th>Recording</th><th>Duration</th><th>Peak, as recorded</th><th>Scale factor</th><th>Peak, as applied</th><th></th></tr>`
+    + S.motions.map((m, i) => `<tr><td>${esc(m.id)}</td><td>${esc(m.description)}</td><td>${((m.npts - 1) * m.dt).toFixed(1)} s</td><td>${m.pga.toFixed(3)} g</td>`
+      + `<td><input class="la-in" style="width:90px;margin:0" type="number" step="any" min="0" value="${m.scale}" data-i="${i}" aria-label="Scale factor for ${esc(m.id)}"></td><td id="ap-${i}">${(m.pga * m.scale).toFixed(3)} g</td>`
+      + `<td><button class="la-btn" style="margin:0" data-rm="${i}">Remove</button></td></tr>`).join("") + `</table>`;
+  $("mlist").querySelectorAll("input[data-i]").forEach(el => el.addEventListener("input", () => { const i = Number(el.dataset.i), v = Number(el.value); if (v > 0){ S.motions[i].scale = v; $("ap-" + i).textContent = (S.motions[i].pga * v).toFixed(3) + " g"; } }));
+  $("mlist").querySelectorAll("button[data-rm]").forEach(el => el.addEventListener("click", () => { S.motions.splice(Number(el.dataset.rm), 1); drawMotions(); }));
 }
-async function ask(url, what, seconds){
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), seconds * 1000);
-  try {
-    const res = await fetch(url, {signal: ctl.signal, headers: {Accept: "application/json"}});
-    let body; try { body = await res.json(); } catch (e){ throw new Error(`USGS answered the ${what} request with something that is not data (status ${res.status}).`); }
-    if (!res.ok || body.status !== "success") throw new Error(`USGS did not return the ${what}` + (body && body.message ? `: ${body.message}` : ` (status ${res.status}).`));
-    return body;
-  } catch (err){
-    if (err.name === "AbortError") throw new Error(`USGS did not answer the ${what} request within ${seconds} seconds. Its service may be busy: please try again in a few minutes.`);
-    if (err instanceof TypeError) throw new Error(`The ${what} request did not reach USGS, or its answer could not be read. Check the connection and try again.`);
-    throw err;
-  } finally { clearTimeout(timer); }
-}
-function line(id, text, cls){ let el = $(id); if (!el){ el = document.createElement("div"); el.id = id; $("status").appendChild(el); } el.className = cls || ""; el.textContent = text; }
 
-$("go").addEventListener("click", async () => {
-  if (S.busy) return;
-  let I; try { I = inputs(); } catch (err){ $("status").innerHTML = ""; line("st-err", err.message, "bad"); return; }
-  S.busy = true; $("go").disabled = true; $("status").innerHTML = "";
-  const t0 = performance.now(); let tick = null;
-  const timed = (id, text) => { const start = performance.now(); line(id, `${text}…`); clearInterval(tick); tick = setInterval(() => line(id, `${text}… ${Math.round((performance.now() - start) / 1000)} s`), 1000); return start; };
+/* ---- 2. the model ---- */
+function readBuilding(){
+  const v = id => Number($(id).value);
+  for (const [id, name] of [["b-n", "the number of stories"], ["b-h", "the story height"], ["b-m", "the floor mass"], ["b-t", "the first period"], ["b-cy", "the yield strength"], ["b-b", "the stiffness after yield"], ["b-z", "the damping ratio"]])
+    if ($(id).value.trim() === "" || !Number.isFinite(v(id))) throw new Error(`Please give ${name} as a number.`);
+  if (!(v("b-h") > 0 && v("b-m") > 0 && v("b-t") > 0 && v("b-cy") > 0)) throw new Error("The story height, the floor mass, the period and the yield strength must all be positive.");
+  return M.fromPeriod({stories: v("b-n"), height: v("b-h"), mass: v("b-m"), period: v("b-t"), yield_coefficient: v("b-cy"), hardening: v("b-b"), damping_ratio: v("b-z"), p_delta: $("b-pd").value === "1", name: $("b-name").value.trim() || "Shear building"});
+}
+function drawBuilding(){
   try {
-    const key = [I.model, I.lon, I.lat, I.vs30].join("|");
-    if (S.hazardKey !== key){
-      const s = timed("st-hz", "Asking USGS for the hazard curves");
-      S.hazardReply = await ask(U.hazardUrl(I.lon, I.lat, I.vs30, I.model), "hazard curves", 240); S.hazardKey = key;
-      clearInterval(tick); line("st-hz", `Hazard curves received in ${Math.round((performance.now() - s) / 1000)} s.`, "done");
-    } else line("st-hz", "Hazard curves: already here for this site.", "done");
-    const s2 = timed("st-dg", "Asking USGS for the disaggregation");
-    S.detailReply = await ask(U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true), "disaggregation", 360);
-    clearInterval(tick); line("st-dg", `Disaggregation received in ${Math.round((performance.now() - s2) / 1000)} s.`, "done");
-    S.hazard = U.readHazard(S.hazardReply); S.detail = U.readDisaggregationDetail(S.detailReply); S.inputs = I;
-    // USGS's replies name only the path they were asked at; the record keeps the full address that was used
-    S.hazard.service.url = U.hazardUrl(I.lon, I.lat, I.vs30, I.model); S.detail.service.url = U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true);
-    S.uhs = U.uniformHazardSpectrum(S.hazard, I.rp); S.target = null; S.targetError = null;
-    try { S.target = U.target(S.hazard, S.detail)[0]; } catch (err){ S.targetError = err.message; }
-    render();
-  } catch (err){ clearInterval(tick); line("st-err", err.message || String(err), "bad"); }
-  finally { clearInterval(tick); S.busy = false; $("go").disabled = false; }
+    const p = readBuilding(), k = p.stiffnesses[0], vy = p.yield_strengths[0], w = p.g * p.masses.reduce((a, b) => a + b, 0);
+    S.model = {kind: p.kind, parameters: p, source: M.modelSource(p)};
+    $("b-facts").innerHTML = fact(`${Math.round(k).toLocaleString("en-US")} kN/m`, "stiffness of each story") + fact(`${Math.round(vy).toLocaleString("en-US")} kN`, `the bottom story yields here, of a weight of ${Math.round(w).toLocaleString("en-US")} kN`)
+      + fact(`${(1000 * vy / k).toFixed(1)} mm`, `drift of the bottom story at yield, ${(100 * vy / k / p.heights[0]).toFixed(2)}% of its height`) + fact(`${M.firstPeriod(p).toFixed(3)} s`, "first period, before second-order effects");
+    $("b-src").textContent = S.model.source; say("b-msg", "");
+  } catch (err){ S.model = null; $("b-facts").innerHTML = ""; $("b-src").textContent = ""; say("b-msg", err.message, "bad"); }
+}
+document.querySelectorAll("#mk-make input, #mk-make select").forEach(el => el.addEventListener("input", drawBuilding));
+document.querySelectorAll('input[name="mk"]').forEach(el => el.addEventListener("change", () => { const own = el.value === "own" && el.checked; $("mk-own").hidden = !own; $("mk-make").hidden = own; }));
+$("ownmodel").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const text = await f.text();
+  if (!/^def build\s*\(/m.test(text)){ S.own = null; say("own-msg", `${f.name} does not define build(). The model file must define it: see the description above.`, "bad"); return; }
+  S.own = {kind: "user", file_name: f.name, source: text}; say("own-msg", `${f.name} read: ${text.split("\n").length.toLocaleString("en-US")} lines. It will be included as it is.`, "good");
+});
+const chosenModel = () => document.querySelector('input[name="mk"]:checked').value === "own" ? S.own : S.model;
+
+/* ---- 3. the run package ---- */
+$("make").addEventListener("click", async () => {
+  try {
+    if (!S.motions.length) throw new Error("Add at least one ground motion in step 1.");
+    const model = chosenModel(); if (!model) throw new Error("The model in step 2 is not ready: " + (document.querySelector('input[name="mk"]:checked').value === "own" ? "add your model file." : "check its values."));
+    const title = $("p-title").value.trim() || "Local analysis";
+    const motions = S.motions.map(m => M.motion(m.id, m.acc, m.dt, m.scale, {description: m.description, file: m.name}));
+    const info = model.kind === "user" ? {kind: "user", file_name: model.file_name} : {kind: model.kind, parameters: model.parameters};
+    const pk = await M.packageFiles(model.source, info, motions, title, title);
+    S.pkg = {manifestText: pk.files["manifest.json"], modelText: pk.files["model.py"], id: pk.manifest.id};
+    save(pk.manifest.id + ".zip", M.zip(pk.files, pk.manifest.id), "application/zip");
+    say("p-msg", `Made ${pk.manifest.id}.zip: ${motions.length} motion${motions.length === 1 ? "" : "s"} and the model.`, "good"); $("p-how").hidden = false;
+  } catch (err){ say("p-msg", err.message || String(err), "bad"); }
 });
 
-function fact(big, small){ return `<div class="la-fact"><b>${big}</b><span>${small}</span></div>`; }
-function render(){
-  const I = S.inputs, D = S.detail, u = S.uhs, k = u.periods.indexOf(I.period), sa = u.sa[k], t = S.target;
-  $("empty").hidden = true; $("results").hidden = false;
-  $("hz-sub").textContent = `Latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s. ${SRSuite.MODELS[I.model]}, from the USGS hazard service` + (S.hazard.service.version ? `, version ${S.hazard.service.version}` : "") + `. Spectral accelerations are for the median horizontal orientation (RotD50), not the maximum direction.`;
-  $("hz-facts").innerHTML = fact(`${sa.toFixed(3)} g`, `spectral acceleration at ${I.period} s, exceeded on average once in ${I.rp.toLocaleString("en-US")} years`)
-    + fact(`${u.pga.toFixed(3)} g`, `peak ground acceleration at the same return period`) + fact(`${Math.max(...u.sa).toFixed(3)} g`, `the spectrum's peak, at ${u.periods[u.sa.indexOf(Math.max(...u.sa))]} s`)
-    + fact(Math.abs(sa / D.ground_motion_g - 1) < 0.002 ? "Agrees" : `${(100 * (sa / D.ground_motion_g - 1)).toFixed(1)}% off`, `the value read here from the hazard curve against the ${D.ground_motion_g.toFixed(3)} g USGS disaggregated`);
-  $("ch-spectra").innerHTML = SRPlots.spectra(u, t);
-  $("curve-title").textContent = `Hazard curve, spectral acceleration at ${I.period} s`;
-  $("ch-curve").innerHTML = SRPlots.hazardCurve(S.hazard.curves[U.periodImt(I.period)], I.rp, sa, `Spectral acceleration at ${I.period} s`);
-  $("dg-sub").textContent = `Which earthquakes make up the hazard of ${sa.toFixed(3)} g at ${I.period} s and ${I.rp.toLocaleString("en-US")} years. Mean over all sources: magnitude ${D.mean.magnitude}, ${D.mean.distance_km} km (closest distance to the rupture), epsilon ${D.mean.epsilon}.`;
-  $("ch-bars").innerHTML = SRPlots.disaggBars(D) || "<p class='sub'>USGS returned no cells for this disaggregation.</p>"; $("ch-map").innerHTML = SRPlots.disaggMap(D);
-  const models = D.components.filter(c => c.name.startsWith("GMM:")).sort((a, b) => b.percent - a.percent);
-  $("tb-models").innerHTML = `<table class="la-table"><tr><th>Model</th><th>Share</th><th>M</th><th>km</th><th>ε</th></tr>` + models.map(c => `<tr><td>${esc(c.name.replace("GMM: ", ""))}</td><td>${fmt(c.percent, 1)}%</td><td>${fmt(c.magnitude, 2)}</td><td>${fmt(c.distance_km, 1)}</td><td>${fmt(c.epsilon, 2)}</td></tr>`).join("") + `</table>`;
-  const srcs = D.sources.filter(x => x.percent >= 1).sort((a, b) => b.percent - a.percent).slice(0, 10);
-  $("tb-sources").innerHTML = `<table class="la-table"><tr><th>Source</th><th>Share</th><th>M</th><th>km</th><th>ε</th></tr>` + srcs.map(x => `<tr><td>${esc(x.name)}</td><td>${fmt(x.percent, 1)}%</td><td>${fmt(x.magnitude, 2)}</td><td>${fmt(x.distance_km, 1)}</td><td>${fmt(x.epsilon, 2)}</td></tr>`).join("") + `</table>`;
-  if (t){
-    const g = t.definition.usgs, c = t.definition.calibration, gap = Math.abs(c.epsilon_of_this_model_there - g.epsilon);
-    $("tg-facts").innerHTML = fact(`M ${fmt(g.mean_magnitude, 2)}`, `the mean earthquake for this model, at ${fmt(g.mean_closest_distance_km, 1)} km closest distance`)
-      + fact(`${fmt(c.joyner_boore_distance_km, 1)} km`, `Joyner-Boore distance used, set so the model's epsilon matches USGS's`)
-      + fact(`${fmt(c.epsilon_of_this_model_there, 2)}`, `epsilon of the target; USGS reports ${fmt(g.epsilon, 2)} for the same model`)
-      + fact(`${fmt(g.share_of_hazard_percent, 0)}%`, `of the hazard comes through this one model and variant`);
-    $("tg-note").innerHTML = `<b>This target is an approximation.</b> It is built with one ground-motion model, Boore and others (2014) without basin terms, for that model's mean earthquake. The hazard itself comes from ${models.length} model variants and many earthquakes. `
-      + (gap <= 0.1 ? `The model's epsilon agrees with USGS's to within ${gap.toFixed(2)}, which ties the target's shape to the hazard.` : `<b>The model's epsilon differs from USGS's by ${gap.toFixed(2)}</b>, so the target's shape is less well tied to the hazard at this site than usual.`)
-      + ` It lies on or below the uniform hazard spectrum and meets it at ${I.period} s.`;
-  } else { $("tg-facts").innerHTML = ""; $("tg-note").innerHTML = `<b>No target could be built here.</b> ${esc(S.targetError || "")}`; }
-  for (const id of ["dl-csv", "dl-json"]) $(id).hidden = !t;
-  const ctx = [`Page: Local analysis (${location.origin}${location.pathname})`, `Site: latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s`, `Hazard model: ${SRSuite.MODELS[I.model]}; return period ${I.rp} years; period of interest ${I.period} s`,
-    `Uniform hazard value shown: ${sa.toFixed(4)} g at ${I.period} s; PGA ${u.pga.toFixed(4)} g; USGS disaggregated ${D.ground_motion_g} g`,
-    `Disaggregation mean: M ${D.mean.magnitude}, ${D.mean.distance_km} km, epsilon ${D.mean.epsilon}`,
-    t ? `Target: M ${t.definition.usgs.mean_magnitude}, Joyner-Boore distance ${t.definition.calibration.joyner_boore_distance_km.toFixed(2)} km, epsilon ${t.definition.calibration.epsilon_of_this_model_there.toFixed(3)} (USGS ${t.definition.usgs.epsilon})` : `Target: none (${S.targetError})`,
-    `Tool: ${SRSuite.MADE_WITH}, ${SRSuite.VERSION}`].join("\n");
-  $("report").href = "https://github.com/TRG-UCLA/ShakeReady/issues/new?" + new URLSearchParams({template: "problem.yml", title: `Problem: Local analysis at ${I.lat}, ${I.lon}`, context: ctx});
-  $("results").scrollIntoView({behavior: "smooth", block: "start"});
+/* ---- 4. the results ---- */
+function profile(res, key, scale, unit){
+  const n = res.model.stories, done = res.motions.filter(m => m.status === "completed"), sum = M.summary(res)[key];
+  const top = Math.max(...res.motions.map(m => Math.max(...m[key]))) * scale * 1.12 || 1, X0 = 54, Y0 = 12, W = 400, H = Math.max(120, Math.min(360, 46 * n));
+  const x = v => X0 + v * scale / top * W, y = i => Y0 + H - (i + 0.5) * H / n;
+  const line = vals => vals.map((v, i) => `${x(v).toFixed(1)},${y(i).toFixed(1)}`).join(" ");
+  let b = "";
+  for (let k = 0; k <= 4; k++){ const v = top * k / 4; b += `<line x1="${(X0 + W * k / 4).toFixed(1)}" y1="${Y0}" x2="${(X0 + W * k / 4).toFixed(1)}" y2="${Y0 + H}" stroke="#D8E0E7"/><text x="${(X0 + W * k / 4).toFixed(1)}" y="${Y0 + H + 16}" font-size="11.5" fill="#5F7183" text-anchor="middle">${v.toPrecision(2)}</text>`; }
+  for (let i = 0; i < n; i++) b += `<text x="${X0 - 8}" y="${(y(i) + 4).toFixed(1)}" font-size="11.5" fill="#5F7183" text-anchor="end">${i + 1}</text>`;
+  b += res.motions.map(m => `<polyline points="${line(m[key])}" fill="none" stroke="${m.status === "completed" ? "#8796A6" : "#D7263D"}" stroke-width="1.2" opacity="0.8"/>` + m[key].map((v, i) => `<circle cx="${x(v).toFixed(1)}" cy="${y(i).toFixed(1)}" r="2.2" fill="#8796A6"/>`).join("")).join("");
+  if (done.length > 1) b += `<polyline points="${line(sum.median)}" fill="none" stroke="#0F1A2B" stroke-width="2.6"/>`;
+  b += `<text x="${X0 + W / 2}" y="${Y0 + H + 36}" font-size="12.5" fill="#22303C" text-anchor="middle">${unit}</text><text transform="translate(14 ${Y0 + H / 2}) rotate(-90)" font-size="12.5" fill="#22303C" text-anchor="middle">Story</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${X0 + W + 20} ${Y0 + H + 46}" role="img" aria-label="${unit} by story" font-family="Archivo, system-ui, Arial, sans-serif" style="width:100%;max-width:520px;height:auto;display:block">${b}</svg>`
+    + `<p class="sub" style="font-size:12.5px;margin:4px 0 0">Each grey line is one motion` + (done.length > 1 ? "; the dark line is the median." : ".") + `</p>`;
 }
-function save(name, text, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
-const tag = () => `${S.inputs.lat}_${S.inputs.lon}_${S.inputs.rp}yr_${S.inputs.period}s`.replace(/-/g, "m");
-$("dl-csv").addEventListener("click", () => {
-  const t = S.target, u = S.uhs, I = S.inputs;
-  const head = [`# Local analysis, ShakeReady. Site: latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s. ${SRSuite.MODELS[I.model]}, return period ${I.rp} years, period of interest ${I.period} s.`,
-    `# Uniform hazard spectrum from the USGS hazard service (${S.hazard.service.url}). Target: conditional mean spectrum, an approximation built with one ground-motion model; see the JSON download for its full record.`,
-    `# Spectral acceleration in g, RotD50. sigma_ln is the standard deviation of ln Sa to be matched by a suite.`, `# Made with ${SRSuite.MADE_WITH}.`, "period_s,uniform_hazard_g,target_g,target_sigma_ln"];
-  save(`spectra_${tag()}.csv`, head.concat(u.periods.map((p, i) => [p, u.sa[i].toFixed(6), t.sa[i].toFixed(6), t.sigma_ln[i].toFixed(4)].join(","))).join("\n") + "\n", "text/csv");
+$("rfile").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const res = M.checkResults(JSON.parse(await f.text())); S.results = res;
+    const sum = M.summary(res), big = k => Math.max(...res.motions.map(m => Math.max(...m[k])));
+    let note = `${f.name} read: ${res.completed} of ${res.motions.length} motion${res.motions.length === 1 ? "" : "s"} completed, with OpenSeesPy ${res.environment.openseespy}.`, cls = res.failed ? "bad" : "good";
+    if (S.pkg){ const [a, b] = await M.matches(res, S.pkg.manifestText, S.pkg.modelText);
+      note += a && b ? " These results come from the package made here." : !a ? " These results are from a different package than the one made here in step 3." : " The model was edited after the package was made: the results are for the edited model.";
+      if (!(a && b)) cls = "bad"; }
+    if (res.failed) note += ` ${res.failed} did not converge: its values are peaks up to where it stopped.`;
+    say("r-msg", note, cls);
+    $("r-facts").innerHTML = fact(`${(100 * big("peak_story_drift_ratio")).toFixed(2)}%`, "largest story drift, as a share of story height, over all motions") + fact(`${(100 * big("residual_story_drift_ratio")).toFixed(3)}%`, "largest drift left once the structure was at rest")
+      + fact(`${big("peak_floor_acceleration_g").toFixed(2)} g`, "largest floor acceleration") + fact(`${res.model.periods_s[0].toFixed(3)} s`, `first period of the model run, ${res.model.stories} stor${res.model.stories === 1 ? "y" : "ies"}`);
+    $("ch-drift").innerHTML = profile(res, "peak_story_drift_ratio", 100, "Peak story drift, % of story height"); $("ch-acc").innerHTML = profile(res, "peak_floor_acceleration_g", 1, "Peak floor acceleration, g");
+    $("r-table").innerHTML = `<table class="la-table"><tr><th>Motion</th><th>Status</th><th>Peak ground acc.</th><th>Largest story drift</th><th>In story</th><th>Largest residual drift</th><th>Largest floor acc.</th></tr>`
+      + res.motions.map(m => { const d = m.peak_story_drift_ratio, k = d.indexOf(Math.max(...d)); return `<tr><td>${esc(m.motion)}</td><td>${m.status}${m.status === "failed" ? ` at ${m.failed_at_s.toFixed(2)} s` : ""}</td><td>${m.peak_ground_acceleration_g.toFixed(3)} g</td><td>${(100 * d[k]).toFixed(3)}%</td><td>${k + 1}</td><td>${(100 * Math.max(...m.residual_story_drift_ratio)).toFixed(4)}%</td><td>${Math.max(...m.peak_floor_acceleration_g).toFixed(3)} g</td></tr>`; }).join("") + `</table>`;
+    $("r-out").hidden = false;
+  } catch (err){ S.results = null; $("r-out").hidden = true; say("r-msg", err instanceof SyntaxError ? `${f.name} is not a results file: it could not be read as JSON.` : err.message, "bad"); }
+  e.target.value = "";
 });
-$("dl-json").addEventListener("click", () => save(`target_${tag()}.json`, JSON.stringify({format: "shakeready-target/1", made_with: SRSuite.MADE_WITH, made_utc: new Date().toISOString(), target: S.target, uniform_hazard_spectrum: S.uhs,
-  disaggregation: {mean: S.detail.mean, mode: S.detail.mode, components: S.detail.components, distance_measure: S.detail.distance_measure}}, null, 1), "application/json"));
-$("dl-raw").addEventListener("click", () => save(`usgs_replies_${tag()}.json`, JSON.stringify({hazard: S.hazardReply, disaggregation: S.detailReply}), "application/json"));
+$("r-csv").addEventListener("click", () => {
+  const r = S.results, n = r.model.stories, cols = ["peak_story_drift_ratio", "residual_story_drift_ratio", "peak_floor_acceleration_g"];
+  const head = ["motion", "status", "scale_factor", "peak_ground_acceleration_g"].concat(cols.flatMap(c => Array.from({length: n}, (_, i) => `${c}_story_${i + 1}`)));
+  const rows = r.motions.map(m => [m.motion, m.status, m.scale_factor, m.peak_ground_acceleration_g].concat(cols.flatMap(c => m[c])).join(","));
+  save("response.csv", [`# Local analysis, ShakeReady. Package ${r.package.id}; model of ${n} stor${n === 1 ? "y" : "ies"}, first period ${r.model.periods_s[0]} s; OpenSeesPy ${r.environment.openseespy}; run finished ${r.finished_utc}.`,
+    `# Drift ratios are drift divided by story height. Stories are numbered from the bottom. Made with ${M.MADE_WITH}.`, head.join(",")].concat(rows).join("\n") + "\n", "text/csv");
+});
+drawBuilding();
 window.SRLocal = {state: S};
 </script>
 </body>

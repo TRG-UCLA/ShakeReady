@@ -116,6 +116,10 @@ no Tcl** (though he later answered "both" to an earlier question; unresolved, se
 from-scratch template is a **stick model**. The first thing to define is the run package and the results
 format. Built since: SR-ModelMaker's first stage (private repository TRG-UCLA/SR-ModelMaker): the shear building,
 the run package and the results format, tested against separate solutions. `PLAN.md` lists what comes next.
+Then the site was reorganized: `suitemaker/` is SR-SuiteMaker's page, `local.html` is the new Local analysis
+(motions, model, run package, results), and the menu has a Tools page. When editing a file in place with
+Python, read it first and write it afterwards: `open(f, 'w').write(g(open(f).read()))` empties the file
+before reading it, which happened here once and was caught before committing.
 
 **The owner agreed to the plan on 2026-11-19 ("let's go ahead with your plans"), after first asking to plan and
 mock up before building. Follow the order of work in `PLAN.md`: SR-SuiteMaker, then Local analysis, then the

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SR-SuiteMaker — ShakeReady</title>
+<meta name="description" content="Hazard at one site from the USGS national seismic hazard model, its disaggregation, and a target spectrum for selecting ground motions.">
+<link rel="icon" href="../data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F1A2B'/%3E%3Cpath d='M5.3 19.6 L5.6 19.6 L6 19.7 L6.4 19.7 L6.8 19.8 L7.1 20 L7.5 20.2 L7.9 20.4 L8.2 20.8 L8.6 21.2 L9 21.7 L9.3 22.3 L9.7 22.9 L10.1 23.6 L10.4 24.3 L10.8 24.8 L11.2 25.2 L11.6 25.2 L11.9 25 L12.3 24.3 L12.7 23.1 L13 21.4 L13.4 19.4 L13.8 17 L14.2 14.6 L14.5 12.1 L14.9 10 L15.3 8.2 L15.6 7.1 L16 6.7 L16.4 7.1 L16.7 8.2 L17.1 10 L17.5 12.1 L17.9 14.6 L18.2 17 L18.6 19.4 L19 21.4 L19.3 23.1 L19.7 24.3 L20.1 25 L20.4 25.2 L20.8 25.2 L21.2 24.8 L21.5 24.3 L21.9 23.6 L22.3 22.9 L22.7 22.3 L23 21.7 L23.4 21.2 L23.8 20.8 L24.1 20.4 L24.5 20.2 L24.9 20 L25.2 19.8 L25.6 19.7 L26 19.7 L26.4 19.6 L26.7 19.6' stroke='%23F9A03F' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+[hidden]{display:none !important}
+main.page.local{max-width:1180px}
+.la-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:26px;align-items:start;margin-top:22px}
+@media (max-width:900px){.la-grid{grid-template-columns:minmax(0,1fr)}}
+.la-panel{position:sticky;top:76px;background:#0F1A2B;color:#EFF3F6;border-radius:12px;padding:18px 18px 20px}
+@media (max-width:900px){.la-panel{position:static}}
+.la-panel h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#8FA3B8;margin:18px 0 10px}
+.la-panel h2:first-child{margin-top:0}
+.la-panel label{display:block;font-size:13px;color:#AEBDCB;margin:10px 0 0}
+.la-panel input,.la-panel select{display:block;width:100%;margin-top:5px;padding:8px 10px;border-radius:6px;border:1px solid #2A3D5C;background:#16243A;color:#EFF3F6;font:inherit;font-size:14.5px}
+.la-panel small{display:block;color:#8FA3B8;font-size:12px;margin-top:5px;line-height:1.4}
+.la-go{margin-top:18px;width:100%;border:0;border-radius:8px;background:#F9A03F;color:#1C1507;font:inherit;font-weight:600;padding:12px;cursor:pointer}
+.la-go:disabled{opacity:.6;cursor:default}
+.la-status{margin-top:12px;font-size:13px;color:#AEBDCB;line-height:1.5}
+.la-status .done{color:#8FD6A0}.la-status .bad{color:#FF9B93}
+.la-card{background:#fff;border:1px solid #D8E0E7;border-radius:12px;padding:20px 22px;margin-bottom:22px}
+.la-card h2{font-size:21px;margin:0 0 4px}
+.la-card h3{font-size:15.5px;margin:20px 0 8px}
+.la-card .sub{color:#5F7183;font-size:14.5px;margin:0 0 14px}
+.la-two{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:start}
+.la-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:1080px){.la-pair{grid-template-columns:minmax(0,1fr)}}
+#ch-spectra,#ch-curve{max-width:800px}#ch-bars{max-width:700px}#ch-map{max-width:580px}
+.la-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0 4px}
+.la-fact{border:1px solid #D8E0E7;border-radius:10px;padding:11px 13px}
+.la-fact b{display:block;font-size:22px}
+.la-fact span{font-size:12.5px;color:#5F7183;line-height:1.35;display:block;margin-top:2px}
+.la-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.la-table th{text-align:left;font-weight:600;border-bottom:2px solid #22303C;padding:6px 10px 6px 0}
+.la-table td{border-bottom:1px solid #D8E0E7;padding:5px 10px 5px 0;font-variant-numeric:tabular-nums}
+.la-scroll{overflow-x:auto}
+.la-note{background:#FFF7E8;border:1px solid #F3D49B;border-radius:8px;padding:11px 14px;font-size:14px;line-height:1.5;color:#5C3D00}
+.la-btn{display:inline-block;border:1px solid #B9C5D0;border-radius:8px;background:#fff;color:#22303C;font:inherit;font-size:14px;padding:8px 14px;cursor:pointer;margin:6px 8px 0 0}
+.la-empty{border:1px dashed #B9C5D0;border-radius:12px;padding:34px 24px;color:#5F7183;text-align:center}
+</style>
+</head>
+<body><nav class="site-nav"><div class="inner">
+  <a class="brand" href="../index.html"><span>Shake<span class="ready">Ready</span></span><svg viewBox="0 0 54 16" aria-hidden="true"><path d="M0 10.5 L14.2 10.5 L14.7 10.5 L15.1 10.6 L15.6 10.6 L16 10.7 L16.4 10.8 L16.9 10.9 L17.3 11.1 L17.8 11.3 L18.2 11.6 L18.6 12 L19.1 12.4 L19.5 12.9 L20 13.4 L20.4 13.8 L20.8 14.2 L21.3 14.4 L21.7 14.5 L22.2 14.3 L22.6 13.8 L23 13 L23.5 11.8 L23.9 10.4 L24.4 8.7 L24.8 7 L25.2 5.3 L25.7 3.7 L26.1 2.5 L26.6 1.8 L27 1.5 L27.4 1.8 L27.9 2.5 L28.3 3.7 L28.8 5.3 L29.2 7 L29.6 8.7 L30.1 10.4 L30.5 11.8 L31 13 L31.4 13.8 L31.8 14.3 L32.3 14.5 L32.7 14.4 L33.2 14.2 L33.6 13.8 L34 13.4 L34.5 12.9 L34.9 12.4 L35.4 12 L35.8 11.6 L36.2 11.3 L36.7 11.1 L37.1 10.9 L37.6 10.8 L38 10.7 L38.4 10.6 L38.9 10.6 L39.3 10.5 L39.8 10.5 L54 10.5"/></svg></a>
+  <ul><li><a class="navlink" href="../index.html">Home</a></li><li><a class="navlink" href="../dashboard.html">Regional analysis</a></li><li><a class="navlink" href="../local.html">Local analysis</a></li><li><a class="navlink" href="../tools.html" aria-current="page">Tools</a></li><li><a class="navlink" href="../data.html">Data</a></li><li><a class="navlink" href="../methods.html">Methods</a></li><li><a class="navlink" href="../projects.html">Projects</a></li><li><a class="navlink" href="../publications.html">Publications</a></li><li><a class="navlink" href="../people.html">People</a></li></ul>
+</div></nav>
+<main class="page local">
+  <h1>SR-SuiteMaker</h1>
+  <p class="lede">Ground motions for one site: its hazard, what drives it, and a target spectrum for choosing them. The hazard comes from the U.S. Geological Survey's national seismic hazard model, asked for directly from your browser. Made by E. Taciroglu.</p>
+  <div class="la-grid">
+    <div class="la-panel">
+      <h2>Site</h2>
+      <label>Latitude<input id="lat" type="number" step="any" value="34.05"></label>
+      <label>Longitude<input id="lon" type="number" step="any" value="-118.25"></label>
+      <label>Vs30, m/s<input id="vs30" type="number" step="any" value="760"><small>150 to 1500. The boxes start on downtown Los Angeles, on reference rock, as an example. West longitudes are negative.</small></label>
+      <h2>Hazard</h2>
+      <label>Hazard model<select id="model"></select></label>
+      <label>Return period, years<select id="rp"><option value="475">475 (10% in 50 years)</option><option value="975">975 (5% in 50 years)</option><option value="2475" selected>2,475 (2% in 50 years)</option><option value="other">Another…</option></select></label>
+      <label id="rp-other-wrap" hidden>Return period, years<input id="rp-other" type="number" step="1" min="1" max="20000" value="1000"></label>
+      <label>Period of interest, s<select id="period"></select><small>The target is tied to the hazard at this period, usually the structure's fundamental period.</small></label>
+      <button class="la-go" id="go">Get the hazard from USGS</button>
+      <div class="la-status" id="status">Two requests go to USGS, and together they take about a minute.</div>
+    </div>
+    <div>
+      <div class="la-empty" id="empty">Set the site and the hazard level, then ask USGS. The hazard curves, the uniform hazard spectrum, the disaggregation and the target will appear here.</div>
+      <div id="results" hidden>
+        <div class="la-card"><h2>Hazard</h2><p class="sub" id="hz-sub"></p>
+          <div class="la-facts" id="hz-facts"></div>
+          <div class="la-two"><div><h3>Uniform hazard spectrum and target</h3><div id="ch-spectra"></div></div><div><h3 id="curve-title">Hazard curve</h3><div id="ch-curve"></div></div></div></div>
+        <div class="la-card"><h2>Disaggregation</h2><p class="sub" id="dg-sub"></p>
+          <div class="la-two"><div><h3>Contribution by magnitude, distance and epsilon</h3><div id="ch-bars"></div></div><div><h3>The same from above</h3><div id="ch-map"></div></div></div>
+          <div class="la-pair"><div><h3>By ground-motion model</h3><div class="la-scroll" id="tb-models"></div></div><div><h3>Largest contributing sources</h3><div class="la-scroll" id="tb-sources"></div></div></div></div>
+        <div class="la-card"><h2>Target</h2><p class="sub">A conditional mean spectrum: the spectrum to expect, given that the uniform hazard value is reached at the period of interest.</p>
+          <div class="la-facts" id="tg-facts"></div>
+          <div class="la-note" id="tg-note"></div>
+          <p style="margin:14px 0 0"><button class="la-btn" id="dl-csv">Download the spectra (CSV)</button><button class="la-btn" id="dl-json">Download the target with its record (JSON)</button><button class="la-btn" id="dl-raw">Download USGS's replies (JSON)</button></p>
+          <p class="sub" style="margin:14px 0 0">Does something here look wrong? <a id="report" href="../feedback.html" rel="noopener">Report a problem with these results</a>. The site, the settings and the figures above are carried into the form.</p></div>
+        <div class="la-card"><h2>Suite</h2><p class="sub" style="margin:0">Choosing and scaling records to this target comes next: the selection is built and tested, and is being connected to this page. Meanwhile, <a href="../local.html">Local analysis</a> takes ground motions you bring yourself.</p></div>
+      </div>
+    </div>
+  </div>
+</main>
+<footer class="site-foot"><div class="inner">ShakeReady — tools and data for quantifying and improving seismic resilience worldwide. An international collaboration of universities and research centers. <a href="../feedback.html" style="color:inherit;text-decoration:underline;white-space:nowrap">Report a problem or suggest an improvement</a>.</div></footer>
+<script src="lib/suite-core.js"></script>
+<script src="lib/suite-plots.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id), U = SRSuite.usgs;
+const S = {hazardKey: null, hazardReply: null, detailReply: null, hazard: null, detail: null, target: null, uhs: null, busy: false};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const fmt = (v, d) => v === null || v === undefined ? "" : Number(v).toFixed(d);
+for (const [id, name] of Object.entries(SRSuite.MODELS)) $("model").insertAdjacentHTML("beforeend", `<option value="${id}">${esc(name)}</option>`);
+for (const p of [0.1, 0.2, 0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5]) $("period").insertAdjacentHTML("beforeend", `<option value="${p}"${p === 1 ? " selected" : ""}>${p}</option>`);
+const q = new URLSearchParams(location.search);
+for (const k of ["lat", "lon", "vs30"]) if (q.get(k) !== null && q.get(k) !== "" && Number.isFinite(Number(q.get(k)))) $(k).value = q.get(k);
+$("rp").addEventListener("change", () => { $("rp-other-wrap").hidden = $("rp").value !== "other"; });
+
+function inputs(){
+  const lat = Number($("lat").value), lon = Number($("lon").value), vs30 = Number($("vs30").value), rp = Number($("rp").value === "other" ? $("rp-other").value : $("rp").value), period = Number($("period").value);
+  if (![$("lat").value, $("lon").value, $("vs30").value].every(v => v.trim() !== "") || ![lat, lon, vs30].every(Number.isFinite)) throw new Error("Please give the latitude, the longitude and Vs30 as numbers.");
+  if (!(lat >= 24.6 && lat <= 50 && lon >= -125 && lon <= -65)) throw new Error("This hazard model covers the conterminous United States: latitude 24.6 to 50, longitude −125 to −65. West longitudes are negative.");
+  if (!(vs30 >= 150 && vs30 <= 1500)) throw new Error("Vs30 must be between 150 and 1500 m/s.");
+  if (!(rp >= 1 && rp <= 20000)) throw new Error("The return period must be between 1 and 20,000 years.");
+  return {lat, lon, vs30, rp, period, model: $("model").value};
+}
+async function ask(url, what, seconds){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), seconds * 1000);
+  try {
+    const res = await fetch(url, {signal: ctl.signal, headers: {Accept: "application/json"}});
+    let body; try { body = await res.json(); } catch (e){ throw new Error(`USGS answered the ${what} request with something that is not data (status ${res.status}).`); }
+    if (!res.ok || body.status !== "success") throw new Error(`USGS did not return the ${what}` + (body && body.message ? `: ${body.message}` : ` (status ${res.status}).`));
+    return body;
+  } catch (err){
+    if (err.name === "AbortError") throw new Error(`USGS did not answer the ${what} request within ${seconds} seconds. Its service may be busy: please try again in a few minutes.`);
+    if (err instanceof TypeError) throw new Error(`The ${what} request did not reach USGS, or its answer could not be read. Check the connection and try again.`);
+    throw err;
+  } finally { clearTimeout(timer); }
+}
+function line(id, text, cls){ let el = $(id); if (!el){ el = document.createElement("div"); el.id = id; $("status").appendChild(el); } el.className = cls || ""; el.textContent = text; }
+
+$("go").addEventListener("click", async () => {
+  if (S.busy) return;
+  let I; try { I = inputs(); } catch (err){ $("status").innerHTML = ""; line("st-err", err.message, "bad"); return; }
+  S.busy = true; $("go").disabled = true; $("status").innerHTML = "";
+  const t0 = performance.now(); let tick = null;
+  const timed = (id, text) => { const start = performance.now(); line(id, `${text}…`); clearInterval(tick); tick = setInterval(() => line(id, `${text}… ${Math.round((performance.now() - start) / 1000)} s`), 1000); return start; };
+  try {
+    const key = [I.model, I.lon, I.lat, I.vs30].join("|");
+    if (S.hazardKey !== key){
+      const s = timed("st-hz", "Asking USGS for the hazard curves");
+      S.hazardReply = await ask(U.hazardUrl(I.lon, I.lat, I.vs30, I.model), "hazard curves", 240); S.hazardKey = key;
+      clearInterval(tick); line("st-hz", `Hazard curves received in ${Math.round((performance.now() - s) / 1000)} s.`, "done");
+    } else line("st-hz", "Hazard curves: already here for this site.", "done");
+    const s2 = timed("st-dg", "Asking USGS for the disaggregation");
+    S.detailReply = await ask(U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true), "disaggregation", 360);
+    clearInterval(tick); line("st-dg", `Disaggregation received in ${Math.round((performance.now() - s2) / 1000)} s.`, "done");
+    S.hazard = U.readHazard(S.hazardReply); S.detail = U.readDisaggregationDetail(S.detailReply); S.inputs = I;
+    // USGS's replies name only the path they were asked at; the record keeps the full address that was used
+    S.hazard.service.url = U.hazardUrl(I.lon, I.lat, I.vs30, I.model); S.detail.service.url = U.disaggUrl(I.lon, I.lat, I.vs30, I.rp, U.periodImt(I.period), I.model, true);
+    S.uhs = U.uniformHazardSpectrum(S.hazard, I.rp); S.target = null; S.targetError = null;
+    try { S.target = U.target(S.hazard, S.detail)[0]; } catch (err){ S.targetError = err.message; }
+    render();
+  } catch (err){ clearInterval(tick); line("st-err", err.message || String(err), "bad"); }
+  finally { clearInterval(tick); S.busy = false; $("go").disabled = false; }
+});
+
+function fact(big, small){ return `<div class="la-fact"><b>${big}</b><span>${small}</span></div>`; }
+function render(){
+  const I = S.inputs, D = S.detail, u = S.uhs, k = u.periods.indexOf(I.period), sa = u.sa[k], t = S.target;
+  $("empty").hidden = true; $("results").hidden = false;
+  $("hz-sub").textContent = `Latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s. ${SRSuite.MODELS[I.model]}, from the USGS hazard service` + (S.hazard.service.version ? `, version ${S.hazard.service.version}` : "") + `. Spectral accelerations are for the median horizontal orientation (RotD50), not the maximum direction.`;
+  $("hz-facts").innerHTML = fact(`${sa.toFixed(3)} g`, `spectral acceleration at ${I.period} s, exceeded on average once in ${I.rp.toLocaleString("en-US")} years`)
+    + fact(`${u.pga.toFixed(3)} g`, `peak ground acceleration at the same return period`) + fact(`${Math.max(...u.sa).toFixed(3)} g`, `the spectrum's peak, at ${u.periods[u.sa.indexOf(Math.max(...u.sa))]} s`)
+    + fact(Math.abs(sa / D.ground_motion_g - 1) < 0.002 ? "Agrees" : `${(100 * (sa / D.ground_motion_g - 1)).toFixed(1)}% off`, `the value read here from the hazard curve against the ${D.ground_motion_g.toFixed(3)} g USGS disaggregated`);
+  $("ch-spectra").innerHTML = SRPlots.spectra(u, t);
+  $("curve-title").textContent = `Hazard curve, spectral acceleration at ${I.period} s`;
+  $("ch-curve").innerHTML = SRPlots.hazardCurve(S.hazard.curves[U.periodImt(I.period)], I.rp, sa, `Spectral acceleration at ${I.period} s`);
+  $("dg-sub").textContent = `Which earthquakes make up the hazard of ${sa.toFixed(3)} g at ${I.period} s and ${I.rp.toLocaleString("en-US")} years. Mean over all sources: magnitude ${D.mean.magnitude}, ${D.mean.distance_km} km (closest distance to the rupture), epsilon ${D.mean.epsilon}.`;
+  $("ch-bars").innerHTML = SRPlots.disaggBars(D) || "<p class='sub'>USGS returned no cells for this disaggregation.</p>"; $("ch-map").innerHTML = SRPlots.disaggMap(D);
+  const models = D.components.filter(c => c.name.startsWith("GMM:")).sort((a, b) => b.percent - a.percent);
+  $("tb-models").innerHTML = `<table class="la-table"><tr><th>Model</th><th>Share</th><th>M</th><th>km</th><th>ε</th></tr>` + models.map(c => `<tr><td>${esc(c.name.replace("GMM: ", ""))}</td><td>${fmt(c.percent, 1)}%</td><td>${fmt(c.magnitude, 2)}</td><td>${fmt(c.distance_km, 1)}</td><td>${fmt(c.epsilon, 2)}</td></tr>`).join("") + `</table>`;
+  const srcs = D.sources.filter(x => x.percent >= 1).sort((a, b) => b.percent - a.percent).slice(0, 10);
+  $("tb-sources").innerHTML = `<table class="la-table"><tr><th>Source</th><th>Share</th><th>M</th><th>km</th><th>ε</th></tr>` + srcs.map(x => `<tr><td>${esc(x.name)}</td><td>${fmt(x.percent, 1)}%</td><td>${fmt(x.magnitude, 2)}</td><td>${fmt(x.distance_km, 1)}</td><td>${fmt(x.epsilon, 2)}</td></tr>`).join("") + `</table>`;
+  if (t){
+    const g = t.definition.usgs, c = t.definition.calibration, gap = Math.abs(c.epsilon_of_this_model_there - g.epsilon);
+    $("tg-facts").innerHTML = fact(`M ${fmt(g.mean_magnitude, 2)}`, `the mean earthquake for this model, at ${fmt(g.mean_closest_distance_km, 1)} km closest distance`)
+      + fact(`${fmt(c.joyner_boore_distance_km, 1)} km`, `Joyner-Boore distance used, set so the model's epsilon matches USGS's`)
+      + fact(`${fmt(c.epsilon_of_this_model_there, 2)}`, `epsilon of the target; USGS reports ${fmt(g.epsilon, 2)} for the same model`)
+      + fact(`${fmt(g.share_of_hazard_percent, 0)}%`, `of the hazard comes through this one model and variant`);
+    $("tg-note").innerHTML = `<b>This target is an approximation.</b> It is built with one ground-motion model, Boore and others (2014) without basin terms, for that model's mean earthquake. The hazard itself comes from ${models.length} model variants and many earthquakes. `
+      + (gap <= 0.1 ? `The model's epsilon agrees with USGS's to within ${gap.toFixed(2)}, which ties the target's shape to the hazard.` : `<b>The model's epsilon differs from USGS's by ${gap.toFixed(2)}</b>, so the target's shape is less well tied to the hazard at this site than usual.`)
+      + ` It lies on or below the uniform hazard spectrum and meets it at ${I.period} s.`;
+  } else { $("tg-facts").innerHTML = ""; $("tg-note").innerHTML = `<b>No target could be built here.</b> ${esc(S.targetError || "")}`; }
+  for (const id of ["dl-csv", "dl-json"]) $(id).hidden = !t;
+  const ctx = [`Page: SR-SuiteMaker (${location.origin}${location.pathname})`, `Site: latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s`, `Hazard model: ${SRSuite.MODELS[I.model]}; return period ${I.rp} years; period of interest ${I.period} s`,
+    `Uniform hazard value shown: ${sa.toFixed(4)} g at ${I.period} s; PGA ${u.pga.toFixed(4)} g; USGS disaggregated ${D.ground_motion_g} g`,
+    `Disaggregation mean: M ${D.mean.magnitude}, ${D.mean.distance_km} km, epsilon ${D.mean.epsilon}`,
+    t ? `Target: M ${t.definition.usgs.mean_magnitude}, Joyner-Boore distance ${t.definition.calibration.joyner_boore_distance_km.toFixed(2)} km, epsilon ${t.definition.calibration.epsilon_of_this_model_there.toFixed(3)} (USGS ${t.definition.usgs.epsilon})` : `Target: none (${S.targetError})`,
+    `Tool: ${SRSuite.MADE_WITH}, ${SRSuite.VERSION}`].join("\n");
+  $("report").href = "https://github.com/TRG-UCLA/ShakeReady/issues/new?" + new URLSearchParams({template: "problem.yml", title: `Problem: SR-SuiteMaker at ${I.lat}, ${I.lon}`, context: ctx});
+  $("results").scrollIntoView({behavior: "smooth", block: "start"});
+}
+function save(name, text, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+const tag = () => `${S.inputs.lat}_${S.inputs.lon}_${S.inputs.rp}yr_${S.inputs.period}s`.replace(/-/g, "m");
+$("dl-csv").addEventListener("click", () => {
+  const t = S.target, u = S.uhs, I = S.inputs;
+  const head = [`# SR-SuiteMaker, ShakeReady. Site: latitude ${I.lat}, longitude ${I.lon}, Vs30 ${I.vs30} m/s. ${SRSuite.MODELS[I.model]}, return period ${I.rp} years, period of interest ${I.period} s.`,
+    `# Uniform hazard spectrum from the USGS hazard service (${S.hazard.service.url}). Target: conditional mean spectrum, an approximation built with one ground-motion model; see the JSON download for its full record.`,
+    `# Spectral acceleration in g, RotD50. sigma_ln is the standard deviation of ln Sa to be matched by a suite.`, `# Made with ${SRSuite.MADE_WITH}.`, "period_s,uniform_hazard_g,target_g,target_sigma_ln"];
+  save(`spectra_${tag()}.csv`, head.concat(u.periods.map((p, i) => [p, u.sa[i].toFixed(6), t.sa[i].toFixed(6), t.sigma_ln[i].toFixed(4)].join(","))).join("\n") + "\n", "text/csv");
+});
+$("dl-json").addEventListener("click", () => save(`target_${tag()}.json`, JSON.stringify({format: "shakeready-target/1", made_with: SRSuite.MADE_WITH, made_utc: new Date().toISOString(), target: S.target, uniform_hazard_spectrum: S.uhs,
+  disaggregation: {mean: S.detail.mean, mode: S.detail.mode, components: S.detail.components, distance_measure: S.detail.distance_measure}}, null, 1), "application/json"));
+$("dl-raw").addEventListener("click", () => save(`usgs_replies_${tag()}.json`, JSON.stringify({hazard: S.hazardReply, disaggregation: S.detailReply}), "application/json"));
+window.SRLocal = {state: S};
+</script>
+</body>
+</html>

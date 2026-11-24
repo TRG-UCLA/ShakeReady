@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-19T16:44:10Z",
+ "generated_utc": "2026-11-24T06:12:57Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "ae2ef1af8f53b8e0daa9810fdead4fcf672d2ffc",
+ "code_version": "6ee00cc3c829f5c51f9db0a3054c72a1ed61c6c3",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "ShakeReady's code, namely the bridge inventory builder, the HAZUS bridge fragilities and the damage calculation, was made by E. Taciroglu, as was SR-HazardMaker. The processing, transcription and checks described here were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at his direction. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {

@@ -110,11 +110,36 @@ In a new private repository, <https://github.com/TRG-UCLA/SR-ModelMaker> (privat
 - An example package, a three-story building under the owner's Ferndale record as recorded and times six,
   was given to the owner to run on his own computer. **He has not yet reported running it.**
 
-Next, in order: (1) the owner runs the example package and sends back `results.json`; (2) move the hazard,
-disaggregation and target work out of `local.html` into SR-SuiteMaker's own page, and add the suite step
-that writes motions for a package; (3) the Local analysis page: bring a suite and a model, write the
-package, read the results, and show response; (4) reading a user's own OpenSeesPy model in the browser;
-(5) damage and loss, which need the owner's choice of fragility and consequence data.
+### Built 2026-11-24, later the same day: the site reorganized, and Local analysis as "bring motions, bring a model"
+
+- **SR-SuiteMaker has its own page**, `suitemaker/` (what `local.html` was: site, hazard, disaggregation,
+  target), with its browser files in `suitemaker/lib/`.
+- **Local analysis** (`local.html`) is now five steps: ground motions (AT2 files, each with a scale factor; a
+  suite or a single motion), a model (a shear building made on the page, or the user's own `model.py`, which
+  must define `build()`), the run package as a zip to run on the user's computer, the results read back
+  (figures, drift and acceleration by story, a table, a CSV), and a note that damage and loss come next.
+  Its browser code is SR-ModelMaker's `docs/templates.js` and `docs/modelmaker-core.js`, copied to
+  `local/lib/` with a record of the commit. The page recognizes results from its own package by checksum,
+  and says so when the model was edited afterwards.
+- **The menu** is Home, Regional analysis, Local analysis, Tools, Data, Methods, Projects, Publications,
+  People. `tools.html` lists the three tools and the codes; `code.html` redirects to it.
+- Tested end to end: the page's package, downloaded and unzipped, was run by OpenSees here, and the results
+  read back gave the same figures. Files made in the browser are byte for byte those Python makes.
+
+**Where items 1 to 4 of the owner's request stand:**
+
+1. SR-SuiteMaker as its own tool: **done.** Its last step, choosing records and writing a suite's motions,
+   is **not** in the browser yet: the selection, the spectra and the record reader exist in Python only.
+2. Local analysis, bring motions and a model, package, results: **done**, for motions brought as AT2 files.
+3. Reading a user's own model: **partly.** A `model.py` that defines `build()` is accepted and packaged as it
+   is. Reading an arbitrary OpenSeesPy script in the browser, showing it and editing it, is **not built**.
+   It needs Python in the browser (Pyodide), which could not be tried in this workspace without bringing
+   its files in; do that first.
+4. Damage and loss: **not built.** It waits on the owner's choice of fragility and consequence data. He was
+   offered: HAZUS drift thresholds by building type and design level, with HAZUS repair-cost ratios (the
+   manual is already on file); FEMA P-58 component fragilities and consequences; or his own.
+
+Also still open: the owner has not reported running the example package on his own computer.
 
 ### Unresolved: Tcl
 

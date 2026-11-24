@@ -14,8 +14,10 @@ body:
       label: Which part is this about?
       options:
         - Regional analysis (inventory, hazard layers, bridge damage)
-        - Local analysis (site hazard, disaggregation, target spectrum)
+        - Local analysis (ground motions, model, response)
         - SR-HazardMaker (making hazard layers)
+        - SR-SuiteMaker (site hazard, disaggregation, target spectrum)
+        - SR-ModelMaker (models of structures)
         - Data and methods
         - The website itself
         - Not sure
