@@ -83,9 +83,10 @@ at TACC. What follows from it:
   ask the collaborators how settled it is.
 - A user with a Tcl model must convert it. No automatic conversion is promised.
 
-### Decided 2026-11-23: the first from-scratch template is a stick model
+### Decided 2026-11-23: the first from-scratch template is a stick model, the "shear building"
 
-Proposed to the owner, awaiting his reaction: a lumped-mass model of one or more stories (one story is a
+The owner confirmed the term: the classic shear building, in which floors translate without rotating and each
+story resists by shear. Proposed to him: a lumped-mass model of one or more stories (one story is a
 single-degree-of-freedom oscillator), with a mass and a nonlinear spring per story, damping, and the ground
 motion applied at the base; defined either directly (masses, stiffnesses, strengths) or from a target period
 and a yield strength; reporting peak story drift, peak floor acceleration and residual drift.
