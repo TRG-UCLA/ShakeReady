@@ -891,9 +891,11 @@ document.getElementById("reset").addEventListener("click", () => {
   renderBridges();
 });
 /* ---------- building layers ---------- */
-const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num"]);
+const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num","fragility_mapping_id","hazus_fragility_class","hazus_fragility_description","hazus_fragility_table"]);
 function buildingPopup(props, coords){
   let html = `<div class="pop-title">${props.name || "Structure"}</div><div class="pop-kv">`;
+  if (props.hazus_fragility_class)        // the class assigned by Nigdelioglu, Tuna Deger and Taciroglu; see the Data page
+    html += `<b>HAZUS fragility class:</b> ${props.hazus_fragility_class}<br><span style="color:#5F7183">${props.hazus_fragility_description}; ${props.hazus_fragility_table}</span><br>`;
   for (const [k,v] of Object.entries(props)){
     if (SKIP_PROPS.has(k) || v === null || v === "" || v === undefined) continue;
     if (String(v).startsWith("http")){

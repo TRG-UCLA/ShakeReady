@@ -27,7 +27,10 @@ def record_count(path):
     if path.endswith('.csv'):
         with open(path, newline='', encoding='utf-8') as f:
             return sum(1 for _ in csv.reader(f)) - 1
-    d = json.load(open(path, encoding='utf-8'))
+    if not path.endswith(('.json', '.geojson')):
+        return None                      # a file kept as received, such as a workbook: nothing to count
+    with open(path, encoding='utf-8') as f:
+        d = json.load(f)
     if 'rows' in d: return len(d['rows'])
     if 'features' in d: return len(d['features'])
     if 'classes' in d: return len(d['classes'])

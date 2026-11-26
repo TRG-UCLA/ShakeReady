@@ -48,6 +48,15 @@
    "sha256": "18137ba5f580d9bdba2cf659b1d035fff899317d2980c0ed63b600b201a822bf",
    "bytes": 252630,
    "note": "The original file is kept in the project's archive."
+  },
+  "xlsx-ndrcb-fragility": {
+   "title": "LA_HAZUS_Fragility_Mapping.xlsx: HAZUS fragility class assignments for the Los Angeles non-ductile reinforced concrete building inventory",
+   "publisher": "A. Nigdelioglu, Z. Tuna Deger and E. Taciroglu",
+   "url": "Provided by E. Taciroglu; kept in this repository as data/sources/LA_HAZUS_Fragility_Mapping.xlsx",
+   "retrieved_utc": "2026-11-25",
+   "sha256": "fb515cc7d9f33447f248c03eed552dab8842aa6dfcc21deb12946910a6ada806",
+   "bytes": 74950,
+   "note": "Two sheets: the class of each of 1,451 buildings, and a summary of the twelve classes with the workbook's notes on method. The workbook cites the published LA Times inventory (https://graphics.latimes.com/la-concrete-buildings/) and FEMA's Hazus 6.1 technical manual."
   }
  },
  "datasets": [
@@ -105,7 +114,8 @@
    "script": "One-time conversion from KML to GeoJSON, November 2026",
    "processing": [
     "Unpack the KMZ and read each placemark's name, coordinates and attribute table.",
-    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
+    "Write one GeoJSON point per placemark with every attribute carried over unchanged.",
+    "Add to each building its HAZUS fragility class, a description of the class and the Hazus table it refers to, from the fragility-class dataset (tools/apply_ndrcb_fragility.py). No existing attribute is changed."
    ]
   },
   {
@@ -120,6 +130,22 @@
     "Transcribe the classification scheme (Table 7-1), the K3D coefficients (Table 7-2) and the median values (Table 7-6).",
     "Implement Equations 7-1 to 7-4 and the damage algorithm for ground shaking.",
     "Record every choice made where the manual is silent or inconsistent (decisions HZ-01 to HZ-11)."
+   ]
+  },
+  {
+   "id": "ndrcb-hazus-fragility",
+   "title": "HAZUS fragility classes, Los Angeles non-ductile concrete buildings",
+   "files": [
+    "data/la_ndrcb_hazus_fragility.csv",
+    "data/fragility/hazus_ndrcb_la_classes.json",
+    "data/sources/LA_HAZUS_Fragility_Mapping.xlsx"
+   ],
+   "source": "xlsx-ndrcb-fragility",
+   "script": "tools/apply_ndrcb_fragility.py",
+   "processing": [
+    "Read the workbook's two sheets.",
+    "Pair row k of the workbook with the k-th building of the LA Times inventory in the order of the inventory's own numbering, and check for every row that the building type, the code level, the story count, the construction year and the address agree. Stop without writing anything if any row disagrees.",
+    "Write the assignments as a table carrying both numberings and each building's coordinates, mark the four buildings the source records as demolished, and write the twelve classes with their counts."
    ]
   }
  ],
@@ -171,6 +197,24 @@
    "topic": "The earlier bridge snapshot",
    "choice": "The bridge data from the original site (about 2016, 25,431 records) is archived and no longer shown.",
    "basis": "Replaced by the 2025 file. The earlier snapshot lacked span counts and condition ratings, and 60 of its records had no coordinates."
+  },
+  {
+   "id": "BLD-04",
+   "topic": "Pairing fragility classes with buildings",
+   "choice": "Row k of the fragility workbook is paired with the k-th building of the LA Times inventory, in the order of the inventory's own numbering. The table published here carries both numbers.",
+   "basis": "The workbook describes its building ID as the source's number, but it runs from 1 to 1,451 without gaps, while the inventory's own numbers skip 486, 820 and 983 and run to 1,454. Joined on the number, only the first 485 rows agree. Paired in order, all 1,451 agree on building type, code level, story count, construction year and address. The agreement was checked for every row, and the script refuses to run if it fails."
+  },
+  {
+   "id": "BLD-05",
+   "topic": "Fragility class of a building",
+   "choice": "The class is taken as assigned in the workbook: the HAZUS building type joined to the code level, such as C2L-PC. The design level recorded in the source inventory is used for every building, including the 214 with no construction year.",
+   "basis": "These are the authors' assignments, published as given. The class is consistent with the building type and level already in the inventory for every building, and every story count falls in the height range of its class."
+  },
+  {
+   "id": "BLD-06",
+   "topic": "Demolished buildings",
+   "choice": "The four buildings the source's update notes record as demolished are kept, and marked in the table.",
+   "basis": "The inventory is historical, and the workbook keeps them. In the workbook's numbering they are rows 870 to 873; in the inventory's own numbering, 872 to 875."
   }
  ],
  "verification": [
@@ -241,6 +285,10 @@
   {
    "check": "The scenario builder",
    "result": "Distances to a vertical and to a dipping fault match hand-computed values. A scenario built on the page and the same scenario built on the command line are the same layer, value for value (43,248 values in the case tested), and three further scenarios agree in the tool's own tests. A scenario layer opened on the dashboard gives a damage table identical to the reference code."
+  },
+  {
+   "check": "Fragility classes against the building inventory",
+   "result": "All 1,451 rows of the workbook were paired with a building and compared field by field: building type, code level, story count, construction year and address agree for every one. Occupancy agrees for 1,450; for one building the inventory has no occupancy and the workbook gives Office. The number of buildings in each of the twelve classes equals the workbook's own summary. Running the script twice gives the same files."
   }
  ],
  "limits": [
@@ -249,7 +297,8 @@
   "Culverts are in the inventory and are given bridge curves, which fit them poorly (decision HZ-09).",
   "Only ground shaking is considered. Liquefaction, landslide and fault-rupture displacement are not (decision HZ-08).",
   "NBI values are as submitted by the owning agencies. No value has been corrected.",
-  "The building layers date from 2017 and have not been updated."
+  "The building layers date from 2017 and have not been updated.",
+  "The fragility classes of the Los Angeles concrete buildings say which HAZUS curve applies to each building. The curves' parameters are not yet in ShakeReady, so the dashboard shows each building's class but does not yet estimate damage to buildings."
  ],
  "damage_decisions": [
   {

@@ -1,0 +1,127 @@
+{
+ "title": "HAZUS fragility classes of Los Angeles's non-ductile reinforced concrete buildings",
+ "developed_by": [
+  "A. Nigdelioglu",
+  "Z. Tuna Deger",
+  "E. Taciroglu"
+ ],
+ "applies_to": "latimes-concrete",
+ "buildings": 1451,
+ "reference": "FEMA Hazus 6.1 Earthquake Model Technical Manual (July 2024): Table 5-1 for building types; Tables 5-21 (Low-Code) and 5-22 (Pre-Code) for structural fragility, as cited in the workbook",
+ "what_this_holds": "Which fragility class each building belongs to. The curves' parameters are in the manual's tables and are not reproduced here.",
+ "classes": [
+  {
+   "class": "C2L-PC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "1-3",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 282,
+   "buildings": 282
+  },
+  {
+   "class": "C2L-LC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "1-3",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 231,
+   "buildings": 231
+  },
+  {
+   "class": "C2M-PC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "4-7",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 125,
+   "buildings": 125
+  },
+  {
+   "class": "C2M-LC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "4-7",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 11,
+   "buildings": 11
+  },
+  {
+   "class": "C2H-PC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "8+",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 37,
+   "buildings": 37
+  },
+  {
+   "class": "C2H-LC",
+   "structural_system": "Concrete shear walls",
+   "story_range": "8+",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 6,
+   "buildings": 6
+  },
+  {
+   "class": "C3L-PC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "1-3",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 110,
+   "buildings": 110
+  },
+  {
+   "class": "C3L-LC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "1-3",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 286,
+   "buildings": 286
+  },
+  {
+   "class": "C3M-PC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "4-7",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 79,
+   "buildings": 79
+  },
+  {
+   "class": "C3M-LC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "4-7",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 110,
+   "buildings": 110
+  },
+  {
+   "class": "C3H-PC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "8+",
+   "design_level": "Pre-Code",
+   "hazus_table": "Hazus 6.1 Table 5-22",
+   "buildings_in_workbook": 83,
+   "buildings": 83
+  },
+  {
+   "class": "C3H-LC",
+   "structural_system": "Concrete frame with unreinforced masonry infill",
+   "story_range": "8+",
+   "design_level": "Low-Code",
+   "hazus_table": "Hazus 6.1 Table 5-21",
+   "buildings_in_workbook": 91,
+   "buildings": 91
+  }
+ ],
+ "numbering": "mapping_building_id is the workbook's row number, 1 to 1,451. inventory_num is the LA Times inventory's own number, which skips 486, 820 and 983 and so runs to 1,454.",
+ "notes": [
+  "The design level recorded in the source inventory is used for every building, including the 214 with no construction year.",
+  "Four buildings are recorded as demolished in the source's update notes (workbook rows 870 to 873, inventory numbers 872 to 875). They remain in the table, marked."
+ ]
+}
