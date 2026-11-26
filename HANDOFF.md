@@ -332,6 +332,11 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
     transcribed tables with a self-test, the same calculation in the dashboard, the two required to agree for
     every building, decisions recorded with identifiers, and the Methods page updated. If the manual has a
     worked example for buildings, reproduce it first.
+  - **The third route, simulation, waits on A. Nigdelioglu** (owner, 2026-11-26): he is building an inventory
+    of models for these buildings. Do nothing on that route until the owner sends it. When it comes, find out
+    first whether the models are OpenSeesPy, whether there is one per building or one per class, and how they
+    are keyed to the inventory (the source's own number is the key to ask for); the run package expects a
+    model file that defines `build()` (see SR-ModelMaker's `docs/formats.md`).
   - Drift thresholds also fit Local analysis directly (compare peak story drift with the thresholds for the
     building's class); that step is not built either and needs no further decision.
 
