@@ -239,6 +239,27 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     local one; a menu of Home, Regional analysis, Local analysis, Tools, Data, Methods, Projects,
     Publications, People, with "Tools" replacing "Code". Do not add "Local analysis" to the menu as an empty page.
 
+## Asked for by the owner on 2026-11-26 and not yet built: the Inventory part of the regional dashboard
+
+Three changes, in his words: "make the filters collapsible menu items"; "we only have filters for bridges; let's
+also make filters for LA Times buildings"; and "combine instrumented buildings into CSMIP Instrumented Buildings
+and develop filters for that inventory to downselect a subset based on their existing data attributes."
+He was told it would be built in a fresh conversation, not the long one it was asked in.
+
+- **Collapsible:** in the Inventory tab, each inventory becomes its own section that opens and closes, holding
+  its show-or-hide box, its count, and its filters. Bridges keep the filters they have.
+- **LA Times concrete buildings:** add filters. Its attributes include the HAZUS fragility class, building type,
+  design level, story count, construction year, occupancy, and the source's update note (four demolished).
+- **CSMIP Instrumented Buildings:** merge the two layers now shown separately ("Instrumented buildings", 55, and
+  "Instrumented non-ductile", 6) into one inventory under that name. Look at the two files' attributes first;
+  check whether the six are also among the 55 before merging; keep a way to tell the non-ductile ones apart,
+  as a filter. Build its filters from the attributes the data actually has.
+- **Along with it:** the Data page (two instrumented rows become one), `data/registry.json`, the provenance
+  sources and a recorded decision for the merge, and the layer names anywhere they appear. The damage
+  calculation for bridges must be unaffected: check it against the reference for all 25,974 bridges afterwards.
+- Design the filters as one general mechanism driven by a short description per inventory, not three separate
+  pieces of code, so the next inventory gets filters for free.
+
 ## Reading damage on the dashboard
 
 "Color bridges by" offers three views. **Probability maps** (the default): each bridge by its probability of
