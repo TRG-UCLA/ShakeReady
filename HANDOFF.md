@@ -295,11 +295,45 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
 - **The owner does not want ShakeReady shared with A. Nigdelioglu yet**, though the dataset is live with his name
   on it and the owner said to leave it live. Do not mention the site in anything written to him. Emails to him
   are in Turkish, informal "sen".
-- **Not decided:** how the regional dashboard is to estimate damage to these buildings. Drift thresholds fit
-  Local analysis directly (compare peak story drift with the thresholds). For the regional dashboard the owner
-  was offered: Hazus's capacity-spectrum method with the spectral displacement curves (needs Sa at 0.3 and 1.0 s,
-  which hazard layers carry); Hazus's PGA-based curves; or simulation with a shear building per class. Ask, do
-  not choose.
+- **Decided 2026-11-26: build both of Hazus's default methods for building damage on the regional dashboard.**
+  Method 1 is the capacity-spectrum method with the spectral displacement curves; Method 2 is the
+  equivalent-PGA curves. **Nothing of either is built.** The work was stopped before starting because the
+  conversation had grown too long to do it safely; start it fresh. What was established, all from the Hazus 6.1
+  manual already on file (`fema_hazus-earthquake-model-technical-manual-6-1.pdf`, sha256 59b7e55a...):
+
+  - **Where things are.** Standard spectrum shape and Equations 4-2 to 4-4 (period from SD and SA; TVD from
+    magnitude): section 4.1.3.2, PDF page 45. Demand reduction for damping, Equations 5-7 to 5-10 (RA, RV,
+    effective damping): section 5.6.1.1, PDF page 153. Degradation factor, Table 5-42: PDF page 154. Construction
+    of demand spectra, Equations 5-11 to 5-13: section 5.6.1.2, just after. Capacity curves: Table 5-14
+    (Low-Code) and Table 5-15 (Pre-Code). Spectral displacement curves: Tables 5-21 and 5-22 (already in
+    `tools/apply_ndrcb_fragility.py`). Equivalent-PGA curves: Table 5-39 (Low-Code), PDF page 149, and Table
+    5-40 (Pre-Code), PDF page 150, with their assumptions in the text before them and spectrum shape ratios in
+    Tables 5-35 and 5-36.
+  - **The equations are images in the PDF, not text.** Render the pages and read them by eye, as was done for
+    the bridge equations (where one was misprinted). Do not write them from memory.
+  - **Read by script from the manual's text, to be checked against the page images before use.**
+    Equivalent-PGA medians in g (slight, moderate, extensive, complete), beta 0.64 for all:
+    Low-Code C2L 0.14 0.19 0.30 0.52; C2M 0.12 0.19 0.38 0.63; C2H 0.11 0.19 0.38 0.65; C3L 0.12 0.17 0.26 0.44;
+    C3M 0.11 0.17 0.32 0.51; C3H 0.09 0.16 0.33 0.53. Pre-Code C2L 0.11 0.15 0.24 0.42; C2M 0.10 0.15 0.30 0.50;
+    C2H 0.09 0.15 0.31 0.52; C3L 0.10 0.14 0.21 0.35; C3M 0.09 0.14 0.25 0.41; C3H 0.08 0.13 0.27 0.43.
+    Degradation factor (short, moderate, long duration): C2 types, Low-Code 0.60 0.30 0.10, Pre-Code 0.40 0.20
+    0.00; C3 types, Low-Code 0.50 0.30 0.10, Pre-Code 0.40 0.20 0.00.
+  - **Duration**, per the manual: short for magnitude 5.5 or less, long for 7.5 or more, moderate between. It
+    says the user must supply a magnitude for every kind of analysis; for annualized loss it takes 100- and
+    200-year motions as short, 500 to 1,000-year as moderate, 1,500 to 2,500-year as long.
+  - **Not yet read:** the capacity curve rows; the elastic damping of each building type; the text on how the
+    performance point is found; the assumptions behind the equivalent-PGA curves. The manual says the PGA-based
+    fragilities are given as guidance and are not currently used in Hazus itself.
+  - **Put to the owner, not yet answered:** (1) for a probabilistic hazard layer, which has no magnitude, use the
+    manual's duration convention by return period; (2) offer both methods side by side, labeled, since Method 2
+    is guidance only; (3) show buildings as bridges are shown: probability maps, counts by damage state, a
+    download.
+  - **How to build it:** as for the bridges. A Python reference (`tools/hazus_buildings.py`) holding the
+    transcribed tables with a self-test, the same calculation in the dashboard, the two required to agree for
+    every building, decisions recorded with identifiers, and the Methods page updated. If the manual has a
+    worked example for buildings, reproduce it first.
+  - Drift thresholds also fit Local analysis directly (compare peak story drift with the thresholds for the
+    building's class); that step is not built either and needs no further decision.
 
 ## Credit
 
