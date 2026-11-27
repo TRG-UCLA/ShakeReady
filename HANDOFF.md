@@ -20,6 +20,9 @@ several (data, code, publications, people, projects).
 - `assets/style.css` — shared styles and design tokens
 - `data/` — all content data (see below)
 - `tools/build_bridges.py` — builds the bridge layer from the FHWA file
+- `tools/build_csmip_buildings.py` — builds the CSMIP Instrumented Buildings inventory from the two layers as first archived
+- `tools/tests/` — checks of the dashboard in a browser; run after any change to it, to the registry or to a data file
+- `data/registry.json` — the inventories the dashboard offers, and each one's filters (the README explains the description)
 - `tools/hazus_bridges.py` — HAZUS bridge classes and fragility curves, with a self-test
 - `data/fragility/` — fragility sets; currently `hazus_highway_bridges.json`
 - `tools/build_hero.py` — draws the home-page hero artwork into `index.html`
@@ -136,8 +139,8 @@ design canvas (<https://claude.ai/artifact/8qNks7eM7wySai6Nj2iZjq>). He uses the
 the name as accepted. A mock-up must not show real-looking data: use plain placeholders.
 
 - **Regional analysis** is the existing dashboard (`dashboard.html`; the menu calls it "Regional analysis").
-  At the owner's request its panel has three parts, as tabs: **Inventory** (which inventories are shown, and
-  the bridge filters), **Hazard** (the hazard layer, its level, the shaking and the fault on the map) and
+  At the owner's request its panel has three parts, as tabs: **Inventory** (each inventory as a block that opens to
+  its own filters; see "The Inventory part of the regional dashboard" below), **Hazard** (the hazard layer, its level, the shaking and the fault on the map) and
   **Damage** (fragility set, what to color bridges by, summary, download). Each tab shows its current setting
   under its name. Because the Damage part may not be the one open, the bridge colors are also explained by a
   legend on the map itself. Arriving with `?hazard=` opens on Damage.
@@ -239,26 +242,46 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
     local one; a menu of Home, Regional analysis, Local analysis, Tools, Data, Methods, Projects,
     Publications, People, with "Tools" replacing "Code". Do not add "Local analysis" to the menu as an empty page.
 
-## Asked for by the owner on 2026-11-26 and not yet built: the Inventory part of the regional dashboard
+## The Inventory part of the regional dashboard (built 2026-11-26)
 
-Three changes, in his words: "make the filters collapsible menu items"; "we only have filters for bridges; let's
-also make filters for LA Times buildings"; and "combine instrumented buildings into CSMIP Instrumented Buildings
-and develop filters for that inventory to downselect a subset based on their existing data attributes."
-He was told it would be built in a fresh conversation, not the long one it was asked in.
+Asked for by the owner that day, in his words: "make the filters collapsible menu items"; "we only have filters for
+bridges; let's also make filters for LA Times buildings"; and "combine instrumented buildings into CSMIP Instrumented
+Buildings and develop filters for that inventory to downselect a subset based on their existing data attributes."
 
-- **Collapsible:** in the Inventory tab, each inventory becomes its own section that opens and closes, holding
-  its show-or-hide box, its count, and its filters. Bridges keep the filters they have.
-- **LA Times concrete buildings:** add filters. Its attributes include the HAZUS fragility class, building type,
-  design level, story count, construction year, occupancy, and the source's update note (four demolished).
-- **CSMIP Instrumented Buildings:** merge the two layers now shown separately ("Instrumented buildings", 55, and
-  "Instrumented non-ductile", 6) into one inventory under that name. Look at the two files' attributes first;
-  check whether the six are also among the 55 before merging; keep a way to tell the non-ductile ones apart,
-  as a filter. Build its filters from the attributes the data actually has.
-- **Along with it:** the Data page (two instrumented rows become one), `data/registry.json`, the provenance
-  sources and a recorded decision for the merge, and the layer names anywhere they appear. The damage
-  calculation for bridges must be unaffected: check it against the reference for all 25,974 bridges afterwards.
-- Design the filters as one general mechanism driven by a short description per inventory, not three separate
-  pieces of code, so the next inventory gets filters for free.
+- **Each inventory is a block** in the Inventory tab: a box that shows it on the map, and its name, which opens and
+  closes its filters. All start closed. Filters take effect on "Apply filters" or Enter; "Reset" clears them. A change
+  not yet applied is announced, and the map, the counts, the damage summary and the download all use the applied
+  selection (`s.shown`), never controls that were changed and not applied. Applying filters to an inventory that is
+  not on the map puts it on the map.
+- **One mechanism, driven by `data/registry.json`.** Each inventory lists its filters there, and `dashboard.html`
+  draws and applies them (`rangeFilter`, `selectFilter`, `checksFilter`, `textFilter`, and groups). The README sets
+  out what can be described, under "Inventories and their filters". **To add a filter, or filters for a new
+  inventory, add lines to the registry. Do not write filter code for one inventory.** The bridge filters are the ones
+  they had, described the same way: 30 settings give the counts they gave before.
+- **CSMIP Instrumented Buildings (61)** replaces the two instrumented layers. `tools/build_csmip_buildings.py` builds
+  `data/csmip_instrumented_buildings.geojson` from the two files as first archived, which stay in `data/` unchanged so
+  that old links work and the combined file can be rebuilt. The six are not among the 55: no station number is
+  shared, and the nearest pair is 5.6 km apart. Decisions BLD-08 to BLD-10. Its popup is described in the registry too.
+  Filters: name or address, list on the original site, stories, design year, basement levels, plan shape, and
+  instrumentation (year, accelerometers, levels, free-field site).
+  **The six are marked by `original_layer`, and the filter is worded "List on the original site" on purpose. The
+  other 55 were never classified. Do not present them as ductile, or the mark as a finding.**
+- **LA Times concrete buildings** now have filters: address, building name or ZIP code; HAZUS fragility class;
+  building type; design level; stories; year built; occupancy (the `name` attribute); and the source's update note,
+  as named cases (recorded as demolished or not; a note or none).
+- **Added beyond what was asked, and told to the owner:** a "Zoom to them" link after filtering; a "Filters in
+  effect" line in the header of the downloaded damage table; the report link carries the bridge selection and its
+  filters. He has not objected or approved; remove any he does not want.
+- **Checked with `tools/tests/test_dashboard.py`** (read its README; run it after any change to the dashboard, the
+  registry or a data file): 30 bridge settings, 25 CSMIP and 80 LA Times, each against an independent count; the
+  damage table against `tools/damage_reference.py` for all 25,974 bridges on made-up layers, and for two
+  county-filtered downloads. Before the old filter code was removed, the same 30 bridge settings and four damage
+  tables were recorded from the old page, and the new page reproduced every count and every row.
+- **Noticed in the data and left as recorded:** "Belmont - 2-story Office Bldg" has 3 in `Num of Stories`; the
+  Riverside station's elevation reads 2259.0 m; 3 LA Times buildings have 1810 as their year built. The owner was told
+  of the first. None has been checked against its source.
+- Not done, and not asked for: damage for buildings (see the section on fragility classes below); a CSV of the CSMIP
+  inventory; friendlier popups for the LA Times buildings, which still list every attribute as recorded.
 
 ## Reading damage on the dashboard
 
@@ -474,7 +497,8 @@ The owner's rule: anyone using results from this site must be able to tell where
   crossed, total length, and condition ratings, which the map can now filter on.
 - **Buildings:** three layers rescued in November 2026 from the original WordPress site before
   its server was retired: 55 instrumented buildings, 6 instrumented non-ductile buildings, and
-  1,451 LA Times concrete buildings. The six non-ductile buildings had no stored coordinates;
+  1,451 LA Times concrete buildings. Since 2026-11-26 the dashboard and the Data page show the first two as
+  one inventory, CSMIP Instrumented Buildings (61), built from those two files, which are kept unchanged. The six non-ductile buildings had no stored coordinates;
   their positions come from the latitude and longitude in their attribute tables.
 - Raw originals (KMZ files and the old site's XML dump) are archived in Google Drive under
   `TRGWeb / ShakeReady / ShakeReady site data (archived)`.
