@@ -454,9 +454,32 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
   - **Duration**, per the manual: short for magnitude 5.5 or less, long for 7.5 or more, moderate between. It
     says the user must supply a magnitude for every kind of analysis; for annualized loss it takes 100- and
     200-year motions as short, 500 to 1,000-year as moderate, 1,500 to 2,500-year as long.
-  - **Not yet read:** the capacity curve rows; the elastic damping of each building type; the text on how the
-    performance point is found; the assumptions behind the equivalent-PGA curves. The manual says the PGA-based
-    fragilities are given as guidance and are not currently used in Hazus itself.
+  - **Read on 2026-11-27, and a reference written: `tools/hazus_buildings.py`.** The owner uploaded the manual again
+    (it is not in the repository and does not carry over between conversations: ask for it at the start). The rows
+    of Tables 5-14, 5-15, 5-39, 5-40 and 5-42 for the six concrete types were compared with images of the pages and
+    agree with what was read by script. Equations 4-2 to 4-4 and 5-6 to 5-15 were read by eye from rendered pages
+    and are written out in the reference beside the code that uses each. The reference computes both methods for
+    the twelve classes and passes its self-test. **Nothing is on the dashboard, and no result has been published.**
+  - **What the manual does not say, found that day.** Method 2 can be computed from the manual. Method 1 cannot:
+    the manual gives no elastic damping for the building types, no form for the capacity curve between yield and
+    ultimate, and no formula for the hysteresis-loop area; and Equation 5-10 as printed adds a fraction to a
+    percentage. The reference fills these as the NHERI SimCenter's open code does
+    (SimCenterBackendApplications, `modules/performSIMULATION/capacitySpectrum`, after Cao and Petersen 2006),
+    except that it takes the hysteretic term as a percentage; the SimCenter's code adds it as a fraction (its line
+    that multiplies by 100 is commented out), which leaves almost no hysteretic damping. For Method 2 the tabulated
+    medians hold only for a spectrum with Sa(1.0 s) = 1.5 PGA at a soil site, and the reference converts them with
+    Equation 5-6 using the layer's own ratio. **Every such point is in `CHOICES` (HB-01 to HB-09) as a proposal. The
+    owner was asked to decide on 2026-11-27. Do not put either method on the site, or copy the choices into the
+    provenance record, until he has.** For scale, at one sample motion: Method 1 gives 0.12 to 0.50 for the chance
+    of extensive damage or worse across the classes; Method 2 converted, 0.22 to 0.57; Method 2 as tabulated, 0.53
+    to 0.84; and Method 1 with the fraction as printed gives 0.45 where the percentage gives 0.24 (C2M Pre-Code).
+  - **What a hazard layer carries for this:** a scenario layer made by SR-HazardMaker records its `magnitude`; a
+    probabilistic layer's levels record `return_period_years`; a layer opened from a plain table has neither.
+  - **Then, to build:** a fragility file for the dashboard written by the reference (as `hazus_bridges.py` does);
+    the same calculation in `dashboard.html`; damage for a building inventory in its block of the Damage part (the
+    two methods as its choices, colors, counts by damage state, a damage table, the popup), which today exists only
+    for the bridges; a test that the dashboard equals the reference for all 1,451 buildings by both methods; the
+    choices recorded and shown on the Methods page; Method 2 labeled as guidance that Hazus itself does not use.
   - **Put to the owner:** questions 2 and 3 were answered on 2026-11-27 (each method is a choice in the inventory's
     block in the Damage part, one at a time; buildings get their own block, as described in "The Damage part").
     Question 1 is still open. They were: (1) for a probabilistic hazard layer, which has no magnitude, use the

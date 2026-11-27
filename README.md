@@ -17,6 +17,7 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `hazards/` — the hazard-layer repository: `index.json`, one file per layer, and a README with the format and how to submit
 - `tools/sync_hazardmaker.py` — copies a release of SR-HazardMaker into this site
 - `tools/damage_reference.py` — independent reference calculation of the bridge damage table
+- `tools/hazus_buildings.py` — reference calculation of Hazus's two building-damage methods for the twelve concrete classes, with the tables and equations read from the manual (made by E. Taciroglu). Its choices await the project lead's decision; the site does not use it yet
 - `tools/shaking_reference.py` — independent reference for the shaking values the dashboard offers for every inventory (made by E. Taciroglu)
 - `tools/build_csmip_buildings.py` — builds the CSMIP Instrumented Buildings inventory from the two layers as first archived (made by E. Taciroglu)
 - `tools/tests/` — checks of the dashboard made in a browser: every filter against independent counts, the damage table against the reference; see its README
