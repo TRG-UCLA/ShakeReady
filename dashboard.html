@@ -132,6 +132,18 @@ footer a{color:var(--muted)}
 .legend-note{margin-top:6px;line-height:1.4}
 .legend-title{color:var(--paper);font-weight:600;margin-bottom:6px}
 .legend .sw i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
+/* the Damage part: one block for each inventory on the map */
+.dmg-head{display:grid;grid-template-columns:11px minmax(0,1fr) auto;column-gap:9px;align-items:center;padding:15px 22px 5px}
+.dmg-head .inv-count{grid-column:3;margin-top:0}
+.shake-sum{font-size:13px;margin:4px 0 2px}
+.shake-sum table{width:100%;border-collapse:collapse;margin:6px 0}
+.shake-sum td,.shake-sum th{padding:3px 0;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.shake-sum th{font-weight:400;font-size:12px;color:var(--muted)}
+.shake-sum td{color:var(--paper)}
+.shake-sum td:first-child,.shake-sum th:first-child{text-align:left}
+.shake-get{margin-top:14px}
+.shake-actions{flex-wrap:wrap;margin-top:0}
+.shake-actions button{flex:1}
 #dmg-summary{font-size:13px;margin:4px 0 2px}
 #dmg-summary table{width:100%;border-collapse:collapse;margin:6px 0}
 #dmg-summary td{padding:3px 0;border-bottom:1px solid var(--line)}
@@ -212,11 +224,14 @@ footer a{color:var(--muted)}
     </div>
 
     <div class="pane" id="pane-damage" role="tabpanel" aria-labelledby="tab-damage" hidden>
-    <section id="damage-section">
-      <h2>Damage to bridges</h2>
-      <p class="haz-note" id="dmg-need-hazard">Damage is estimated from a hazard layer: the shaking at each bridge, read against its fragility curves. <button type="button" class="linklike" data-goto="hazard">Choose a hazard layer</button> to begin.</p>
-      <div id="damage-all" hidden>
-        <div class="frow"><label for="fragility">Fragility set for bridges</label><select id="fragility"></select></div>
+    <p class="inv-intro" id="dmg-need-hazard">Shaking and damage are read from a hazard layer: the shaking at each structure and, where an inventory has fragilities, what that shaking is likely to do. <button type="button" class="linklike" data-goto="hazard">Choose a hazard layer</button> to begin.</p>
+    <div id="damage-all" hidden>
+      <p class="inv-intro">One block for each inventory on the map. Each is assessed on its own, and results are not added across inventories.</p>
+      <p class="inv-intro" id="dmg-none" hidden>No inventory is on the map. Tick one under <button type="button" class="linklike" data-goto="inventory">Inventory</button>.</p>
+      <div class="inv" id="dmg-block-bridges" hidden>
+        <div class="dmg-head"><span class="chip" id="dmg-chip-bridges"></span><span class="inv-name" id="dmg-name-bridges">NBI bridges</span><span class="inv-count" id="dmg-count-bridges"></span></div>
+        <div class="inv-body">
+        <div class="frow"><label for="fragility">Fragilities</label><select id="fragility"></select></div>
         <div id="damage-controls">
           <div class="frow"><label for="dmg-metric">Color bridges by</label>
             <select id="dmg-metric">
@@ -237,8 +252,11 @@ footer a{color:var(--muted)}
             <p class="haz-note" style="margin-top:10px">Does a result look wrong? <a id="dmg-report" href="feedback.html" rel="noopener">Report a problem with these results</a>. The settings are carried into the form.</p></div>
           <p class="haz-note">The table covers the bridges currently shown and carries its sources and method. <a href="methods.html#damage" target="_blank" rel="noopener">How damage is estimated</a></p>
         </div>
+        <div class="dmg-shake" id="dmg-shake-bridges"></div>
+        </div>
       </div>
-    </section>
+      <div id="dmg-list"></div>
+    </div>
     </div>
 
 
@@ -616,6 +634,7 @@ const controlsState = s => JSON.stringify([...s.body.querySelectorAll("input, se
 /* once an inventory's records are in: its filters, its buttons and its count */
 function fillInventory(s, data, records){
   s.data = data; s.records = s.shown = records; s.filters = []; s.active = []; s.ready = true;
+  s.position = new Map(records.map((r, i) => [r, i + 1]));       // an item's place in the inventory file, counting from 1
   s.body.innerHTML = "";
   (s.inv.filters || []).forEach((d, i) => drawFilter(s, d, `f-${s.inv.id}-${d.id || i}`, s.body));
   if (!s.filters.length){ s.body.innerHTML = `<p class="haz-note">This inventory has no filters.</p>`; s.pending = s.status = null; updateCounts(s); return; }
@@ -662,6 +681,7 @@ function updateCounts(s){
   const on = INV.filter(x => x.ready && x.box.checked);                       // under the tab's name: what is on the map
   document.getElementById("tabsub-inventory").textContent = !on.length ? "None shown" : on.length > 1 ? `${on.length} inventories`
     : on[0].active.length ? `${fmt(on[0].shown.length)} of ${fmt(on[0].records.length)}` : `${fmt(on[0].records.length)} ${on[0].units(on[0].records.length)}`;
+  renderDamagePane();                          // the Damage part follows what is on the map and what the filters leave
 }
 
 function renderBridges(){
@@ -785,7 +805,7 @@ function updateTabNotes(){
   const short = s => s.length > 22 ? s.slice(0, 21) + "…" : s;
   document.getElementById("tabsub-hazard").textContent = HAZ ? short(HAZ.title) : "None";
   const metric = document.getElementById("dmg-metric").value;
-  document.getElementById("tabsub-damage").textContent = !HAZ ? "Needs a hazard" : !damageActive() ? "Off"
+  document.getElementById("tabsub-damage").textContent = !HAZ ? "Needs a hazard" : !(damageActive() && BR && BR.box.checked) ? "Shaking values"
     : metric === "pex" ? ["", "Slight or worse", "Moderate or worse", "Extensive or worse", "Complete"][mappedState()] : metric === "state" ? "Likely state" : "Shaking at bridges";
   document.getElementById("damage-all").hidden = !HAZ;
   document.getElementById("dmg-need-hazard").hidden = !!HAZ;
@@ -805,7 +825,7 @@ function updateMapLegend(){
   box.innerHTML = (metric === "state" ? `<div class="legend-title">Likely damage state</div>` : metric === "sa10" ? `<div class="legend-title">Shaking at the bridge, Sa(1.0 s)</div>` : "") + copy.innerHTML;
 }
 
-function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); drawHazardSource(); renderLegends(); }
+function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); drawHazardSource(); renderLegends(); renderDamagePane(); }
 
 function selectHazard(id){
   const local = id.startsWith("local:");
@@ -853,6 +873,20 @@ function damageRow(r){
     has ? f4(d.sa10) : "", has ? f4(d.sa03) : "", f4(d.kskew), f4(d.k3d), has ? f4(d.fslight) : "",
     ...(has ? d.med.map(f4) : ["", "", "", ""]), ...(has ? d.p.map(f4) : ["", "", "", "", ""]), ...(has ? [1, 2, 3].map(k => f4(exceedance(d, k))) : ["", "", ""]), has ? STATES[d.state] : "", has ? STATES[d.state50] : ""].map(csvCell).join(",");
 }
+/* what a table's header says of the hazard layer; the same lines for the damage table and the shaking values */
+function hazardLines(unit){
+  const src = HAZ.source || {};
+  return [
+    `Hazard layer: ${HAZ.title} [${HAZ.id}]`,
+    HAZ.levels.length > 1 ? `Hazard level: ${LEVEL.label}` : null,
+    `Hazard type: ${HAZ.kind === "probabilistic" ? "probabilistic hazard map. Each " + unit + " is evaluated at its own site's hazard level; the rows do not describe one earthquake and should not be added up as if they did" : "scenario, the shaking of one earthquake"}`,
+    `Site condition of the hazard values: ${HAZ.site_condition}`,
+    src.title ? `Hazard source: ${src.title}${src.publisher ? ". " + src.publisher : ""}${src.doi ? ". doi:" + src.doi : ""}${src.url ? ". " + src.url : ""}` : null,
+    HAZ.entry && HAZ.entry.sha256 ? `Hazard file checksum (SHA-256): ${HAZ.entry.sha256}` : null,
+    HAZ.provenance && HAZ.provenance.made_with ? `Hazard layer prepared with ${HAZ.provenance.made_with}. If you use these results, please cite the tool as well as the hazard source` : null,
+    HAZ.entry && HAZ.entry.local ? "Hazard layer status: a local file, made with SR-HazardMaker or opened from the user's computer. It is NOT part of the ShakeReady hazard repository and has not been reviewed" : null
+  ];
+}
 function damageCsv(rows, prov){
   const src = HAZ.source || {}, now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
   const head = [
@@ -861,14 +895,7 @@ function damageCsv(rows, prov){
     `Bridges: ${rows.length} of ${B.rows.length} in the inventory (those shown on the dashboard when the table was made)`,
     `Filters in effect: ${filterText(BR) || "none"}`,
     "",
-    `Hazard layer: ${HAZ.title} [${HAZ.id}]`,
-    HAZ.levels.length > 1 ? `Hazard level: ${LEVEL.label}` : null,
-    `Hazard type: ${HAZ.kind === "probabilistic" ? "probabilistic hazard map. Each bridge is evaluated at its own site's hazard level; the rows do not describe one earthquake and should not be added up as if they did" : "scenario, the shaking of one earthquake"}`,
-    `Site condition of the hazard values: ${HAZ.site_condition}`,
-    src.title ? `Hazard source: ${src.title}${src.publisher ? ". " + src.publisher : ""}${src.doi ? ". doi:" + src.doi : ""}${src.url ? ". " + src.url : ""}` : null,
-    HAZ.entry && HAZ.entry.sha256 ? `Hazard file checksum (SHA-256): ${HAZ.entry.sha256}` : null,
-    HAZ.provenance && HAZ.provenance.made_with ? `Hazard layer prepared with ${HAZ.provenance.made_with}. If you use these results, please cite the tool as well as the hazard source` : null,
-    HAZ.entry && HAZ.entry.local ? "Hazard layer status: a local file, made with SR-HazardMaker or opened from the user's computer. It is NOT part of the ShakeReady hazard repository and has not been reviewed" : null,
+    ...hazardLines("bridge"),
     "",
     `Inventory: ${B.source}, ${B.state}, ${B.source_year}` + (B.provenance ? `. Source file ${B.provenance.source_file}, SHA-256 ${B.provenance.source_sha256}` : ""),
     `Fragility set: ${HZ.name}. ${HZ.source}`,
@@ -893,6 +920,148 @@ function downloadDamage(){
   });
 }
 
+/* ---------- shaking values: what the hazard layer gives at each item, for any inventory ----------
+   An inventory needs no fragilities for this. The table is for analysis elsewhere, with fragilities of the user's own. */
+const MEASURE_ORDER = ["PGA", "SA0P3", "SA1P0"];
+const MEASURE_COLUMNS = {PGA: "pga_g", SA0P3: "sa03_g", SA1P0: "sa10_g"};
+const MEASURE_WORDS = {PGA: "peak ground acceleration", SA0P3: "spectral acceleration at 0.3 s", SA1P0: "spectral acceleration at 1.0 s"};
+const measureIds = () => MEASURE_ORDER.filter(m => LEVEL.measures[m]).concat(Object.keys(LEVEL.measures).filter(m => !MEASURE_ORDER.includes(m)));
+const measureColumn = m => MEASURE_COLUMNS[m] || m.toLowerCase() + "_g";
+const positionOf = (s, rec) => s.rows ? [rec[F.lat], rec[F.lng]] : [rec.geometry.coordinates[1], rec.geometry.coordinates[0]];
+const whereText = () => `${esc(HAZ.title)}${HAZ.levels.length > 1 ? ", " + esc(LEVEL.label) : ""}`;
+
+function shakingBlock(coords, unit){          // for the popup of a structure that has no damage estimate
+  if (!HAZ || !LEVEL || !coords) return "";
+  const got = measureIds().map(m => [m, hazAt(LEVEL.measures[m], coords[1], coords[0])]).filter(x => x[1] !== null);
+  if (!got.length) return `<div class="pop-dmg"><b>Shaking here:</b> none. This ${esc(unit)} lies outside the area covered by the hazard layer (${whereText()}).</div>`;
+  return `<div class="pop-dmg"><b>Shaking here:</b> ${got.map(([m, v]) => `${MEASURE_NAMES[m] || m} ${v.toFixed(3)} g`).join(", ")}<br>`
+    + `<span class="pop-note">${whereText()}. ${esc(HAZ.site_condition)}.</span></div>`;
+}
+
+/* the items shown, each with its own columns and the layer's measures at its position */
+function shakingTable(s){
+  const ms = measureIds();
+  let names, cells;
+  if (s.rows){
+    names = ["structure_number", "latitude", "longitude", "county", "year_built", "hazus_class", "main_spans", "skew_deg"];
+    cells = r => [r[F.structure_num], r[F.lat].toFixed(5), r[F.lng].toFixed(5), B.counties[r[F.county_i]], r[F.year_built], "HWB" + r[F.hazus], r[F.spans_main], r[F.skew]];
+  } else {                                    // the inventory's own attributes, as recorded; lists (such as photographs) go in the GeoJSON only
+    const keys = [], lists = new Set();
+    for (const f of s.records) for (const [k, v] of Object.entries(f.properties)){ if (!keys.includes(k)) keys.push(k); if (v !== null && typeof v === "object") lists.add(k); }
+    const plain = keys.filter(k => !lists.has(k));
+    names = ["item", "latitude", "longitude"].concat(plain);
+    cells = f => [s.position.get(f), f.geometry.coordinates[1].toFixed(5), f.geometry.coordinates[0].toFixed(5)].concat(plain.map(k => blank(f.properties[k]) ? "" : f.properties[k]));
+  }
+  return {measures: ms, names: names.concat(ms.map(measureColumn)), own: names,
+    rows: s.shown.map(rec => { const [lat, lng] = positionOf(s, rec); return {rec, lat, lng, cells: cells(rec), values: ms.map(m => hazAt(LEVEL.measures[m], lat, lng))}; })};
+}
+function shakingHead(s, t, prov){
+  const now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
+  const unit = s.units(1), many = s.units(2), choices = ["DMG-01", "DMG-02", "DMG-03", "DMG-05", "DMG-08", "DMG-10"].filter(id => !prov || !prov.damage_decisions || prov.damage_decisions.some(d => d.id === id));
+  return [
+    `ShakeReady shaking values, ${unit} by ${unit}: ${s.inv.title}`,
+    `Generated ${now} from ${site}dashboard.html`,
+    `${many[0].toUpperCase() + many.slice(1)}: ${t.rows.length} of ${s.records.length} in the inventory (those shown on the dashboard when the table was made)`,
+    `Filters in effect: ${filterText(s) || "none"}`,
+    "",
+    ...hazardLines(unit),
+    "",
+    s.rows ? `Inventory: ${B.source}, ${B.state}, ${B.source_year}` + (B.provenance ? `. Source file ${B.provenance.source_file}, SHA-256 ${B.provenance.source_sha256}` : "")
+           : `Inventory: ${s.inv.title}. File ${site}${s.inv.file}. Its source and processing are at ${site}methods.html`,
+    `Method: ground motion read at each ${unit} by bilinear interpolation of the hazard grid. No fragilities are applied, and no adjustment is made for the ground at the site: the values are for the site condition stated above`,
+    `Recorded choices in effect: ${choices.join(", ")}. Each is explained at ${site}methods.html`,
+    "Code: ShakeReady's dashboard, made by E. Taciroglu (https://github.com/TRG-UCLA/ShakeReady)",
+    prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
+    "",
+    "Columns: " + (s.rows ? "structure_number is the bridge's number in the National Bridge Inventory; hazus_class, main_spans and skew_deg are as the dashboard shows them. "
+        : `item is the position of the ${unit} in the inventory file, counting from 1; the columns between longitude and the shaking values are the inventory's own attributes, as recorded. `)
+      + t.measures.map(m => `${measureColumn(m)} is ${MEASURE_WORDS[m] || m}`).join("; ") + `, at the ${unit}, in ${HAZ.units || "g"}. A value is blank where the ${unit} lies outside the hazard layer.`
+  ].filter(l => l !== null);
+}
+function shakingCsv(s, prov){
+  const t = shakingTable(s);
+  return shakingHead(s, t, prov).map(l => l === "" ? "#" : "# " + l)
+    .concat([t.names.join(",")], t.rows.map(r => r.cells.concat(r.values.map(f4)).map(csvCell).join(","))).join("\n") + "\n";
+}
+function shakingGeojson(s, prov){
+  const t = shakingTable(s), num = v => v === null ? null : Number(v.toFixed(4));
+  return {type: "FeatureCollection", name: `ShakeReady shaking values: ${s.inv.title}`, about: shakingHead(s, t, prov).filter(l => l !== ""),
+    features: t.rows.map(r => {
+      const props = s.rows ? Object.fromEntries(t.own.map((k, i) => [k, r.cells[i]])) : Object.assign({item: s.position.get(r.rec)}, r.rec.properties);
+      t.measures.forEach((m, i) => props[measureColumn(m)] = num(r.values[i]));
+      return {type: "Feature", geometry: {type: "Point", coordinates: [r.lng, r.lat]}, properties: props};
+    })};
+}
+function saveFile(name, text, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function downloadShaking(s, kind){
+  if (!HAZ || !LEVEL || !s || !s.ready) return;
+  fetch("data/provenance.json").then(r => r.json()).catch(() => null).then(prov => {
+    const stem = `shakeready_shaking_${s.inv.id}_${HAZ.id}${HAZ.levels.length > 1 ? "_" + LEVEL.id : ""}`;
+    if (kind === "geojson") saveFile(stem + ".geojson", JSON.stringify(shakingGeojson(s, prov)), "application/geo+json");
+    else saveFile(stem + ".csv", shakingCsv(s, prov), "text/csv");
+  });
+}
+function shakingSummary(s){
+  const ms = measureIds(), vals = ms.map(() => []), n = s.shown.length; let outside = 0;
+  if (!n) return `<div class="shake-sum">None of the ${esc(s.units(2))} pass the filters.</div>`;
+  for (const rec of s.shown){
+    const [lat, lng] = positionOf(s, rec); let any = false;
+    ms.forEach((m, i) => { const v = hazAt(LEVEL.measures[m], lat, lng); if (v !== null){ vals[i].push(v); any = true; } });
+    if (!any) outside++;
+  }
+  const rows = ms.map((m, i) => {
+    const a = vals[i].sort((x, y) => x - y), k = a.length;
+    return k ? `<tr><td>${MEASURE_NAMES[m] || m}</td><td>${a[0].toFixed(3)}</td><td>${(k % 2 ? a[(k - 1) / 2] : (a[k / 2 - 1] + a[k / 2]) / 2).toFixed(3)}</td><td>${a[k - 1].toFixed(3)}</td></tr>` : "";
+  }).join("");
+  return `<div class="shake-sum">Shaking at the ${fmt(n)} ${esc(s.units(n))} shown, in g:`
+    + (rows ? `<table><tr><th>Measure</th><th>Lowest</th><th>Median</th><th>Highest</th></tr>${rows}</table>` : "")
+    + (outside ? `<div>No value (outside the hazard layer): <b>${fmt(outside)}</b></div>` : "")
+    + (HAZ.kind === "probabilistic" ? `<span class="haz-note">Each ${esc(s.units(1))} is read at its own site's hazard level. These are not the shaking of one earthquake.</span>` : "") + `</div>`;
+}
+
+/* ---------- the Damage part: one block for each inventory on the map ----------
+   An inventory with fragilities offers them one at a time, with "None" always among them; one without gets its shaking values.
+   Each inventory is assessed on its own: the same structure can be in two inventories, so nothing is added across them. */
+function addDamageBlock(s){
+  if (s === BR){                              // the bridges' block is in the page, with the controls of their damage estimate
+    s.dmg = {block: document.getElementById("dmg-block-bridges"), count: document.getElementById("dmg-count-bridges"), shake: document.getElementById("dmg-shake-bridges")};
+    document.getElementById("dmg-chip-bridges").style.background = s.inv.color;
+    document.getElementById("dmg-name-bridges").textContent = s.inv.title;
+    return;
+  }
+  const el = document.createElement("div"); el.className = "inv"; el.id = "dmg-block-" + s.inv.id; el.hidden = true;
+  el.innerHTML = `<div class="dmg-head"><span class="chip" style="background:${esc(s.inv.color)}"></span><span class="inv-name">${esc(s.inv.title)}</span><span class="inv-count"></span></div>`
+    + `<div class="inv-body"><p class="haz-note">${(s.inv.fragilities || []).length ? "The dashboard cannot yet apply the fragilities listed for this inventory." : "No fragilities are defined for this inventory."} The shaking at each ${esc(s.units(1))} is given instead.</p><div class="dmg-shake"></div></div>`;
+  document.getElementById("dmg-list").appendChild(el);
+  s.dmg = {block: el, count: el.querySelector(".inv-count"), shake: el.querySelector(".dmg-shake")};
+}
+function renderDamagePane(){
+  if (!HAZ || !LEVEL) return;
+  let any = false;
+  for (const s of INV){
+    if (!s.dmg) continue;
+    const on = s.ready && s.box.checked;
+    s.dmg.block.hidden = !on;
+    if (!on) continue;
+    any = true;
+    const N = s.records.length, withDamage = s === BR && damageActive();
+    s.dmg.count.textContent = s.active.length ? `${fmt(s.shown.length)} of ${fmt(N)} ${s.units(N)}` : `${fmt(N)} ${s.units(N)}`;
+    s.dmg.shake.innerHTML = (withDamage ? "" : shakingSummary(s))
+      + `<div class="frow shake-get" role="group" aria-label="Download the shaking values"><span class="flabel">Download the shaking values</span>`
+      + `<div class="actions shake-actions"><button type="button" class="btn-reset" data-shake="csv">CSV, for Excel</button><button type="button" class="btn-reset" data-shake="geojson">GeoJSON</button></div></div>`
+      + `<p class="haz-note">For analysis elsewhere: each ${esc(s.units(1))} shown, with the shaking at its location and the sources of the values. No fragilities are applied, and no adjustment is made for the ground at the site.</p>`;
+  }
+  document.getElementById("dmg-none").hidden = any;
+}
+document.getElementById("damage-all").addEventListener("click", e => {
+  const b = e.target.closest("[data-shake]");
+  if (b) downloadShaking(INV.find(s => s.dmg && s.dmg.block.contains(b)), b.dataset.shake);
+});
+
 map.createPane("hazard"); map.getPane("hazard").style.zIndex = 350; map.getPane("hazard").style.pointerEvents = "none";
 map.createPane("fault"); map.getPane("fault").style.zIndex = 450; map.getPane("fault").style.pointerEvents = "none";   // the fault line sits above the bridges, so it is never buried
 
@@ -908,14 +1077,16 @@ Promise.all([
   for (const inv of REG.inventories){
     const s = addInventory(inv);
     if (inv === bridgeInv) BR = s;
-    else if (inv.format === "geojson-points") loadPoints(s);
+    addDamageBlock(s);
+    if (inv === bridgeInv) continue;
+    if (inv.format === "geojson-points") loadPoints(s);
     else failInventory(s, "This inventory is in a format the dashboard does not read.");
   }
 
   // fragility sets that apply to the bridges
   const fsel = document.getElementById("fragility");
   const sets = (bridgeInv.fragilities || []).map(id => REG.fragilities.find(f => f.id === id)).filter(Boolean);
-  fsel.innerHTML = sets.map(f => `<option value="${esc(f.id)}">${esc(f.title)}</option>`).join("") + `<option value="">None (show shaking only)</option>`;
+  fsel.innerHTML = sets.map(f => `<option value="${esc(f.id)}">${esc(f.title)}</option>`).join("") + `<option value="">None: shaking values only</option>`;
 
   // hazard layers
   const hsel0 = document.getElementById("hazard");
@@ -1012,6 +1183,7 @@ function buildingPopup(props, coords, inv){
     }
     html += "</div>";
   }
+  html += shakingBlock(coords, inv && inv.unit ? inv.unit[0] : "structure");
   if (images && images.length){
     html += `<img class="pop-img" src="${esc(images[0])}" alt="" onerror="this.remove()">`;
   }

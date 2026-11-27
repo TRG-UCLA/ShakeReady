@@ -264,6 +264,78 @@ def download(page, hazard, level=None):
 body = lambda t: [l for l in t.splitlines() if not l.startswith('#')]
 head = lambda t: [l for l in t.splitlines() if l.startswith('#')]
 
+# ------------------------------------------------------------------ shaking values, against tools/shaking_reference.py
+def shaking_reference(site, inventory, hazard, level=None):
+    out = subprocess.run([sys.executable, 'tools/shaking_reference.py', inventory, f'hazards/{hazard}.json'] + ([level] if level else []),
+                         cwd=site, capture_output=True, text=True, check=True).stdout.splitlines()
+    return out[0].split(','), [l.split(',') for l in out[1:]]
+
+def table_of(text):
+    import csv, io
+    rows = list(csv.reader(io.StringIO('\n'.join(l for l in text.splitlines() if not l.startswith('#')))))
+    return rows[0], rows[1:]
+
+def choose_hazard(page, hazard, level=None):
+    page.click('#tab-hazard')
+    if page.input_value('#hazard') != hazard: page.select_option('#hazard', value=hazard)
+    page.wait_for_function("id => HAZ && HAZ.id === id && DMG.size === B.rows.length", arg=hazard, timeout=60000)
+    page.wait_for_load_state('networkidle')
+    want = level or page.evaluate("HAZ.default_level")
+    if page.input_value('#hazlevel') != want: page.select_option('#hazlevel', value=want)
+    page.wait_for_function("id => LEVEL && LEVEL.id === id", arg=want)
+    page.click('#tab-damage')
+
+def get_shaking(page, block, kind):
+    with page.expect_download() as d: page.click(f'#dmg-block-{block} [data-shake="{kind}"]')
+    return d.value.suggested_filename, open(d.value.path(), encoding='utf-8').read()
+
+def check_shaking(page):
+    """The Damage part has a block for each inventory turned on, and each gives its shaking values, equal to the reference."""
+    blocks = [('bridges', 'nbi-bridges', len(R)), ('csmip-buildings', 'csmip-buildings', len(CS)), ('latimes-concrete', 'latimes-concrete', len(LT))]
+    seen = lambda: [page.is_visible(f'#dmg-block-{b}') for b, _, _ in blocks]
+    page.click('#tab-inventory'); open_section(page, 'nbi-bridges'); page.click('#inv-nbi-bridges .btn-reset'); page.click('#tab-damage')
+    check('Damage part: only the inventory that is turned on has a block', seen() == [True, False, False] and not page.is_visible('#dmg-none'), seen())
+    check('Damage part: the fragility choice is there for the bridges', page.is_visible('#fragility') and page.locator('#fragility option').all_inner_texts() == ['HAZUS highway bridges', 'None: shaking values only'], page.locator('#fragility option').all_inner_texts())
+    page.click('#tab-inventory'); page.check('#lyr-csmip-buildings'); page.check('#lyr-latimes-concrete'); page.click('#tab-damage')
+    check('Damage part: a block for each inventory turned on', seen() == [True, True, True], seen())
+    check('Damage part: an inventory without fragilities says so and offers no choice', 'No fragilities are defined for this inventory' in page.inner_text('#dmg-block-csmip-buildings') and page.locator('#dmg-block-csmip-buildings select').count() == 0)
+    for hazard, level in (('test-scenario', None), ('test-map', 'rp2475')):
+        choose_hazard(page, hazard, level)
+        for block, inv, n in blocks:
+            name, text = get_shaking(page, block, 'csv'); cols, rows = table_of(text); rcols, rrows = shaking_reference(SITE, inv, hazard, level)
+            at = [cols.index(c) for c in rcols]; outside = sum(1 for r in rrows if r[3] == '')
+            check(f'shaking values {hazard}/{level} {inv}: the CSV equals the reference for all {n}', len(rows) == len(rrows) == n and [[r[i] for i in at] for r in rows] == rrows, (name, len(rows), len(rrows), rows[:1], rrows[:1]))
+            gname, gtext = get_shaking(page, block, 'geojson'); gj = json.loads(gtext); value = lambda v: None if v == '' else float(v)
+            check(f'shaking values {hazard}/{level} {inv}: the GeoJSON holds the same values', len(gj['features']) == n and name.endswith('.csv') and gname.endswith('.geojson') and gj['about'][0].startswith('ShakeReady shaking values')
+                  and all(str(f['properties'][rcols[0]]) == r[0] and [f['properties'][c] for c in rcols[3:]] == [value(v) for v in r[3:]] for f, r in zip(gj['features'], rrows)), gname)
+            if block != 'bridges':
+                txt = page.inner_text(f'#dmg-block-{block} .shake-sum'); vals = sorted(float(r[rcols.index('sa10_g')]) for r in rrows if r[rcols.index('sa10_g')] != '')
+                row = re.search(r'Sa\(1\.0 s\)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)', txt)
+                check(f'shaking values {hazard}/{level} {inv}: the summary on the page', bool(row) and abs(float(row.group(1)) - vals[0]) < 0.00051 and abs(float(row.group(3)) - vals[-1]) < 0.00051
+                      and ((outside == 0 and 'outside' not in txt) or f'outside the hazard layer): {outside:,}' in txt), txt.replace('\n', ' | ')[:240])
+    lines = text.splitlines()
+    check('shaking table: the header names its sources', any(l.startswith('# Hazard layer: TEST hazard map') for l in lines) and any('Each building is evaluated at its own site' in l for l in lines)
+          and any(l.startswith('# Recorded choices in effect: DMG-01, DMG-02, DMG-03, DMG-05, DMG-08, DMG-10.') for l in lines) and not any('${' in l for l in lines), [l for l in lines if l.startswith('# Recorded') or '${' in l])
+    page.click('#tab-inventory'); open_section(page, 'latimes-concrete'); do(page, 'latimes-concrete', [('tick', 'C2L')]); page.click('#tab-damage')
+    name, text = get_shaking(page, 'latimes-concrete', 'csv'); cols, rows = table_of(text); rcols, rrows = shaking_reference(SITE, 'latimes-concrete', 'test-map', 'rp2475')
+    want = [r for r, p in zip(rrows, LT) if p['hazus'] == 'C2L']
+    check('shaking table: a filtered table holds exactly the buildings shown, and says how it was filtered', [[r[cols.index(c)] for c in rcols] for r in rows] == want and len(want) > 0
+          and '# Filters in effect: HAZUS building type: C2L' in text.splitlines() and page.inner_text('#dmg-block-latimes-concrete .inv-count') == f'{len(want):,} of {len(LT):,} buildings', (len(rows), len(want)))
+    check("shaking table: the inventory's own attributes are in it", all(c in cols for c in ('item', 'address', 'hazus_fragility_class', 'stories', 'yrblt')) and rows[0][cols.index('hazus')] == 'C2L', cols[:10])
+    pop = page.evaluate("() => { INV[2].layer.getLayers()[0].openPopup(); return document.querySelector('.leaflet-popup-content').innerText; }")
+    check("a building's popup gives the shaking there", 'Shaking here: PGA' in pop and 'Sa(1.0 s)' in pop, pop[-200:])
+    page.evaluate("() => { map.closePopup(); }")
+    page.select_option('#fragility', value='')
+    check('bridges with no fragilities chosen: their shaking, in place of the damage estimate', not page.is_visible('#damage-controls') and f'Shaking at the {len(R):,} bridges shown' in page.inner_text('#dmg-shake-bridges')
+          and page.inner_text('#tabsub-damage') == 'Shaking values' and not page.is_visible('#map-legend'), page.inner_text('#dmg-shake-bridges')[:120])
+    page.select_option('#fragility', index=0)
+    check('bridges with their fragilities again', page.is_visible('#damage-controls') and 'Shaking at the' not in page.inner_text('#dmg-shake-bridges') and page.is_visible('#dmg-block-bridges [data-shake="csv"]') and page.is_visible('#map-legend'))
+    page.click('#tab-inventory'); page.uncheck('#lyr-latimes-concrete'); page.click('#tab-damage')
+    check('Damage part: turning an inventory off removes its block', seen() == [True, True, False], seen())
+    page.click('#tab-inventory'); page.uncheck('#lyr-csmip-buildings'); page.uncheck('#lyr-nbi-bridges'); page.click('#tab-damage')
+    check('Damage part: with nothing turned on, it says so', page.is_visible('#dmg-none') and seen() == [False, False, False], seen())
+    page.click('#tab-inventory'); page.check('#lyr-nbi-bridges'); page.click('#inv-latimes-concrete .btn-reset'); page.click('#tab-damage')
+
 def run():
     with browser_page(SITE) as page:
         page.wait_for_function("INV.length === 3 && INV.every(s => s.ready)", timeout=60000)
@@ -277,6 +349,9 @@ def run():
             page.click(f'#inv-{key} .inv-toggle')
             check(f'{key} closes again', not page.is_visible(f'#inv-{key}-body') and not page.is_visible(f'#inv-{key} .btn-apply'))
         check('tab note at start', page.inner_text('#tabsub-inventory') == '25,974 bridges', page.inner_text('#tabsub-inventory'))
+        page.click('#tab-damage')
+        check('Damage part before a hazard is chosen: it asks for one', page.is_visible('#dmg-need-hazard') and not page.is_visible('#damage-all') and page.inner_text('#tabsub-damage') == 'Needs a hazard')
+        page.click('#tab-inventory')
         # ---- the bridge filters offer what they offered before
         open_section(page, 'nbi-bridges')
         opt = lambda fid: page.evaluate("id => [...document.getElementById(id).options].map(o => o.textContent)", fid)
@@ -353,6 +428,7 @@ def run():
         check('table header states the filter', '# Filters in effect: County: Los Angeles' in h_la and any(l.startswith('# Bridges: 3549 of 25974') for l in h_la), [l for l in h_la if 'Bridges' in l or 'Filters' in l])
         ctx = urllib.parse.parse_qs(urllib.parse.urlparse(report).query)['context'][0]
         check('report link carries the selection', 'Bridges: 3,549 of 25,974; filters: County: Los Angeles' in ctx, ctx)
+        check_shaking(page)
         check('no page errors', not page.errors, page.errors)
 
 

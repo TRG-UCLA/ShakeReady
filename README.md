@@ -17,6 +17,7 @@ Interactive map of California bridges and seismically instrumented buildings —
 - `hazards/` — the hazard-layer repository: `index.json`, one file per layer, and a README with the format and how to submit
 - `tools/sync_hazardmaker.py` — copies a release of SR-HazardMaker into this site
 - `tools/damage_reference.py` — independent reference calculation of the bridge damage table
+- `tools/shaking_reference.py` — independent reference for the shaking values the dashboard offers for every inventory (made by E. Taciroglu)
 - `tools/build_csmip_buildings.py` — builds the CSMIP Instrumented Buildings inventory from the two layers as first archived (made by E. Taciroglu)
 - `tools/tests/` — checks of the dashboard made in a browser: every filter against independent counts, the damage table against the reference; see its README
 - `tools/build_provenance.py` and `tools/provenance_sources.json` — write the provenance record; rerun after rebuilding any data file
@@ -72,6 +73,12 @@ from the fragility set.
 A `geojson-points` inventory may also describe its popup: `popup.title` (the attribute shown as the title),
 `popup.rows` (a label and an attribute each, in order; a third entry is the wording of a link) and `popup.image`.
 Without one, the popup lists every attribute as recorded.
+
+An inventory's `fragilities` lists the fragility sets (described under `fragilities` at the end of the registry) that can be
+applied to it: none, one or several. The Damage part of the dashboard has one block for each inventory that is turned on
+under Inventory. An inventory with fragilities offers them there one at a time, and "None: shaking values only" is always
+among the choices. Every inventory, with or without fragilities, gets the shaking at each of its structures as a download
+(CSV and GeoJSON) for analysis elsewhere. Results are not added or compared across inventories on the site.
 
 Filters take effect when "Apply filters" is pressed. What is shown, counted and downloaded is the applied selection.
 After changing the registry or the dashboard, run `python3 tools/tests/test_dashboard.py`.

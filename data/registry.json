@@ -1,5 +1,5 @@
 {
- "about": "What the ShakeReady dashboard can show. Add or remove an inventory by editing this list. Each inventory describes its own filters under \"filters\", and one mechanism on the dashboard draws and applies them, so a new inventory gets filters by describing them here: no code. The description is explained in the README under \"Inventories and their filters\". Hazard layers are listed separately in hazards/index.json.",
+ "about": "What the ShakeReady dashboard can show. Add or remove an inventory by editing this list. Each inventory describes its own filters under \"filters\", and one mechanism on the dashboard draws and applies them, so a new inventory gets filters by describing them here: no code. The description is explained in the README under \"Inventories and their filters\". An inventory's \"fragilities\" names the fragility sets that can be applied to it: none, one or several. The Damage part offers them one at a time, with \"None\" always among the choices, and gives the shaking at each structure for every inventory. Hazard layers are listed separately in hazards/index.json.",
  "inventories": [
   {
    "id": "nbi-bridges",

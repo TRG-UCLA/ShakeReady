@@ -299,6 +299,10 @@
    "result": "On 2026-11-26, with the rebuilt filters, the dashboard's table was compared again with the reference code on made-up test layers that are not published: a hazard map at two levels and a scenario. For all 25,974 bridges the tables are identical, and every row equals the one the dashboard gave before the change. Two tables downloaded with a county filter applied contain exactly the reference rows for that county, and the header of a filtered table states the filter."
   },
   {
+   "check": "Shaking values against an independent reading",
+   "result": "The shaking tables the dashboard offers were compared with tools/shaking_reference.py, written apart from the dashboard, on made-up test layers that are not published: a scenario, and a hazard map at one of its two levels. For all 25,974 bridges, the 61 CSMIP buildings and the 1,451 LA Times buildings, every value in the CSV is identical to the reference, blanks outside the layer included, and the GeoJSON holds the same values. A table downloaded with a filter applied holds exactly the structures shown. After the Damage part was rebuilt for this (2026-11-27), the bridge damage table again equals the reference for all 25,974 bridges and, row for row, what the dashboard gave before."
+  },
+  {
    "check": "SR-HazardMaker against ShakeMap files",
    "result": "Seven real USGS ShakeMap grid files (shortened samples from the OpenQuake engine's test data, three versions of the ShakeMap software, both unit spellings): every row read lands on the right grid node with the right value. For a full grid in the same layout, all 81,993 values match the source after conversion from percent of g, zipped or not."
   },
@@ -399,6 +403,18 @@
    "topic": "Probability maps",
    "choice": "The dashboard can color each bridge by its probability of reaching or exceeding a chosen damage state: slight, moderate, extensive or complete. Probabilities are shown in seven classes with breaks at 1, 5, 10, 25, 50 and 75 percent. A numbered circle standing for several bridges shows their average.",
    "basis": "The probability of reaching or exceeding a state is what a fragility curve gives directly, and it is the quantity most decisions are framed in. The classes are finer at the low end because the probability of the more severe states is often small. The average over a group of bridges is the expected fraction of them reaching that state."
+  },
+  {
+   "id": "DMG-10",
+   "topic": "Shaking values for every inventory",
+   "choice": "For every inventory on the map, with or without fragilities, the dashboard offers the shaking at each structure shown: every measure the hazard layer carries, read at the structure's position exactly as the damage calculation reads it (decisions DMG-01 to DMG-03), as a table (CSV) and as GeoJSON, with the structure's own attributes and the sources of the values. A value is blank where the structure lies outside the layer.",
+   "basis": "Decided by the project lead on 2026-11-27. An inventory may have no fragilities, and a user may hold fragilities of their own that they do not wish to share or do not yet have. The table lets the damage analysis be done elsewhere. No fragilities are applied and no adjustment is made for the ground at the site, so the values are for the site condition the hazard layer states."
+  },
+  {
+   "id": "DMG-11",
+   "topic": "One inventory at a time, one set of fragilities at a time",
+   "choice": "The Damage part has one block for each inventory that is turned on under Inventory, and only for those. An inventory with fragilities offers them there one at a time, with 'None: shaking values only' always among the choices; an inventory without fragilities gets its shaking values. Nothing is added or compared across inventories or across sets of fragilities on the site.",
+   "basis": "Decided by the project lead on 2026-11-27. The same structure can be in two inventories, so a sum across inventories would count it twice. Aggregating results and comparing alternatives are left to the user, with the downloaded tables."
   }
  ],
  "hazard_decisions": [
