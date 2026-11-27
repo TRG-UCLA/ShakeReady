@@ -1,10 +1,93 @@
 {
- "about": "What the ShakeReady map can show. Add or remove an inventory by editing this list. Hazard layers are listed separately in hazards/index.json.",
+ "about": "What the ShakeReady dashboard can show. Add or remove an inventory by editing this list. Each inventory describes its own filters under \"filters\", and one mechanism on the dashboard draws and applies them, so a new inventory gets filters by describing them here: no code. The description is explained in the README under \"Inventories and their filters\". Hazard layers are listed separately in hazards/index.json.",
  "inventories": [
-  {"id": "nbi-bridges", "title": "NBI bridges", "format": "nbi-rows", "file": "data/bridges.json", "color": "#F9A03F", "visible": true, "fragilities": ["hazus-highway-bridges"]},
-  {"id": "instrumented-buildings", "title": "Instrumented buildings", "format": "geojson-points", "file": "data/instrumented_buildings.geojson", "color": "#3D9BE9", "visible": false, "fragilities": []},
-  {"id": "instrumented-nonductile", "title": "Instrumented non-ductile", "format": "geojson-points", "file": "data/instrumented_nonductile_buildings.geojson", "color": "#9B6DE0", "visible": false, "fragilities": []},
-  {"id": "latimes-concrete", "title": "LA Times concrete buildings", "format": "geojson-points", "file": "data/latimes_concrete_buildings.geojson", "color": "#E05252", "visible": false, "fragilities": []}
+  {
+   "id": "nbi-bridges",
+   "title": "NBI bridges",
+   "format": "nbi-rows",
+   "file": "data/bridges.json",
+   "color": "#F9A03F",
+   "visible": true,
+   "unit": ["bridge", "bridges"],
+   "fragilities": ["hazus-highway-bridges"],
+   "filters": [
+    {"id": "yb", "type": "range", "field": "year_built", "label": "Year built", "words": ["from", "to"], "min": 1800, "max": 2030},
+    {"id": "yr", "type": "range", "field": "year_recon", "label": "Year reconstructed", "words": ["from", "to"], "min": 1800, "max": 2030, "missing": "zero"},
+    {"id": "ln", "type": "range", "field": "lanes_on", "label": "Traffic lanes on bridge", "min": 0},
+    {"id": "adt", "type": "range", "field": "adt", "label": "Average daily traffic", "min": 0},
+    {"id": "sp", "type": "range", "field": "max_span", "label": "Longest span, meters", "min": 0, "step": 0.1},
+    {"id": "ns", "type": "range", "field": "spans_main", "label": "Number of main spans", "min": 0},
+    {"id": "county", "type": "select", "field": "county_i", "label": "County", "any": "Any county", "table": "counties", "order": "name"},
+    {"id": "hazus", "type": "select", "field": "hazus", "label": "HAZUS fragility class", "any": "Any class", "describe": "fragility-class", "prefix": "HWB", "show": "{name} ({count}): {description}"},
+    {"id": "cond", "type": "checks", "field": "cond", "label": "Overall condition", "options": ["Good", "Fair", "Poor"]},
+    {"type": "group", "label": "Component condition ratings (0 to 9)", "filters": [
+     {"id": "dk", "type": "range", "field": "deck", "label": "Deck", "min": 0, "max": 9, "missing": "negative"},
+     {"id": "su", "type": "range", "field": "superstructure", "label": "Superstructure", "min": 0, "max": 9, "missing": "negative"},
+     {"id": "sb", "type": "range", "field": "substructure", "label": "Substructure", "min": 0, "max": 9, "missing": "negative"},
+     {"id": "ch", "type": "range", "field": "channel", "label": "Channel", "min": 0, "max": 9, "missing": "negative"},
+     {"id": "cv", "type": "range", "field": "culvert", "label": "Culvert", "min": 0, "max": 9, "missing": "negative"}
+    ]},
+    {"id": "material", "type": "checks", "field": "kind_i", "label": "Main structure material", "table": "kinds", "omit": ["None"], "columns": 2}
+   ]
+  },
+  {
+   "id": "csmip-buildings",
+   "title": "CSMIP Instrumented Buildings",
+   "format": "geojson-points",
+   "file": "data/csmip_instrumented_buildings.geojson",
+   "color": "#3D9BE9",
+   "visible": false,
+   "unit": ["building", "buildings"],
+   "fragilities": [],
+   "popup": {"title": "name", "image": "images", "rows": [
+    ["Address", "address"],
+    ["CSMIP station", "station_number"],
+    ["List on the original site", "original_layer"],
+    ["Stories", "Num of Stories"],
+    ["Basement levels", "Basement"],
+    ["Plan shape", "Plan Shape"],
+    ["Base dimensions", "Base Dimensions"],
+    ["Typical floor dimensions", "Typical Floor Dimensions"],
+    ["Design date", "Design Date"],
+    ["Instrumentation", "Instrumentation"],
+    ["Elevation, m", "Elevation (m)"],
+    ["Station page", "Information", "Open the CESMD station page"]
+   ]},
+   "filters": [
+    {"id": "q", "type": "text", "fields": ["name", "address"], "label": "Station name or address contains"},
+    {"id": "list", "type": "checks", "field": "original_layer", "label": "List on the original site", "counts": true, "columns": 1, "options": [{"value": "Instrumented Buildings", "label": "Instrumented buildings"}, {"value": "Instrumented Non-Ductile Buildings", "label": "Instrumented non-ductile buildings"}], "note": "The original team listed six buildings apart as non-ductile concrete. The others were not classified, which does not make them ductile."},
+    {"id": "st", "type": "range", "field": "stories", "label": "Number of stories", "min": 0},
+    {"id": "dy", "type": "range", "field": "design_year", "label": "Design date, first year given", "words": ["from", "to"], "min": 1800, "max": 2030, "note": "Where the design date gives several dates, or a retrofit date, the first is used. {missing} buildings have none and are left out when a range is set."},
+    {"id": "bs", "type": "checks", "field": "Basement", "label": "Basement levels", "counts": true, "columns": 2, "options": [{"value": "0", "label": "None"}, {"value": "1", "label": "One"}, {"value": "2", "label": "Two"}, {"value": "partial", "label": "Partial"}]},
+    {"id": "plan", "type": "select", "field": "Plan Shape", "label": "Plan shape", "any": "Any plan shape", "order": "count", "counts": true, "none": "Not recorded"},
+    {"type": "group", "label": "Instrumentation", "filters": [
+     {"id": "iy", "type": "range", "field": "instrumented_year", "label": "Year instrumented", "words": ["from", "to"], "min": 1900, "max": 2030},
+     {"id": "ac", "type": "range", "field": "accelerometers", "label": "Accelerometers in the building", "min": 0, "note": "Sensors at free-field, ground, downhole or adjacent sites are not counted."},
+     {"id": "lv", "type": "range", "field": "instrumented_levels", "label": "Levels with accelerometers", "min": 0},
+     {"id": "ff", "type": "checks", "field": "free_field", "label": "Free-field site", "counts": true, "columns": 2, "options": [{"value": true, "label": "Mentioned"}, {"value": false, "label": "Not mentioned"}]}
+    ]}
+   ]
+  },
+  {
+   "id": "latimes-concrete",
+   "title": "LA Times concrete buildings",
+   "format": "geojson-points",
+   "file": "data/latimes_concrete_buildings.geojson",
+   "color": "#E05252",
+   "visible": false,
+   "unit": ["building", "buildings"],
+   "fragilities": [],
+   "filters": [
+    {"id": "q", "type": "text", "fields": ["address", "building_name", "zip_code"], "label": "Address, building name or ZIP code contains"},
+    {"id": "class", "type": "select", "field": "hazus_fragility_class", "label": "HAZUS fragility class", "any": "Any class", "describe_field": "hazus_fragility_description", "show": "{name} ({count}): {description}", "options": ["C2L-PC", "C2L-LC", "C2M-PC", "C2M-LC", "C2H-PC", "C2H-LC", "C3L-PC", "C3L-LC", "C3M-PC", "C3M-LC", "C3H-PC", "C3H-LC"]},
+    {"id": "type", "type": "checks", "field": "hazus", "label": "HAZUS building type", "counts": true, "columns": 3, "options": ["C2L", "C2M", "C2H", "C3L", "C3M", "C3H"], "note": "C2 is concrete shear walls; C3 is concrete frame with unreinforced masonry infill. L, M and H are low, mid and high rise: 1 to 3, 4 to 7, and 8 or more stories."},
+    {"id": "level", "type": "checks", "field": "level", "label": "Design level", "counts": true, "columns": 2, "options": [{"value": "PC", "label": "Pre-Code"}, {"value": "LC", "label": "Low-Code"}]},
+    {"id": "st", "type": "range", "field": "stories", "label": "Number of stories", "min": 0},
+    {"id": "yb", "type": "range", "field": "yrblt", "label": "Year built", "words": ["from", "to"], "min": 1800, "max": 2030, "note": "{missing} buildings have no year recorded and are left out when a range is set."},
+    {"id": "use", "type": "select", "field": "name", "label": "Occupancy", "any": "Any occupancy", "order": "count", "counts": true, "none": "Not recorded"},
+    {"id": "update", "type": "select", "field": "Update", "label": "Source's update note", "any": "Any", "cases": [{"label": "Recorded as demolished", "contains": "demolished"}, {"label": "Not recorded as demolished", "lacks": "demolished"}, {"label": "Has an update note", "present": true}, {"label": "No update note", "present": false}]}
+   ]
+  }
  ],
  "fragilities": [
   {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges", "file": "data/fragility/hazus_highway_bridges.json", "method": "hazus-bridges"}

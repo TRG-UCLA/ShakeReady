@@ -22,8 +22,7 @@
   --paper:#EFF3F6;      /* text on ink */
   --muted:#8FA1B5;
   --amber:#F9A03F;      /* seismic accent — actions only */
-  --c-instr:#3D9BE9;    /* instrumented buildings */
-  --c-nond:#9B6DE0;     /* non-ductile buildings */
+  --c-instr:#3D9BE9;    /* CSMIP instrumented buildings */
   --c-lat:#E05252;      /* LA Times concrete */
   --c-bridge:#F9A03F;   /* bridges */
   --radius:8px;
@@ -45,6 +44,23 @@ header{padding:22px 22px 14px}
 section{padding:16px 22px;border-top:1px solid var(--line)}
 h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 12px}
 
+/* inventories: one block each. The box shows it on the map; the name opens and closes its filters */
+.inv-intro{margin:0;padding:14px 22px 13px;font-size:12.5px;color:var(--muted);line-height:1.45}
+.inv{border-top:1px solid var(--line)}
+.inv-head{display:flex;align-items:center;padding:0 12px 0 22px}
+.inv-head>input{accent-color:var(--amber);width:15px;height:15px;flex:none;margin:0;cursor:pointer}
+.inv-toggle{flex:1;min-width:0;display:grid;grid-template-columns:11px minmax(0,1fr) 16px;column-gap:9px;align-items:center;text-align:left;background:none;border:0;border-radius:var(--radius);color:var(--paper);padding:12px 10px;margin:3px 0 3px 6px}
+.inv-toggle:hover{background:var(--ink-2)}
+.inv-name{font-size:14px;font-weight:600;line-height:1.3}
+.inv-count{grid-column:2;margin-top:2px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.inv-toggle .chev{grid-column:3;grid-row:1 / span 2;width:16px;height:16px;color:var(--muted);transition:transform .15s ease}
+.inv-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.inv-body{padding:6px 22px 18px}
+.inv-shown{margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
+.inv-shown strong{color:var(--paper);font-variant-numeric:tabular-nums}
+.inv-active{display:block;margin-top:4px;font-size:12.5px}
+.inv-pending{margin:10px 0 0;font-size:12.5px;color:var(--amber)}
+
 /* layer toggles */
 .layer{display:flex;align-items:center;gap:10px;padding:9px 10px;margin:0 -10px;border-radius:var(--radius);cursor:pointer;user-select:none}
 .layer:hover{background:var(--ink-2)}
@@ -55,11 +71,12 @@ h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 12px}
 
 /* filter form */
 .frow{margin-bottom:12px}
-.frow label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.frow label,.flabel{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.fnote{margin:6px 0 0;font-size:11.5px;color:var(--muted);line-height:1.4}
 .pair{display:flex;gap:8px}
-.pair input{width:100%;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;color:var(--paper);padding:7px 9px;font:inherit;font-size:13.5px}
+.pair input,.ftext{width:100%;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;color:var(--paper);padding:7px 9px;font:inherit;font-size:13.5px}
 .pair input::placeholder{color:#5B6E83}
-.pair input:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:transparent}
+.pair input:focus,.ftext:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:transparent}
 .frow select{width:100%;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;color:var(--paper);padding:7px 9px;font:inherit;font-size:13.5px}
 .frow select:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:transparent}
 .checks{display:flex;gap:16px;margin-top:2px}
@@ -69,17 +86,16 @@ details.ratings{margin:0 0 12px;border:1px solid var(--line);border-radius:6px;p
 details.ratings summary{cursor:pointer;font-size:12.5px;color:var(--muted);padding:9px 0;user-select:none}
 details.ratings[open] summary{margin-bottom:6px}
 details.ratings .frow:last-child{margin-bottom:10px}
-#materials{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:4px}
-#materials label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--paper);padding:4px 0;cursor:pointer}
-#materials input{accent-color:var(--amber);cursor:pointer}
+.checkgrid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2px 10px;margin-top:4px}
+.checkgrid label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--paper);margin:0;padding:4px 0;cursor:pointer}
+.checkgrid input{accent-color:var(--amber);cursor:pointer;flex:none}
+.checkgrid i,.checks i{font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
 .actions{display:flex;gap:10px;margin-top:14px}
 button{font:inherit;cursor:pointer;border-radius:var(--radius);padding:9px 14px;border:1px solid transparent}
 .btn-apply{background:var(--amber);color:#1C1507;font-weight:600;flex:1}
 .btn-apply:hover{background:#FBB565}
 .btn-reset{background:none;border-color:var(--line);color:var(--muted)}
 .btn-reset:hover{color:var(--paper);border-color:var(--muted)}
-#bridgecount{margin-top:12px;font-size:13px;color:var(--muted)}
-#bridgecount strong{color:var(--paper);font-variant-numeric:tabular-nums}
 
 footer{margin-top:auto;padding:16px 22px 20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6}
 footer a{color:var(--muted)}
@@ -144,7 +160,7 @@ footer a{color:var(--muted)}
   #panel.open{transform:none}
   #panel-toggle{display:block}
 }
-@media (prefers-reduced-motion:reduce){#panel{transition:none}}
+@media (prefers-reduced-motion:reduce){#panel,.inv-toggle .chev{transition:none}}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </style>
 </head>
@@ -170,56 +186,8 @@ footer a{color:var(--muted)}
     </div>
 
     <div class="pane" id="pane-inventory" role="tabpanel" aria-labelledby="tab-inventory">
-    <section>
-      <h2>Inventories shown</h2>
-      <div id="layer-list"></div>
-    </section>
-
-    <section>
-      <h2>Filter bridges</h2>
-      <div class="frow"><label for="yb1">Year built</label>
-        <div class="pair"><input id="yb1" type="number" min="1800" max="2030" placeholder="from"><input id="yb2" type="number" min="1800" max="2030" placeholder="to"></div></div>
-      <div class="frow"><label for="yr1">Year reconstructed</label>
-        <div class="pair"><input id="yr1" type="number" min="1800" max="2030" placeholder="from"><input id="yr2" type="number" min="1800" max="2030" placeholder="to"></div></div>
-      <div class="frow"><label for="ln1">Traffic lanes on bridge</label>
-        <div class="pair"><input id="ln1" type="number" min="0" placeholder="min"><input id="ln2" type="number" min="0" placeholder="max"></div></div>
-      <div class="frow"><label for="adt1">Average daily traffic</label>
-        <div class="pair"><input id="adt1" type="number" min="0" placeholder="min"><input id="adt2" type="number" min="0" placeholder="max"></div></div>
-      <div class="frow"><label for="sp1">Longest span, meters</label>
-        <div class="pair"><input id="sp1" type="number" min="0" step="0.1" placeholder="min"><input id="sp2" type="number" min="0" step="0.1" placeholder="max"></div></div>
-      <div class="frow"><label for="ns1">Number of main spans</label>
-        <div class="pair"><input id="ns1" type="number" min="0" placeholder="min"><input id="ns2" type="number" min="0" placeholder="max"></div></div>
-      <div class="frow"><label for="county">County</label>
-        <select id="county"><option value="">Any county</option></select></div>
-      <div class="frow"><label for="hazus">HAZUS fragility class</label>
-        <select id="hazus"><option value="">Any class</option></select></div>
-      <div class="frow"><label>Overall condition</label>
-        <div id="conds" class="checks">
-          <label><input type="checkbox" value="Good"> Good</label>
-          <label><input type="checkbox" value="Fair"> Fair</label>
-          <label><input type="checkbox" value="Poor"> Poor</label>
-        </div></div>
-      <details class="ratings">
-        <summary>Component condition ratings (0 to 9)</summary>
-        <div class="frow"><label for="dk1">Deck</label>
-          <div class="pair"><input id="dk1" type="number" min="0" max="9" placeholder="min"><input id="dk2" type="number" min="0" max="9" placeholder="max"></div></div>
-        <div class="frow"><label for="su1">Superstructure</label>
-          <div class="pair"><input id="su1" type="number" min="0" max="9" placeholder="min"><input id="su2" type="number" min="0" max="9" placeholder="max"></div></div>
-        <div class="frow"><label for="sb1">Substructure</label>
-          <div class="pair"><input id="sb1" type="number" min="0" max="9" placeholder="min"><input id="sb2" type="number" min="0" max="9" placeholder="max"></div></div>
-        <div class="frow"><label for="ch1">Channel</label>
-          <div class="pair"><input id="ch1" type="number" min="0" max="9" placeholder="min"><input id="ch2" type="number" min="0" max="9" placeholder="max"></div></div>
-        <div class="frow"><label for="cv1">Culvert</label>
-          <div class="pair"><input id="cv1" type="number" min="0" max="9" placeholder="min"><input id="cv2" type="number" min="0" max="9" placeholder="max"></div></div>
-      </details>
-      <div class="frow"><label>Main structure material</label>
-        <div id="materials"></div></div>
-      <div class="actions">
-        <button class="btn-apply" id="apply">Apply filters</button>
-        <button class="btn-reset" id="reset">Reset</button>
-      </div>
-      <p id="bridgecount"></p>
-    </section>
+    <p class="inv-intro">Tick an inventory to show it on the map. Open it to filter what is shown.</p>
+    <div id="inv-list"></div>
     </div>
 
     <div class="pane" id="pane-hazard" role="tabpanel" aria-labelledby="tab-hazard" hidden>
@@ -486,59 +454,219 @@ function bridgePopup(r){
     + streetViewLink(r[F.lat], r[F.lng]);
 }
 
-function num(id){ const v = document.getElementById(id).value.trim(); return v === "" ? null : Number(v); }
+/* ---------- inventories and their filters ----------
+   data/registry.json describes each inventory and, with it, the filters it offers. One mechanism draws the controls
+   from that description and tests the records against them, whatever the inventory, so a new inventory gets its
+   filters by describing them there. The README explains the description ("Inventories and their filters"). */
+const INV = [];                 // one entry per inventory, in the registry's order
+let BR = null;                  // the bridge inventory's entry
+const blank = v => v === null || v === undefined || v === "";
+const valueOf = (s, rec, field) => s.rows ? rec[F[field]] : rec.properties[field];   // bridges are rows in a fixed column order; buildings are GeoJSON features
+const fill = (text, values) => text.replace(/\{(\w+)\}/g, (m, k) => k in values ? values[k] : m);
 
-function activeMaterials(){
-  const boxes = document.querySelectorAll("#materials input");
-  const on = [...boxes].filter(b => b.checked).map(b => Number(b.value));
-  return on.length ? new Set(on) : null;   // none checked = no material filter
+/* a range of numbers. A record with no value fails once either end is set: a bridge never reconstructed, a
+   component that does not apply, a building with no year on record */
+function rangeFilter(s, d, id){
+  const [w1, w2] = d.words || ["min", "max"];
+  const attrs = ["min", "max", "step"].filter(k => d[k] !== undefined).map(k => ` ${k}="${esc(d[k])}"`).join("");
+  const el = document.createElement("div"); el.className = "frow";
+  el.innerHTML = `<label for="${id}-1">${esc(d.label)}</label><div class="pair">`
+    + `<input id="${id}-1" type="number"${attrs} placeholder="${esc(w1)}" aria-label="${esc(d.label)}, ${esc(w1)}">`
+    + `<input id="${id}-2" type="number"${attrs} placeholder="${esc(w2)}" aria-label="${esc(d.label)}, ${esc(w2)}"></div>`;
+  const [a, b] = el.querySelectorAll("input");
+  const none = d.missing === "zero" ? v => !v : d.missing === "negative" ? v => v < 0 : () => false;
+  const value = rec => {
+    const raw = valueOf(s, rec, d.field);
+    if (blank(raw)) return null;
+    const v = Number(raw);
+    return Number.isFinite(v) && !none(v) ? v : null;
+  };
+  const typed = i => i.value.trim() === "" ? null : Number(i.value);
+  return {el, missing: s.records.reduce((n, r) => n + (value(r) === null ? 1 : 0), 0),
+    read(){
+      const lo = typed(a), hi = typed(b);
+      if (lo === null && hi === null) return null;
+      return {test: r => { const v = value(r); return v !== null && (lo === null || v >= lo) && (hi === null || v <= hi); },
+              text: `${d.label}: ` + (lo !== null && hi !== null ? `${lo} to ${hi}` : lo !== null ? `${lo} or more` : `${hi} or less`)};
+    },
+    reset(){ a.value = b.value = ""; }};
 }
 
-function filterRows(){
-  const yb1=num("yb1"), yb2=num("yb2"), yr1=num("yr1"), yr2=num("yr2"),
-        ln1=num("ln1"), ln2=num("ln2"), adt1=num("adt1"), adt2=num("adt2"),
-        sp1=num("sp1"), sp2=num("sp2"), ns1=num("ns1"), ns2=num("ns2"), mats=activeMaterials();
-  const countySel = document.getElementById("county").value;
-  const county = countySel === "" ? null : Number(countySel);
-  const hazusSel = document.getElementById("hazus").value;
-  const hazus = hazusSel === "" ? null : Number(hazusSel);
-  const conds = [...document.querySelectorAll("#conds input")].filter(b => b.checked).map(b => b.value);
-  // component ratings: [field, min, max]; a bridge where the component does not apply (n/a) fails a set bound
-  const ratings = [["deck","dk1","dk2"],["superstructure","su1","su2"],["substructure","sb1","sb2"],["channel","ch1","ch2"],["culvert","cv1","cv2"]]
-    .map(([f,a,b]) => [F[f], num(a), num(b)]).filter(([,lo,hi]) => lo!==null || hi!==null);
-  return B.rows.filter(r => {
-    if (yb1!==null && r[F.year_built] < yb1) return false;
-    if (yb2!==null && r[F.year_built] > yb2) return false;
-    if (yr1!==null || yr2!==null){
-      if (!r[F.year_recon]) return false;               // never reconstructed
-      if (yr1!==null && r[F.year_recon] < yr1) return false;
-      if (yr2!==null && r[F.year_recon] > yr2) return false;
+/* one choice from a list: the distinct values of a field, the entries of a lookup table, or named cases */
+function selectFilter(s, d, id){
+  if (d.describe === "fragility-class" && (!HZ || (s.rows && F[d.field] === undefined))) return null;    // needs the fragility set
+  const raw = r => valueOf(s, r, d.field), text = r => blank(raw(r)) ? "" : String(raw(r)).toLowerCase();
+  let opts;
+  if (d.cases){
+    opts = d.cases.map(c => {
+      const needle = String(c.contains || c.lacks || "").toLowerCase();
+      const test = "present" in c ? r => !blank(raw(r)) === c.present : c.contains ? r => text(r).includes(needle) : r => !text(r).includes(needle);
+      const count = s.records.reduce((n, r) => n + (test(r) ? 1 : 0), 0);
+      return {name: c.label, test, label: `${c.label} (${fmt(count)})`};
+    });
+  } else {
+    const counts = new Map(), about = new Map(); let none = 0;
+    for (const r of s.records){
+      const v = raw(r);
+      if (blank(v)){ none++; continue; }
+      counts.set(v, (counts.get(v) || 0) + 1);
+      if (d.describe_field && !about.has(v)) about.set(v, valueOf(s, r, d.describe_field));
     }
-    if (ln1!==null && r[F.lanes_on] < ln1) return false;
-    if (ln2!==null && r[F.lanes_on] > ln2) return false;
-    if (adt1!==null && r[F.adt] < adt1) return false;
-    if (adt2!==null && r[F.adt] > adt2) return false;
-    if (sp1!==null && r[F.max_span] < sp1) return false;
-    if (sp2!==null && r[F.max_span] > sp2) return false;
-    if (ns1!==null && r[F.spans_main] < ns1) return false;
-    if (ns2!==null && r[F.spans_main] > ns2) return false;
-    if (county!==null && r[F.county_i] !== county) return false;
-    if (hazus!==null && r[F.hazus] !== hazus) return false;
-    if (conds.length && !conds.includes(r[F.cond])) return false;
-    for (const [fi,lo,hi] of ratings){
-      const v = r[fi];
-      if (v < 0) return false;
-      if (lo!==null && v < lo) return false;
-      if (hi!==null && v > hi) return false;
-    }
-    if (mats && !mats.has(r[F.kind_i])) return false;
-    return true;
-  });
+    const table = d.table ? s.data[d.table] : null, name = v => table ? table[v] : (d.prefix || "") + v;
+    let values = d.options ? d.options.slice() : table ? table.map((n, i) => i) : [...counts.keys()];
+    values = values.filter(v => !(d.omit || []).includes(name(v)));
+    const byName = (x, y) => String(name(x)).localeCompare(String(name(y)));
+    if (!d.options) values.sort(d.order === "name" ? byName : d.order === "count" ? (x, y) => (counts.get(y) || 0) - (counts.get(x) || 0) || byName(x, y)
+      : (x, y) => typeof x === "number" && typeof y === "number" ? x - y : byName(x, y));
+    opts = values.map(v => {
+      const n = counts.get(v) || 0;
+      const description = d.describe === "fragility-class" ? (HZ.classes[name(v)] || {}).description || "" : d.describe_field ? about.get(v) || "" : "";
+      return {name: name(v), test: r => raw(r) === v, label: d.show ? fill(d.show, {name: name(v), count: fmt(n), description}) : d.counts ? `${name(v)} (${fmt(n)})` : String(name(v))};
+    });
+    if (none && d.none) opts.push({name: d.none, test: r => blank(raw(r)), label: `${d.none} (${fmt(none)})`});
+  }
+  const el = document.createElement("div"); el.className = "frow";
+  el.innerHTML = `<label for="${id}">${esc(d.label)}</label><select id="${id}"><option value="">${esc(d.any || "Any")}</option>`
+    + opts.map((o, i) => `<option value="${i}">${esc(o.label)}</option>`).join("") + `</select>`;
+  const sel = el.querySelector("select");
+  return {el,
+    read(){ if (sel.value === "") return null; const o = opts[Number(sel.value)]; return {test: o.test, text: `${d.label}: ${o.name}`}; },
+    reset(){ sel.value = ""; }};
+}
+
+/* any of several boxes; with none ticked the filter is off */
+function checksFilter(s, d, id){
+  const table = d.table ? s.data[d.table] : null;
+  let opts = d.options ? d.options.map(o => o !== null && typeof o === "object" ? o : {value: o, label: String(o)})
+    : table ? table.map((n, i) => ({value: i, label: n}))
+    : [...new Set(s.records.map(r => valueOf(s, r, d.field)).filter(v => !blank(v)))].sort().map(v => ({value: v, label: String(v)}));
+  opts = opts.filter(o => !(d.omit || []).includes(o.label));
+  const count = o => s.records.reduce((n, r) => n + (valueOf(s, r, d.field) === o.value ? 1 : 0), 0);
+  const el = document.createElement("div"); el.className = "frow"; el.setAttribute("role", "group"); el.setAttribute("aria-labelledby", id + "-l");
+  el.innerHTML = `<span class="flabel" id="${id}-l">${esc(d.label)}</span>`
+    + (d.columns ? `<div class="checkgrid" style="--cols:${Number(d.columns)}">` : `<div class="checks">`)
+    + opts.map(o => `<label><input type="checkbox"> ${esc(o.label)}${d.counts ? ` <i>(${fmt(count(o))})</i>` : ""}</label>`).join("") + `</div>`;
+  const boxes = [...el.querySelectorAll("input")];
+  return {el,
+    read(){
+      const on = opts.filter((o, i) => boxes[i].checked);
+      if (!on.length) return null;
+      const set = new Set(on.map(o => o.value));
+      return {test: r => set.has(valueOf(s, r, d.field)), text: `${d.label}: ${on.map(o => o.label).join(", ")}`};
+    },
+    reset(){ boxes.forEach(b => b.checked = false); }};
+}
+
+/* words to find in one or more fields: every word typed must appear, in any order, whatever the capitals */
+function textFilter(s, d, id){
+  const el = document.createElement("div"); el.className = "frow";
+  el.innerHTML = `<label for="${id}">${esc(d.label)}</label><input id="${id}" class="ftext" type="text" autocomplete="off" spellcheck="false">`;
+  const box = el.querySelector("input");
+  return {el,
+    read(){
+      const words = box.value.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!words.length) return null;
+      return {test: r => { const hay = d.fields.map(f => valueOf(s, r, f)).filter(v => !blank(v)).join("\n").toLowerCase(); return words.every(w => hay.includes(w)); },
+              text: `${d.label}: “${box.value.trim()}”`};
+    },
+    reset(){ box.value = ""; }};
+}
+
+const FILTER_TYPES = {range: rangeFilter, select: selectFilter, checks: checksFilter, text: textFilter};
+/* draw one described filter into `into`, adding it to the inventory's list; a group is a set of filters that opens and closes */
+function drawFilter(s, d, id, into){
+  if (d.type === "group"){
+    const g = document.createElement("details"); g.className = "ratings";
+    g.innerHTML = `<summary>${esc(d.label)}</summary>`;
+    (d.filters || []).forEach((c, i) => drawFilter(s, c, `${id}-${c.id || i}`, g));
+    if (g.children.length > 1) into.appendChild(g);
+    return;
+  }
+  const f = FILTER_TYPES[d.type] && FILTER_TYPES[d.type](s, d, id);
+  if (!f) return;
+  if (d.note && !(d.note.includes("{missing}") && !f.missing)){
+    const p = document.createElement("p"); p.className = "fnote"; p.textContent = fill(d.note, {missing: fmt(f.missing || 0)}); f.el.appendChild(p);
+  }
+  into.appendChild(f.el); s.filters.push(f);
+}
+
+/* an inventory's block in the panel: a box to show it on the map, and its name, which opens and closes its filters */
+function addInventory(inv){
+  const [one, many] = inv.unit || ["record", "records"];
+  const s = {inv, rows: inv.format === "nbi-rows", data: null, records: [], shown: [], filters: [], active: [], ready: false, layer: null,
+             units: n => n === 1 ? one : many};
+  const el = document.createElement("div"); el.className = "inv"; el.id = "inv-" + inv.id;
+  el.innerHTML = `<div class="inv-head"><input type="checkbox" id="lyr-${esc(inv.id)}" title="Show on the map" aria-label="Show ${esc(inv.title)} on the map"${inv.visible ? " checked" : ""}>`
+    + `<button type="button" class="inv-toggle" aria-expanded="false" aria-controls="inv-${esc(inv.id)}-body">`
+    + `<span class="chip" style="background:${esc(inv.color)}"></span><span class="inv-name">${esc(inv.title)}</span>`
+    + `<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    + `<span class="inv-count">Loading…</span></button></div>`
+    + `<form class="inv-body" id="inv-${esc(inv.id)}-body" novalidate hidden><p class="haz-note">Loading…</p></form>`;
+  document.getElementById("inv-list").appendChild(el);
+  s.box = el.querySelector(".inv-head input"); s.toggle = el.querySelector(".inv-toggle"); s.count = el.querySelector(".inv-count"); s.body = el.querySelector(".inv-body");
+  s.toggle.addEventListener("click", () => { s.body.hidden = !s.body.hidden; s.toggle.setAttribute("aria-expanded", s.body.hidden ? "false" : "true"); });
+  s.box.addEventListener("change", () => setShown(s, s.box.checked));
+  s.body.addEventListener("submit", e => { e.preventDefault(); if (!s.ready) return; applyFilters(s); if (!s.box.checked) setShown(s, true); });   // a filter is applied to be seen
+  s.body.addEventListener("input", () => { if (s.pending) s.pending.hidden = controlsState(s) === s.applied; });
+  INV.push(s);
+  return s;
+}
+const controlsState = s => JSON.stringify([...s.body.querySelectorAll("input, select")].map(c => c.type === "checkbox" ? c.checked : c.value));
+
+/* once an inventory's records are in: its filters, its buttons and its count */
+function fillInventory(s, data, records){
+  s.data = data; s.records = s.shown = records; s.filters = []; s.active = []; s.ready = true;
+  s.body.innerHTML = "";
+  (s.inv.filters || []).forEach((d, i) => drawFilter(s, d, `f-${s.inv.id}-${d.id || i}`, s.body));
+  if (!s.filters.length){ s.body.innerHTML = `<p class="haz-note">This inventory has no filters.</p>`; s.pending = s.status = null; updateCounts(s); return; }
+  s.body.insertAdjacentHTML("beforeend", `<div class="actions"><button type="submit" class="btn-apply">Apply filters</button><button type="button" class="btn-reset">Reset</button></div>`
+    + `<p class="inv-pending" hidden>The filters have changed. Press “Apply filters” to update the map.</p><p class="inv-shown" aria-live="polite"></p>`);
+  s.pending = s.body.querySelector(".inv-pending"); s.status = s.body.querySelector(".inv-shown");
+  s.body.querySelector(".btn-reset").addEventListener("click", () => { s.filters.forEach(f => f.reset()); applyFilters(s); });
+  s.status.addEventListener("click", e => { if (e.target.closest("[data-zoom]")) zoomTo(s); });
+  s.applied = controlsState(s);
+  updateCounts(s);
+}
+
+/* read the controls, keep the records that pass every filter that is set, and redraw. What is shown, counted and
+   downloaded is always this applied selection, never controls that were changed and not yet applied */
+function applyFilters(s){
+  s.active = s.filters.map(f => f.read()).filter(Boolean);
+  s.shown = s.active.length ? s.records.filter(r => s.active.every(a => a.test(r))) : s.records;
+  s.applied = controlsState(s);
+  if (s.pending) s.pending.hidden = true;
+  if (s.rows) renderBridges(); else { s.layer.clearLayers(); s.layer.addData({type: "FeatureCollection", features: s.shown}); updateCounts(s); }
+}
+const filterText = s => s.active.map(a => a.text).join("; ");
+
+function setShown(s, on){
+  s.box.checked = on;
+  const layer = s.rows ? bridgeCluster : s.layer;
+  if (layer) on ? map.addLayer(layer) : map.removeLayer(layer);
+  if (s === BR) updateMapLegend();
+  updateCounts(s);
+}
+
+function zoomTo(s){
+  const pts = s.shown.map(r => s.rows ? [r[F.lat], r[F.lng]] : [r.geometry.coordinates[1], r.geometry.coordinates[0]]);
+  if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.08), {maxZoom: 15});
+}
+
+function updateCounts(s){
+  if (!s.ready) return;
+  const n = s.shown.length, N = s.records.length, of = `${fmt(n)} of ${fmt(N)} ${s.units(N)}`;
+  s.count.textContent = s.active.length ? of : `${fmt(N)} ${s.units(N)}`;
+  if (s.status) s.status.innerHTML = (s.box.checked ? `Showing <strong>${fmt(n)}</strong> of ${fmt(N)} ${s.units(N)}.` + (n ? ` <button type="button" class="linklike" data-zoom>Zoom to ${n === 1 ? "it" : "them"}</button>` : "")
+      : `<strong>${fmt(n)}</strong> of ${fmt(N)} ${s.units(N)} selected. Tick the box beside the name to show ${n === 1 ? "it" : "them"} on the map.`)
+    + (s.active.length ? `<span class="inv-active">Filters: ${esc(filterText(s))}</span>` : "");
+  const on = INV.filter(x => x.ready && x.box.checked);                       // under the tab's name: what is on the map
+  document.getElementById("tabsub-inventory").textContent = !on.length ? "None shown" : on.length > 1 ? `${on.length} inventories`
+    : on[0].active.length ? `${fmt(on[0].shown.length)} of ${fmt(on[0].records.length)}` : `${fmt(on[0].records.length)} ${on[0].units(on[0].records.length)}`;
 }
 
 function renderBridges(){
-  if (!B) return;
-  const rows = filterRows();
+  if (!B || !BR) return;
+  const rows = BR.shown;
   const active = damageActive(), metric = document.getElementById("dmg-metric").value;
   if (bridgeCluster){ map.removeLayer(bridgeCluster); }
   const opts = {disableClusteringAtZoom:15, spiderfyOnMaxZoom:true};   // drawn in one go, so a redraw can never interrupt an unfinished one
@@ -560,12 +688,10 @@ function renderBridges(){
     return mk;
   });
   bridgeCluster.addLayers(markers);
-  if (document.getElementById("lyr-bridge").checked) map.addLayer(bridgeCluster);
-  document.getElementById("bridgecount").innerHTML =
-    `Showing <strong>${fmt(rows.length)}</strong> of ${fmt(B.rows.length)} bridges`;
-  document.getElementById("cnt-bridge").textContent = fmt(rows.length);
-  document.getElementById("tabsub-inventory").textContent = rows.length === B.rows.length ? `${fmt(rows.length)} bridges` : `${fmt(rows.length)} of ${fmt(B.rows.length)}`;
+  if (BR.box.checked) map.addLayer(bridgeCluster);
+  updateCounts(BR);
   renderDamageSummary(rows);
+  updateReportLink();          // the link carries the selection, so it follows the filters as well as the hazard
 }
 
 function renderDamageSummary(rows){
@@ -646,12 +772,12 @@ document.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click"
 /* what each part is currently set to, shown under its name */
 /* a link to the report form that carries the current settings with it */
 function updateReportLink(){
-  const a = document.getElementById("dmg-report"); if (!a || !HAZ) return;
+  const a = document.getElementById("dmg-report"); if (!a || !HAZ || !BR) return;
   const metric = document.getElementById("dmg-metric"), frag = document.getElementById("fragility");
   const ctx = [`Page: Regional analysis (${location.origin}${location.pathname})`, `Hazard layer: ${HAZ.title} (id ${HAZ.id}, ${HAZ.kind})` + (LEVEL ? `; level: ${LEVEL.label}` : ""),
     `Ground condition of the layer: ${HAZ.site_condition}`, `Fragility set: ${frag.selectedOptions[0] ? frag.selectedOptions[0].textContent : ""}`,
     `Bridges colored by: ${metric.selectedOptions[0].textContent}` + (metric.value === "pex" ? ` (${document.getElementById("dmg-state").selectedOptions[0].textContent})` : ""),
-    `Bridges shown: ${document.getElementById("tabsub-inventory").textContent}`].join("\n");
+    `Bridges: ${fmt(BR.shown.length)} of ${fmt(BR.records.length)}; filters: ${filterText(BR) || "none"}`].join("\n");
   a.href = "https://github.com/TRG-UCLA/ShakeReady/issues/new?" + new URLSearchParams({template: "problem.yml", title: `Problem: Regional analysis, ${HAZ.title}`, context: ctx});
 }
 function updateTabNotes(){
@@ -671,7 +797,7 @@ mapLegend.onAdd = () => { const d = L.DomUtil.create("div", "map-legend"); d.id 
 mapLegend.addTo(map);
 function updateMapLegend(){
   const box = document.getElementById("map-legend"), src = document.getElementById("dmg-legend");
-  const on = damageActive() && document.getElementById("lyr-bridge") && document.getElementById("lyr-bridge").checked;
+  const on = damageActive() && BR && BR.box.checked;
   box.hidden = !on;
   if (!on) return;
   const metric = document.getElementById("dmg-metric").value, copy = src.cloneNode(true);
@@ -733,6 +859,7 @@ function damageCsv(rows, prov){
     "ShakeReady bridge damage estimates, asset by asset",
     `Generated ${now} from ${site}dashboard.html`,
     `Bridges: ${rows.length} of ${B.rows.length} in the inventory (those shown on the dashboard when the table was made)`,
+    `Filters in effect: ${filterText(BR) || "none"}`,
     "",
     `Hazard layer: ${HAZ.title} [${HAZ.id}]`,
     HAZ.levels.length > 1 ? `Hazard level: ${LEVEL.label}` : null,
@@ -757,7 +884,7 @@ function damageCsv(rows, prov){
 }
 function downloadDamage(){
   if (!damageActive()) return;
-  const rows = filterRows();
+  const rows = BR.shown;
   fetch("data/provenance.json").then(r => r.json()).catch(() => null).then(prov => {
     const blob = new Blob([damageCsv(rows, prov)], {type: "text/csv"});
     const a = document.createElement("a");
@@ -770,7 +897,7 @@ map.createPane("hazard"); map.getPane("hazard").style.zIndex = 350; map.getPane(
 map.createPane("fault"); map.getPane("fault").style.zIndex = 450; map.getPane("fault").style.pointerEvents = "none";   // the fault line sits above the bridges, so it is never buried
 
 /* ---------- startup: the registries say what there is to show ---------- */
-const FALLBACK_REGISTRY = {inventories: [{id: "nbi-bridges", title: "NBI bridges", format: "nbi-rows", file: "data/bridges.json", color: "#F9A03F", visible: true, fragilities: ["hazus-highway-bridges"]}],
+const FALLBACK_REGISTRY = {inventories: [{id: "nbi-bridges", title: "NBI bridges", format: "nbi-rows", file: "data/bridges.json", color: "#F9A03F", visible: true, unit: ["bridge", "bridges"], fragilities: ["hazus-highway-bridges"]}],
                            fragilities: [{id: "hazus-highway-bridges", title: "HAZUS highway bridges", file: "data/fragility/hazus_highway_bridges.json", method: "hazus-bridges"}]};
 Promise.all([
   fetch("data/registry.json").then(r => r.json()).catch(() => FALLBACK_REGISTRY),
@@ -778,19 +905,12 @@ Promise.all([
 ]).then(([reg, hazIndex]) => {
   REG = reg; HAZINDEX = hazIndex;
   const bridgeInv = REG.inventories.find(i => i.format === "nbi-rows");
-  const list = document.getElementById("layer-list");
   for (const inv of REG.inventories){
-    const isBridge = inv === bridgeInv, key = isBridge ? "bridge" : inv.id;
-    const lab = document.createElement("label"); lab.className = "layer";
-    lab.innerHTML = `<input type="checkbox" id="lyr-${esc(key)}"${inv.visible ? " checked" : ""}><span class="chip" style="background:${esc(inv.color)}"></span><span class="lname">${esc(inv.title)}</span><span class="lcount" id="cnt-${esc(key)}">…</span>`;
-    list.appendChild(lab);
-    if (!isBridge && inv.format === "geojson-points") loadBuildingLayer(inv.file, inv.color, "lyr-" + key, "cnt-" + key, inv.visible);
+    const s = addInventory(inv);
+    if (inv === bridgeInv) BR = s;
+    else if (inv.format === "geojson-points") loadPoints(s);
+    else failInventory(s, "This inventory is in a format the dashboard does not read.");
   }
-  document.getElementById("lyr-bridge").addEventListener("change", e => {
-    if (!bridgeCluster) return;
-    e.target.checked ? map.addLayer(bridgeCluster) : map.removeLayer(bridgeCluster);
-    updateMapLegend();
-  });
 
   // fragility sets that apply to the bridges
   const fsel = document.getElementById("fragility");
@@ -816,26 +936,7 @@ Promise.all([
 }).then(([data, frag]) => {
   B = data; HZ = frag;
   data.fields.forEach((f,i) => F[f] = i);
-  const matBox = document.getElementById("materials");
-  data.kinds.forEach((k,i) => {
-    if (k === "None") return;
-    const lab = document.createElement("label");
-    lab.innerHTML = `<input type="checkbox" value="${i}"> ${k}`;
-    matBox.appendChild(lab);
-  });
-  const hsel = document.getElementById("hazus");
-  if (HZ && F.hazus !== undefined){
-    const counts = {};
-    data.rows.forEach(r => counts[r[F.hazus]] = (counts[r[F.hazus]] || 0) + 1);
-    Object.keys(counts).map(Number).sort((a, b) => a - b).forEach(n => {
-      const c = HZ.classes["HWB" + n], o = document.createElement("option");
-      o.value = n; o.textContent = `HWB${n} (${fmt(counts[n])}): ${c.description}`; hsel.appendChild(o);
-    });
-  } else { hsel.closest(".frow").style.display = "none"; }
-  const sel = document.getElementById("county");
-  data.counties.map((c,i) => [c,i]).sort((a,b) => a[0].localeCompare(b[0])).forEach(([c,i]) => {
-    const o = document.createElement("option"); o.value = i; o.textContent = c; sel.appendChild(o);
-  });
+  fillInventory(BR, B, B.rows);                 // the bridge filters, as the registry describes them
   const asked = new URLSearchParams(location.search).get("hazard");   // HazardMaker opens the map with ?hazard=local:<id>
   const hsel1 = document.getElementById("hazard");
   const start = asked && [...hsel1.options].some(o => o.value === asked) ? asked : (HAZINDEX.hazards.find(h => h.default) || {}).id;
@@ -843,7 +944,7 @@ Promise.all([
   renderBridges();
   renderLegends();
 }).catch(() => {
-  document.getElementById("bridgecount").textContent = "Bridge data failed to load. Refresh to retry.";
+  if (BR) failInventory(BR, "Bridge data failed to load. Refresh to retry.");
 });
 
 function addLocalOption(h){
@@ -884,48 +985,54 @@ document.getElementById("haz-fault").addEventListener("change", drawHazardSource
 document.getElementById("haz-measure").addEventListener("change", () => { drawHazardOverlay(); renderLegends(); });
 document.getElementById("dmg-download").addEventListener("click", downloadDamage);
 
-document.getElementById("apply").addEventListener("click", renderBridges);
-document.getElementById("reset").addEventListener("click", () => {
-  ["yb1","yb2","yr1","yr2","ln1","ln2","adt1","adt2","sp1","sp2","ns1","ns2","dk1","dk2","su1","su2","sb1","sb2","ch1","ch2","cv1","cv2","county","hazus"].forEach(id => document.getElementById(id).value = "");
-  document.querySelectorAll("#materials input, #conds input").forEach(b => b.checked = false);
-  renderBridges();
-});
-/* ---------- building layers ---------- */
+/* ---------- building inventories ---------- */
 const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num","fragility_mapping_id","hazus_fragility_class","hazus_fragility_description","hazus_fragility_table"]);
-function buildingPopup(props, coords){
-  let html = `<div class="pop-title">${props.name || "Structure"}</div><div class="pop-kv">`;
-  if (props.hazus_fragility_class)        // the class assigned by Nigdelioglu, Tuna Deger and Taciroglu; see the Data page
-    html += `<b>HAZUS fragility class:</b> ${props.hazus_fragility_class}<br><span style="color:#5F7183">${props.hazus_fragility_description}; ${props.hazus_fragility_table}</span><br>`;
-  for (const [k,v] of Object.entries(props)){
-    if (SKIP_PROPS.has(k) || v === null || v === "" || v === undefined) continue;
-    if (String(v).startsWith("http")){
-      html += `<b>${k}:</b> <a class="pop-link" href="${v}" target="_blank" rel="noopener">link</a><br>`;
-    } else {
-      html += `<b>${k}:</b> ${v}<br>`;
+function buildingPopup(props, coords, inv){
+  const pop = inv && inv.popup;
+  let html, images = props.images;
+  if (pop){                                 // the registry names the title and the rows to show, in order
+    html = `<div class="pop-title">${esc(blank(props[pop.title]) ? "Structure" : props[pop.title])}</div><div class="pop-kv">`
+      + pop.rows.map(([label, field, linkText]) => {
+          const v = props[field];
+          if (blank(v)) return "";
+          return /^https?:\/\//.test(String(v)) ? `<a class="pop-link" href="${esc(v)}" target="_blank" rel="noopener">${esc(linkText || label)}</a><br>` : `<b>${esc(label)}:</b> ${esc(v)}<br>`;
+        }).join("") + "</div>";
+    images = pop.image ? props[pop.image] : null;
+  } else {                                  // otherwise every attribute, as recorded
+    html = `<div class="pop-title">${props.name || "Structure"}</div><div class="pop-kv">`;
+    if (props.hazus_fragility_class)        // the class assigned by Nigdelioglu, Tuna Deger and Taciroglu; see the Data page
+      html += `<b>HAZUS fragility class:</b> ${props.hazus_fragility_class}<br><span style="color:#5F7183">${props.hazus_fragility_description}; ${props.hazus_fragility_table}</span><br>`;
+    for (const [k,v] of Object.entries(props)){
+      if (SKIP_PROPS.has(k) || v === null || v === "" || v === undefined) continue;
+      if (String(v).startsWith("http")){
+        html += `<b>${k}:</b> <a class="pop-link" href="${v}" target="_blank" rel="noopener">link</a><br>`;
+      } else {
+        html += `<b>${k}:</b> ${v}<br>`;
+      }
     }
+    html += "</div>";
   }
-  html += "</div>";
-  if (props.images && props.images.length){
-    html += `<img class="pop-img" src="${props.images[0]}" alt="" onerror="this.remove()">`;
+  if (images && images.length){
+    html += `<img class="pop-img" src="${esc(images[0])}" alt="" onerror="this.remove()">`;
   }
   if (coords) html += streetViewLink(coords[1], coords[0]);
   return html;
 }
 
-function loadBuildingLayer(file, color, checkboxId, countId, visible){
-  const layer = L.geoJSON(null, {
-    pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius:7, color:"#13202E", weight:1.5, fillColor:color, fillOpacity:.9}),
-    onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties, f.geometry && f.geometry.coordinates), {maxWidth:280})
+function failInventory(s, message){
+  s.ready = false; s.count.textContent = "Could not be loaded";
+  s.body.innerHTML = `<p class="haz-note">${esc(message)}</p>`;
+}
+function loadPoints(s){
+  s.layer = L.geoJSON(null, {
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius:7, color:"#13202E", weight:1.5, fillColor:s.inv.color, fillOpacity:.9}),
+    onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties, f.geometry && f.geometry.coordinates, s.inv), {maxWidth:280})
   });
-  fetch(file).then(r => r.json()).then(gj => {
-    layer.addData(gj);
-    document.getElementById(countId).textContent = fmt(gj.features.filter(f => f.geometry).length);
-  }).catch(() => { document.getElementById(countId).textContent = "—"; });
-  document.getElementById(checkboxId).addEventListener("change", e => {
-    e.target.checked ? map.addLayer(layer) : map.removeLayer(layer);
-  });
-  if (visible) map.addLayer(layer);
-  return layer;
+  fetch(s.inv.file).then(r => r.json()).then(gj => {
+    fillInventory(s, gj, gj.features.filter(f => f.geometry));
+    s.layer.addData({type: "FeatureCollection", features: s.shown});
+    if (s.box.checked) map.addLayer(s.layer);
+  }).catch(() => failInventory(s, "This inventory failed to load. Refresh to retry."));
 }
 /* ---------- mobile panel ---------- */
 const panel = document.getElementById("panel");

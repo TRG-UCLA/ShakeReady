@@ -87,30 +87,24 @@
    ]
   },
   {
-   "id": "instrumented-buildings",
-   "title": "Instrumented buildings",
+   "id": "csmip-buildings",
+   "title": "CSMIP Instrumented Buildings",
    "files": [
-    "data/instrumented_buildings.geojson"
-   ],
-   "source": "kmz-instrumented",
-   "script": "One-time conversion from KML to GeoJSON, November 2026",
-   "processing": [
-    "Unpack the KMZ and read each placemark's name, coordinates and attribute table.",
-    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
-   ]
-  },
-  {
-   "id": "instrumented-nonductile",
-   "title": "Instrumented non-ductile buildings",
-   "files": [
+    "data/csmip_instrumented_buildings.geojson",
+    "data/instrumented_buildings.geojson",
     "data/instrumented_nonductile_buildings.geojson"
    ],
-   "source": "kmz-nonductile",
-   "script": "One-time conversion from KML to GeoJSON, November 2026",
+   "sources": [
+    "kmz-instrumented",
+    "kmz-nonductile"
+   ],
+   "script": "tools/build_csmip_buildings.py",
    "processing": [
-    "Unpack the KMZ and read each placemark's name and attribute table.",
-    "Take each building's position from its Latitude and Longitude attributes (see decision BLD-02).",
-    "Write one GeoJSON point per placemark with every attribute carried over unchanged."
+    "Convert each of the two KMZ files to GeoJSON, once, in November 2026: unpack it, read each placemark's name, coordinates and attribute table, and write one point per placemark with every attribute carried over unchanged. These two files remain published as they were: data/instrumented_buildings.geojson (55 buildings) and data/instrumented_nonductile_buildings.geojson (6 buildings).",
+    "For the six non-ductile buildings, take each position from its Latitude and Longitude attributes (decision BLD-02).",
+    "Check that no station is in both files, then combine them into one inventory of 61 buildings, with the station name under one attribute and the address under another for all of them, and the layer each building came from recorded with it (decision BLD-08).",
+    "Bring the six's number formats and one spelling in line with the other 55. Change no other recorded value (decision BLD-09).",
+    "Add values read from the recorded text, kept beside it: the station number, the number of stories, the first design year, and from the instrumentation note the year, the number of accelerometers in the building, the number of instrumented levels and whether a free-field site is mentioned (decision BLD-10)."
    ]
   },
   {
@@ -193,7 +187,7 @@
   {
    "id": "BLD-01",
    "topic": "Building attributes",
-   "choice": "Every attribute in the original files is carried over unchanged.",
+   "choice": "Every attribute in the original files is carried over unchanged into the archived layers: the two instrumented-building files and the LA Times file. The combined CSMIP inventory is built from the two instrumented-building files as decisions BLD-08 to BLD-10 describe.",
    "basis": "The building layers are an archive of the original team's work, not a new compilation."
   },
   {
@@ -231,6 +225,24 @@
    "topic": "Fragility parameters of the building classes",
    "choice": "Each class carries the structural fragility parameters of its building type and design level from FEMA's Hazus 6.1 manual, Table 5-21 for Low-Code and Table 5-22 for Pre-Code: the inter-story drift ratio at the threshold of each damage state, and the median and beta of the spectral displacement curve for each state. Heights and spectral displacements are in inches, as in the manual.",
    "basis": "These are the tables the authors cite, and they intend damage to be judged by inter-story drift. The values are the manual's, for a type and design level, not for an individual building. In Table 5-21 the manual marks the C3 types as not permitted by current seismic codes; they are tabulated all the same, and that note is kept with them."
+  },
+  {
+   "id": "BLD-08",
+   "topic": "One inventory of CSMIP instrumented buildings",
+   "choice": "The two layers of the original site, 'Instrumented Buildings' (55) and 'Instrumented Non-Ductile Buildings' (6), are published as one inventory, CSMIP Instrumented Buildings (61). Every building has its station name under 'name' and its address under 'address', and records the layer it came from under 'original_layer'. The two files as first archived remain published, unchanged.",
+   "basis": "Asked for by the project lead on 2026-11-26. All 61 station pages linked from the files are CESMD pages of the CGS network, the California Strong Motion Instrumentation Program. No station number appears in both files, and the nearest pair across the two is 5.6 km apart, so none of the six is also among the 55. The two files named things differently: the 55 keep the station in 'Station' and the address in 'name'; the six keep the station in 'name' and the address in 'Address'. The original team listed the six apart as non-ductile concrete. The other 55 were not classified, which is not a statement that they are ductile."
+  },
+  {
+   "id": "BLD-09",
+   "topic": "Values of the six brought in line with the 55",
+   "choice": "In the combined inventory the six buildings' story and basement counts are written as whole numbers ('12.0' becomes '12'), and the one plan shape written '\"L\" Shape' is written 'L-shaped', as the same shape is among the 55: thirteen values in all. No other recorded value is changed. Attributes that only repeat a building's position or its layer are not carried into the combined file: Latitude, Longitude, coord_source, address_kml, layer and Station.",
+   "basis": "The six came from a separate file whose numbers were written with a decimal, so the same value would otherwise appear as two different ones in a filter. The script lists each change when it runs, and checks that every other recorded value, and every position, equals the archived file's."
+  },
+  {
+   "id": "BLD-10",
+   "topic": "Values read from the recorded text of the instrumented buildings",
+   "choice": "Values are read from text and stored beside it so that they can be filtered on: station_number (the digits after 'staID=CE' in the address of the station page); stories (the leading whole number of 'Num of Stories'); design_year (the first year in 'Design Date'); and, from 'Instrumentation', the year at its start, the first count of accelerometers (those in the building), the number of levels, and whether a free-field site is mentioned.",
+   "basis": "The text is kept unchanged beside each value, and is what a building's popup shows. One story count is not a plain number: '5 plus dome', read as 5. Five design dates hold more than a year: '1965 & 1992 (retrofit)' and '1965(original), 2000(retrofit)' are read as 1965, '1948 & 1955' as 1948, '1975 & 1978' as 1975, and '1976 (strengthened)', the State Capitol, as 1976. Two buildings have no design date, two no instrumentation year, and one no instrumentation note at all. Sensors at free-field, ground, downhole or adjacent sites are not counted as in the building. One story count disagrees with its station's name ('Belmont - 2-story Office Bldg' is recorded with 3 stories); it is used as recorded."
   }
  ],
  "verification": [
@@ -267,12 +279,24 @@
    "result": "Each filter tested returns the same number of bridges as an independent count from the data file."
   },
   {
+   "check": "Filters of every inventory, after they were rebuilt as one mechanism",
+   "result": "On 2026-11-26 the dashboard's filters were rebuilt so that every inventory describes its own. For 30 settings of the bridge filters, covering each filter, the dashboard returns the same number of bridges as it did before the change and as an independent count from the data file. For 25 settings of the CSMIP building filters and 80 of the LA Times building filters, covering each filter, every fragility class and every occupancy, it returns the number an independent count from the data file gives, and the map holds that same number of buildings."
+  },
+  {
+   "check": "Combining the instrumented buildings",
+   "result": "The combined file has 61 buildings with 61 distinct station numbers. A check in the script confirms that every position and every recorded value equals the archived file's, apart from the thirteen format changes of decision BLD-09."
+  },
+  {
    "check": "Damage calculation against an independent implementation",
    "result": "The table produced by the dashboard was compared with the one produced by separate reference code (tools/damage_reference.py), using made-up test layers that are not published: a hazard map at two probability levels and a scenario. For all 25,974 bridges the two tables are identical, character for character."
   },
   {
    "check": "Summary and download",
    "result": "The expected counts shown on the dashboard equal the sums from the reference table. A table downloaded with a county filter applied contains exactly the reference rows for that county."
+  },
+  {
+   "check": "Damage tables after the filters were rebuilt",
+   "result": "On 2026-11-26, with the rebuilt filters, the dashboard's table was compared again with the reference code on made-up test layers that are not published: a hazard map at two levels and a scenario. For all 25,974 bridges the tables are identical, and every row equals the one the dashboard gave before the change. Two tables downloaded with a county filter applied contain exactly the reference rows for that county, and the header of a filtered table states the filter."
   },
   {
    "check": "SR-HazardMaker against ShakeMap files",
@@ -318,6 +342,7 @@
   "Only ground shaking is considered. Liquefaction, landslide and fault-rupture displacement are not (decision HZ-08).",
   "NBI values are as submitted by the owning agencies. No value has been corrected.",
   "The building layers date from 2017 and have not been updated.",
+  "Six of the CSMIP instrumented buildings are marked as from the original site's non-ductile layer. The other 55 were never classified; the mark is not a statement that they are ductile.",
   "The Los Angeles concrete buildings carry their HAZUS fragility class and its parameters, but the dashboard does not yet estimate damage to buildings. The parameters are read against a building's drift or spectral displacement, which a hazard layer does not give directly; how that is to be estimated is not yet decided."
  ],
  "damage_decisions": [

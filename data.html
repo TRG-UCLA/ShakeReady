@@ -24,12 +24,9 @@
     <tr><td>NBI bridges</td><td class="count">25,975</td>
         <td>California highway bridges from the FHWA National Bridge Inventory, 2025: location, county, facility carried and feature crossed, year built and reconstructed, lanes, traffic, construction type, span count and lengths, skew, condition ratings for deck, superstructure, substructure, channel and culvert, and each bridge's HAZUS fragility class. The dashboard shows 25,974; one record has no usable coordinates and appears in the CSV only.</td>
         <td><a href="data/bridges.json" download>JSON</a> · <a href="data/nbi_bridges.csv" download>CSV</a></td></tr>
-    <tr><td>Instrumented buildings</td><td class="count">55</td>
-        <td>Buildings with CESMD strong-motion instrumentation: station, stories, plan shape, dimensions, design date, and sensor layout, with links to station pages.</td>
-        <td><a href="data/instrumented_buildings.geojson" download>GeoJSON</a></td></tr>
-    <tr><td>Instrumented non-ductile buildings</td><td class="count">6</td>
-        <td>Instrumented buildings of non-ductile concrete construction in Los Angeles, with structural details and instrumentation history.</td>
-        <td><a href="data/instrumented_nonductile_buildings.geojson" download>GeoJSON</a></td></tr>
+    <tr><td>CSMIP Instrumented Buildings</td><td class="count">61</td>
+        <td>Buildings instrumented by the California Strong Motion Instrumentation Program: station name and number, address, stories, basement levels, plan shape, dimensions, design date and sensor layout, with links to CESMD station pages. One inventory since November 2026, combining the two layers of the original site: 55 instrumented buildings, and 6 in Los Angeles that the original team listed apart as non-ductile concrete. Each building records the layer it came from. The other 55 were not classified, which does not make them ductile.</td>
+        <td><a href="data/csmip_instrumented_buildings.geojson" download>GeoJSON</a><br>As first archived: <a href="data/instrumented_buildings.geojson" download>the 55</a> · <a href="data/instrumented_nonductile_buildings.geojson" download>the 6</a></td></tr>
     <tr><td>LA Times concrete buildings</td><td class="count">1,451</td>
         <td>Pre-1976 concrete buildings in Los Angeles identified by the LA Times survey, with addresses and building names. Each building now carries its HAZUS fragility class, from the dataset below.</td>
         <td><a href="data/latimes_concrete_buildings.geojson" download>GeoJSON</a></td></tr>

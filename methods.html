@@ -101,13 +101,13 @@ Promise.all([
   document.getElementById("stamp").textContent = `Data release ${P.release}. This record was generated ${P.generated_utc.replace("T", " ").replace("Z", " UTC")}.`;
 
   document.getElementById("datasets-out").innerHTML = P.datasets.map(ds => {
-    const s = P.sources[ds.source];
+    const sources = [].concat(ds.sources || ds.source).map(k => P.sources[k]);     // one source, or several where files were combined
     return `<section class="prov-ds" id="ds-${esc(ds.id)}"><h3>${esc(ds.title)}</h3>
-      <dl class="prov-dl">
-        <dt>Source</dt><dd>${esc(s.title)}. ${esc(s.publisher)}. ${link(s.url)}${s.file_url ? `, <a href="${esc(s.file_url)}" rel="noopener">source file</a>` : ""}</dd>
+      <dl class="prov-dl">${sources.map((s, i) => `
+        <dt>Source${sources.length > 1 ? " " + (i + 1) : ""}</dt><dd>${esc(s.title)}. ${esc(s.publisher)}. ${link(s.url)}${s.file_url ? `, <a href="${esc(s.file_url)}" rel="noopener">source file</a>` : ""}</dd>
         <dt>Retrieved</dt><dd>${esc(s.retrieved_utc)}</dd>
         <dt>Source checksum</dt><dd><code>${esc(s.sha256)}</code> (SHA-256, ${fmt(s.bytes)} bytes)</dd>
-        <dt>Note</dt><dd>${esc(s.note)}</dd>
+        <dt>Note</dt><dd>${esc(s.note)}</dd>`).join("")}
         <dt>Processing</dt><dd><ol>${ds.processing.map(p => `<li>${esc(p)}</li>`).join("")}</ol>Done by: ${ds.script.startsWith("tools/") ? `<a href="https://github.com/TRG-UCLA/ShakeReady/blob/main/${esc(ds.script)}" rel="noopener">${esc(ds.script)}</a>` : esc(ds.script)}</dd>
         <dt>Published files</dt><dd>${ds.published_files.map(f => `<a href="${esc(f.path)}">${esc(f.path)}</a>: ${fmt(f.records)} records, ${fmt(f.bytes)} bytes<br><code>${esc(f.sha256)}</code>`).join("<br>")}</dd>
       </dl></section>`;
