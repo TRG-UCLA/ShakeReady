@@ -49,6 +49,12 @@ several (data, code, publications, people, projects).
   inventories and work with them." A national inventory, or a BRAILS-corrected one, would be "just new inventories
   (that may have overlaps with other inventories)". So never fold a new source into an existing inventory's file, and
   keep each inventory's own record of where it came from. See "More building inventories" below.
+- **Fragilities are matched to inventories in the Damage part.** The owner, 2026-11-27: an inventory may have no
+  fragilities, one set, or several alternatives. Where it has none, the site gives the shaking at each item for
+  download, so that people can do their own damage analysis elsewhere, perhaps with fragilities they do not wish to
+  share. Where it has several, the page shows **one at a time**: "We can have the people aggregate and otherwise
+  post-process results elsewhere." **The fragility choice is offered only for inventories that are turned on under
+  Inventory.** So: no totals across inventories, and no side-by-side comparison of alternatives, on the site.
 - Mission line (hero): "Disseminating tools and data that contribute to quantifying and
   improving seismic resilience, worldwide."
 - Footer: "An international collaboration of universities and research centers."
@@ -146,7 +152,8 @@ the name as accepted. A mock-up must not show real-looking data: use plain place
 - **Regional analysis** is the existing dashboard (`dashboard.html`; the menu calls it "Regional analysis").
   At the owner's request its panel has three parts, as tabs: **Inventory** (each inventory as a block that opens to
   its own filters; see "The Inventory part of the regional dashboard" below), **Hazard** (the hazard layer, its level, the shaking and the fault on the map) and
-  **Damage** (fragility set, what to color bridges by, summary, download). Each tab shows its current setting
+  **Damage** (one block for each inventory turned on: its fragility choice, its results and its downloads; see "The
+  Damage part" below). Each tab shows its current setting
   under its name. Because the Damage part may not be the one open, the bridge colors are also explained by a
   legend on the map itself. Arriving with `?hazard=` opens on Damage.
 - **Local analysis** is planned and not built: one site, a target spectrum, and a suite of ground motions for
@@ -288,6 +295,34 @@ Buildings and develop filters for that inventory to downselect a subset based on
 - Not done, and not asked for: damage for buildings (see the section on fragility classes below); a CSV of the CSMIP
   inventory; friendlier popups for the LA Times buildings, which still list every attribute as recorded.
 
+## The Damage part: one block for each inventory turned on (built 2026-11-27)
+
+The owner approved this design the same day ("I like this design"); his rules are in "Decisions already made".
+
+- **One block per inventory that is ticked under Inventory**, and only those. The bridges' block is in the page's markup
+  (`#dmg-block-bridges`) and holds what the Damage part held before: the fragility choice, the colors, the summary and
+  the damage table. Blocks for the other inventories are made by `addDamageBlock`. `renderDamagePane` shows and hides
+  them and runs whenever an inventory is turned on or off, filtered, or the hazard changes. Before a hazard layer is
+  chosen the part shows only a note asking for one.
+- **Fragility choice.** An inventory's `fragilities` in `data/registry.json` lists the sets that can be applied to it.
+  The choice offers them one at a time, with "None: shaking values only" always last. Today only the bridges have a set
+  (HAZUS highway bridges). An inventory with none says so. **To add a set to the bridges, list it in the registry. To
+  give a building inventory damage estimates, the calculation has to be written first:** the dashboard applies
+  fragilities to the bridge inventory only, and a building inventory that lists a set gets a note saying it cannot be
+  applied yet. The two Hazus building methods for the LA concrete buildings are the first that would use this (see the
+  section on their fragility classes): each would be one choice in that inventory's block.
+- **Shaking values for every inventory** (decision DMG-10): each block has a download, CSV and GeoJSON, of every
+  measure in the hazard layer at each structure shown, read as the damage calculation reads it, with the structure's
+  own attributes and a header naming the sources. With no fragilities chosen, a block also shows the lowest, median and
+  highest of each measure. Building popups give the shaking at the building. `tools/shaking_reference.py` is the
+  independent reference; the test compares every value for all three inventories.
+- **Not built, only mentioned to the owner:** a general calculation for lognormal curves by class, which would let most
+  published fragilities be added without new code; a true Excel file with the sources on a second sheet (he was told
+  CSV opens in Excel and did not ask for more); a fragility table of the user's own, loaded in the browser and never
+  uploaded, as hazard layers made on the device are; coloring buildings on the map by the shaking at them.
+- **Kept identical:** the bridge damage table, its header apart from the "Filters in effect" line, and every count,
+  checked against the reference and against a recording of the dashboard as it was before 2026-11-26.
+
 ## More building inventories: examined 2026-11-27, nothing built or decided
 
 The owner asked whether "the national building inventory" can be brought in, and pointed to Zsarnóczay's work improving
@@ -422,7 +457,9 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
   - **Not yet read:** the capacity curve rows; the elastic damping of each building type; the text on how the
     performance point is found; the assumptions behind the equivalent-PGA curves. The manual says the PGA-based
     fragilities are given as guidance and are not currently used in Hazus itself.
-  - **Put to the owner, not yet answered:** (1) for a probabilistic hazard layer, which has no magnitude, use the
+  - **Put to the owner:** questions 2 and 3 were answered on 2026-11-27 (each method is a choice in the inventory's
+    block in the Damage part, one at a time; buildings get their own block, as described in "The Damage part").
+    Question 1 is still open. They were: (1) for a probabilistic hazard layer, which has no magnitude, use the
     manual's duration convention by return period; (2) offer both methods side by side, labeled, since Method 2
     is guidance only; (3) show buildings as bridges are shown: probability maps, counts by damage state, a
     download.
