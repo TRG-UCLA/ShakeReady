@@ -44,6 +44,11 @@ several (data, code, publications, people, projects).
 
 ## Decisions already made
 
+- **A new inventory is added beside the others. It never overwrites or supersedes one.** The owner, 2026-11-27 (typing slips corrected): "I do not
+  want to overwrite or supersede the LA Times building inventory. I just want ShakeReady to be able to absorb new
+  inventories and work with them." A national inventory, or a BRAILS-corrected one, would be "just new inventories
+  (that may have overlaps with other inventories)". So never fold a new source into an existing inventory's file, and
+  keep each inventory's own record of where it came from. See "More building inventories" below.
 - Mission line (hero): "Disseminating tools and data that contribute to quantifying and
   improving seismic resilience, worldwide."
 - Footer: "An international collaboration of universities and research centers."
@@ -282,6 +287,55 @@ Buildings and develop filters for that inventory to downselect a subset based on
   of the first. None has been checked against its source.
 - Not done, and not asked for: damage for buildings (see the section on fragility classes below); a CSV of the CSMIP
   inventory; friendlier popups for the LA Times buildings, which still list every attribute as recorded.
+
+## More building inventories: examined 2026-11-27, nothing built or decided
+
+The owner asked whether "the national building inventory" can be brought in, and pointed to Zsarnóczay's work improving
+on it with BRAILS++. He is thinking the propositions over. **Do not build or publish any of this until he says so.**
+
+- **His rule** is in "Decisions already made": new inventories sit beside the existing ones. What follows from it, in
+  Claude's reading and told to him: counts and damage are reported per inventory and are **never added across
+  inventories**, because the same building can be in two of them; a combined total would need a new inventory in which
+  someone has resolved the overlap. Where two inventories describe one building differently, show both; pick neither.
+- **The national inventory** is the Army Corps of Engineers' National Structure Inventory (NSI). NSI 2026 came out in
+  June 2026, the first update since 2022. It is built for flood studies: the public file has a broad wall material but
+  no structural system, and its year built is a census-tract median. USACE calls it a baseline for screening and
+  regional work. A county or a bounding box comes from its service (`nsi.sec.usace.army.mil/nsiapi`), a state from its
+  downloads. California has about 11.5 million buildings (Microsoft's footprint count), so it cannot come in as one file
+  of points the way the bridges did.
+- **BRAILS++ 5.0.0rc1** (branch `new_release` of NHERI-SimCenter/BrailsPlusPlus, merged 2026-11-20; the published
+  version is 4.3.1) adds a Hazus earthquake inventory compiler. Given a place in a West Coast state and its 1997 UBC
+  seismic zone (3 or 4 in California), it gathers Overture footprints, NSI 2026 records, census tables and mobile-home
+  parks, and writes one building per footprint: occupancy class, units, stories, year built, design level, Hazus
+  structure type, height class, replacement cost, block group, and a string recording the source of each value. It
+  writes ten "possible worlds" by default: a value that differs between worlds is a list of ten, and the file carries
+  `n_worlds`. Beside the GeoJSON it writes a report and a manifest of checksums. It needs a free Census API key, about
+  4 GB of memory, and open internet. By default it refuses an area of more than 800 block groups. Structure types are
+  drawn from Hazus tables, not observed. The footprints are Overture data under the Open Database License, to be
+  credited wherever a compiled inventory is published. The "county files" its examples mention belong to the SimCenter
+  Bay Area testbed; no public link was found, and none is indicated for Los Angeles.
+- **Also read:** Lochhead, Zsarnóczay and Deierlein, "Exposure Matters" (Int. J. Disaster Risk Reduction, 2026), on
+  Hayward with NSI 2022: a plain join of NSI points to footprints loses records; NSI undercounts mobile homes and
+  overstates masonry. Its code is `mlochhead/Building_Inventory_Generation`.
+- **What Claude ran.** Claude's sandbox cannot reach Overture, NSI or the Census, so no real area was compiled. With
+  stand-ins for the image-recognition libraries (which the compiler never calls), the release candidate's 428 compiler
+  tests pass, and 2,347 of its 2,348 offline tests. Its own made-up test area (`build_inputs()` in
+  `tests/compilers/hazus_earthquake/compiler_fixtures.py`) compiled end to end: 42 buildings, ten worlds.
+- **A prototype, in a scratch copy only, not committed.** The compiled sample was turned into points at the footprint
+  centers and listed in the registry as one more `geojson-points` inventory, with filters described there. Two changes
+  let the dashboard read it: `valueOf` returns the chosen world's entry when a value is a list of `n_worlds`, and an
+  inventory whose file has `n_worlds` above 1 gets a "Possible world" choice that rebuilds its filters and counts. About
+  50 lines. Counts matched independent counts in three worlds. Rough size: 0.7 kB per building as such a layer, so about
+  20 MB for 30,000 buildings; a city district works building by building, the City of Los Angeles would need summaries.
+- **Put to the owner, not answered:** compile a pilot area first, such as a box of about 4 by 4 km over downtown Los
+  Angeles (longitude -118.27 to -118.23, latitude 34.03 to 34.065), which holds 395 of the 1,451 LA Times buildings, so
+  that the two inventories can be seen side by side. The compile would be run either by someone on his side with the
+  notebook `examples/hazus_eq_compiler/compile_city_inventory.ipynb`, or by a job on GitHub's machines set up in this
+  repository, which is untested and needs his go-ahead and a Census key stored as a secret.
+- **What "absorbing an inventory" still lacks**, beyond the registry and its filters: a written list of what a new
+  inventory must bring (its file, its filters, its source and license, and a class attribute if it is to get damage)
+  with a checker for it; inventories of several possible worlds; inventories too large to load, shown as summaries; and
+  damage for buildings at all.
 
 ## Reading damage on the dashboard
 
