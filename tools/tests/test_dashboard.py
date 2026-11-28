@@ -294,10 +294,11 @@ def check_shaking(page):
     blocks = [('bridges', 'nbi-bridges', len(R)), ('csmip-buildings', 'csmip-buildings', len(CS)), ('latimes-concrete', 'latimes-concrete', len(LT))]
     seen = lambda: [page.is_visible(f'#dmg-block-{b}') for b, _, _ in blocks]
     page.click('#tab-inventory'); open_section(page, 'nbi-bridges'); page.click('#inv-nbi-bridges .btn-reset'); page.click('#tab-damage')
-    check('Damage part: only the inventory that is turned on has a block', seen() == [True, False, False] and not page.is_visible('#dmg-none'), seen())
+    check('Damage part: only the inventory that is turned on has a block, and its fragility choice', seen() == [True, False, False] and not page.is_visible('#dmg-none') and not page.is_visible('#frag-latimes-concrete'), seen())
     check('Damage part: the fragility choice is there for the bridges', page.is_visible('#fragility') and page.locator('#fragility option').all_inner_texts() == ['HAZUS highway bridges', 'None: shaking values only'], page.locator('#fragility option').all_inner_texts())
     page.click('#tab-inventory'); page.check('#lyr-csmip-buildings'); page.check('#lyr-latimes-concrete'); page.click('#tab-damage')
     check('Damage part: a block for each inventory turned on', seen() == [True, True, True], seen())
+    page.select_option('#frag-latimes-concrete', value='')            # no fragilities for now: this part is about the shaking values
     check('Damage part: an inventory without fragilities says so and offers no choice', 'No fragilities are defined for this inventory' in page.inner_text('#dmg-block-csmip-buildings') and page.locator('#dmg-block-csmip-buildings select').count() == 0)
     for hazard, level in (('test-scenario', None), ('test-map', 'rp2475')):
         choose_hazard(page, hazard, level)
@@ -335,6 +336,73 @@ def check_shaking(page):
     page.click('#tab-inventory'); page.uncheck('#lyr-csmip-buildings'); page.uncheck('#lyr-nbi-bridges'); page.click('#tab-damage')
     check('Damage part: with nothing turned on, it says so', page.is_visible('#dmg-none') and seen() == [False, False, False], seen())
     page.click('#tab-inventory'); page.check('#lyr-nbi-bridges'); page.click('#inv-latimes-concrete .btn-reset'); page.click('#tab-damage')
+
+# ------------------------------------------------------------------ building damage, against tools/building_damage_reference.py
+def building_reference(site, fragility, hazard, level=None):
+    import csv, io
+    out = subprocess.run([sys.executable, 'tools/building_damage_reference.py', fragility, f'hazards/{hazard}.json'] + ([level] if level else []),
+                         cwd=site, capture_output=True, text=True, check=True).stdout
+    rows = list(csv.reader(io.StringIO(out)))
+    return rows[0], rows[1:]
+
+def check_buildings(page):
+    """The LA Times block offers the two Hazus methods; each gives, for every building, the table the reference gives."""
+    K = 'latimes-concrete'; BLOCK = f'#dmg-block-{K}'
+    FRAGS = [('hazus-buildings-capacity-spectrum', 'Hazus Method 1: capacity spectrum'), ('hazus-buildings-equivalent-pga', 'Hazus Method 2: equivalent PGA (guidance only)')]
+    def get():
+        with page.expect_download() as d: page.click(f'{BLOCK} [data-dmg-download]')
+        return d.value.suggested_filename, open(d.value.path(), encoding='utf-8').read()
+    page.click('#tab-inventory'); page.check(f'#lyr-{K}'); page.click('#tab-damage')
+    options = page.locator(f'#frag-{K} option').all_inner_texts()
+    check('building damage: the block offers the two methods, and None', options == [FRAGS[0][1], FRAGS[1][1], 'None: shaking values only'], options)
+    for hazard, level, duration in (('test-scenario', None, 'short'), ('test-map', 'rp475', 'moderate'), ('test-map', 'rp2475', 'long'), ('test-plain', None, 'moderate')):
+        choose_hazard(page, hazard, level)
+        for frag, title in FRAGS:
+            page.select_option(f'#frag-{K}', value=frag); page.wait_for_timeout(150)
+            name, text = get(); cols, rows = table_of(text); rcols, rrows = building_reference(SITE, frag, hazard, level)
+            bad = [(a, b) for a, b in zip(rows, rrows) if a != b]; none = sum(1 for r in rrows if r[-1] == '')
+            check(f'building damage {hazard}/{level}, {title}: the table equals the reference for all {len(rrows)}', cols == rcols and len(rows) == len(rrows) == len(LT) and not bad,
+                  (name, len(rows), len(bad), [(x, y) for x, y in zip(*bad[0]) if x != y][:5] if bad else ''))
+            if 'capacity' in frag:
+                check(f'building damage {hazard}/{level}: duration {duration}, on the page and in the table', {r[rcols.index('duration')] for r in rrows if r[-1]} == {duration}
+                      and f'Duration of shaking taken as {duration}' in page.inner_text(f'{BLOCK} [data-frag-note]') and any(l.startswith(f'# Duration of shaking: {duration}') for l in text.splitlines()), page.inner_text(f'{BLOCK} [data-frag-note]'))
+            at = rcols.index('p_none'); sums = [sum(float(r[at + i]) for r in rrows if r[-1]) for i in range(5)]
+            txt = page.inner_text(f'{BLOCK} [data-summary]'); got = [int(re.search(rf'{n}\s+([\d,]+)', txt).group(1).replace(',', '')) for n in ('None', 'Slight', 'Moderate', 'Extensive', 'Complete')]
+            check(f'building damage {hazard}/{level}, {title}: expected numbers on the page', all(abs(g - x) <= 1 for g, x in zip(got, sums)) and (none == 0 or f'{none:,}' in txt.split('No estimate')[1]), (got, [round(x, 1) for x in sums]))
+    lines = text.splitlines()
+    check('building damage: the table names its sources and choices', any(l.startswith('# Fragility classes: assigned by A. Nigdelioglu, Z. Tuna Deger and E. Taciroglu') for l in lines)
+          and any(l.startswith('# Recorded choices in effect: HB-07, HB-08, DMG-01') for l in lines) and any('Hazus itself does not currently use them' in l for l in lines) and not any('${' in l or 'undefined' in l for l in lines), [l for l in lines if l.startswith('# Recorded')])
+    check('building damage: Method 2 is labeled as guidance on the page', 'Hazus itself does not currently use them' in page.inner_text(f'{BLOCK} [data-frag-note]'))
+    page.select_option(f'#frag-{K}', value=FRAGS[0][0]); page.wait_for_timeout(200)
+    page.click('#tab-inventory'); page.uncheck('#lyr-nbi-bridges'); open_section(page, K); do(page, K, [('text', 'q', 'wilshire')]); page.click(f'#inv-{K} [data-zoom]'); page.wait_for_timeout(1000)
+    px = page.evaluate("""() => { const s = INV[2], out = [], all = s.layer.getLayers(), pts = all.map(m => map.latLngToContainerPoint(m.getLatLng()));
+        all.forEach((m, n) => { const pt = pts[n], r = map.getRenderer(m), c = r._container, k = c.width / c.clientWidth, box = c.getBoundingClientRect(), mb = map.getContainer().getBoundingClientRect();
+          const d = r._ctx.getImageData(Math.round((pt.x + mb.left - box.left) * k), Math.round((pt.y + mb.top - box.top) * k), 1, 1).data, want = metricColor(bldValue(s, s.dmgMap.get(m.feature)), 'pex');
+          const alone = pts.every((q, j) => j === n || Math.hypot(q.x - pt.x, q.y - pt.y) > 16);        // no other circle over this one's center
+          out.push([want, '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase(), d[3], m.options.fillColor, alone]); }); return out; }""")
+    alone = [x for x in px if x[4]]
+    painted = sum(1 for w, got, a, fc, _ in alone if a > 200 and all(abs(int(w[i:i + 2], 16) - int(got[i:i + 2], 16)) < 30 for i in (1, 3, 5)))
+    check('building damage: each building is drawn in the color of its own estimate', len(px) > 5 and all(fc == w for w, got, a, fc, _ in px) and len(alone) >= 3 and painted == len(alone) and len({x[0] for x in px}) >= 2,
+          (len(px), len(alone), painted, sorted({x[0] for x in px})))
+    check('building damage: the map legend names the inventory', page.is_visible('#map-legend') and 'LA Times concrete buildings' in page.inner_text('#map-legend') and 'Probability of extensive damage or worse' in page.inner_text('#map-legend'), page.inner_text('#map-legend')[:100])
+    pop = page.evaluate("() => { INV[2].layer.getLayers()[0].openPopup(); return document.querySelector('.leaflet-popup-content').innerText; }")
+    check("building damage: a building's popup gives its estimate", all(t in pop for t in ('Hazus Method 1: capacity spectrum', 'Peak spectral displacement', 'Chance of extensive or complete damage', 'This or worse')), pop[-260:])
+    page.evaluate("() => { map.closePopup(); }")
+    page.click('#tab-damage')
+    name, text = get(); cols, rows = table_of(text); rcols, rrows = building_reference(SITE, FRAGS[0][0], 'test-plain')
+    want = [r for r, p in zip(rrows, LT) if has(p, ('address', 'building_name', 'zip_code'), 'wilshire')]
+    check('building damage: a filtered table holds exactly the buildings shown', rows == want and len(want) > 5 and any('# Filters in effect: Address, building name or ZIP code contains' in l for l in text.splitlines()), (len(rows), len(want)))
+    page.select_option(f'{BLOCK} [data-metric]', value='state'); page.wait_for_timeout(200)
+    check('building damage: coloring by likely state', not page.is_visible(f'{BLOCK} [data-state-row]') and 'Likely damage state' in page.inner_text(f'{BLOCK} [data-legend]') and page.evaluate("INV[2].layer.getLayers().every(m => STATE_COLORS.includes(m.options.fillColor))"))
+    page.select_option(f'{BLOCK} [data-metric]', value='pex'); page.select_option(f'#frag-{K}', value='')
+    check('building damage: with None, the shaking values and the plain color', not page.is_visible(f'{BLOCK} [data-dmg-controls]') and 'Shaking at the' in page.inner_text(f'{BLOCK} .dmg-shake')
+          and page.evaluate("INV[2].layer.getLayers().every(m => m.options.fillColor === INV[2].inv.color)") and not page.is_visible('#map-legend') and page.inner_text('#tabsub-damage') == 'Shaking values')
+    page.select_option(f'#frag-{K}', value=FRAGS[0][0]); page.wait_for_timeout(200)
+    check('building damage: the tab names it', page.inner_text('#tabsub-damage') == 'Building damage', page.inner_text('#tabsub-damage'))
+    page.click('#tab-inventory'); page.click(f'#inv-{K} .btn-reset'); page.check('#lyr-nbi-bridges'); page.click('#tab-damage'); page.wait_for_timeout(600)
+    check('building damage: bridges and buildings colored alike share one legend on the map', 'NBI bridges and LA Times concrete buildings' in page.inner_text('#map-legend'), page.inner_text('#map-legend')[:120])
+    page.click('#tab-inventory'); page.uncheck(f'#lyr-{K}'); page.click('#tab-damage')
+    check('building damage: turning the inventory off removes its block and its choice', not page.is_visible(BLOCK) and not page.is_visible(f'#frag-{K}'))
 
 def run():
     with browser_page(SITE) as page:
@@ -429,6 +497,7 @@ def run():
         ctx = urllib.parse.parse_qs(urllib.parse.urlparse(report).query)['context'][0]
         check('report link carries the selection', 'Bridges: 3,549 of 25,974; filters: County: Los Angeles' in ctx, ctx)
         check_shaking(page)
+        check_buildings(page)
         check('no page errors', not page.errors, page.errors)
 
 

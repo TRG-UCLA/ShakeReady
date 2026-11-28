@@ -1,0 +1,646 @@
+{
+ "id": "hazus-concrete-buildings",
+ "name": "Hazus concrete buildings: shear wall (C2) and frame with masonry infill (C3), Low-Code and Pre-Code",
+ "source": "FEMA, Hazus Earthquake Model Technical Manual, Hazus 6.1, July 2024: sections 4.1.3.2, 5.4.1 to 5.4.3 and 5.6.1; Tables 5-14, 5-15, 5-21, 5-22, 5-39, 5-40 and 5-42; Equations 4-2 to 4-4, 5-3 and 5-6 to 5-15",
+ "source_url": "https://www.fema.gov/sites/default/files/documents/fema_hazus-earthquake-model-technical-manual-6-1.pdf",
+ "implemented_by": "E. Taciroglu, in tools/hazus_buildings.py of ShakeReady. Where the manual is silent, the capacity-spectrum method follows Cao and Petersen (2006, Bulletin of the Seismological Society of America 96, 365-376) as implemented in the NHERI SimCenter's open code; see the decisions.",
+ "applies_to": "latimes-concrete",
+ "class_field": "hazus_fragility_class",
+ "classes_assigned_by": "A. Nigdelioglu, Z. Tuna Deger and E. Taciroglu (data/la_ndrcb_hazus_fragility.csv)",
+ "damage_states": [
+  "None",
+  "Slight",
+  "Moderate",
+  "Extensive",
+  "Complete"
+ ],
+ "methods": {
+  "hazus-capacity-spectrum": {
+   "title": "Hazus Method 1: capacity spectrum",
+   "summary": "The class's capacity curve is intersected with the demand spectrum built from Sa(0.3 s) and Sa(1.0 s) at the building and reduced for the damping the building develops. The damage-state probabilities are read from the class's lognormal curves on peak spectral displacement.",
+   "measures": [
+    "SA0P3",
+    "SA1P0"
+   ],
+   "decisions": [
+    "HB-01",
+    "HB-02",
+    "HB-03",
+    "HB-04",
+    "HB-05",
+    "HB-06",
+    "HB-07",
+    "HB-09"
+   ]
+  },
+  "hazus-equivalent-pga": {
+   "title": "Hazus Method 2: equivalent PGA",
+   "summary": "Lognormal curves on peak ground acceleration with dispersion 0.64, their medians converted with Equation 5-6 to the spectrum shape at the building.",
+   "caution": "The manual gives these curves as guidance for buildings of utility and transportation systems and says Hazus itself does not currently use them.",
+   "measures": [
+    "PGA",
+    "SA1P0"
+   ],
+   "decisions": [
+    "HB-07",
+    "HB-08"
+   ]
+  }
+ },
+ "beta_pga": 0.64,
+ "reference_sa1_over_pga": 1.5,
+ "durations": [
+  "short",
+  "moderate",
+  "long"
+ ],
+ "listed_return_periods": {
+  "100": "short",
+  "200": "short",
+  "500": "moderate",
+  "750": "moderate",
+  "1000": "moderate",
+  "1500": "long",
+  "2000": "long",
+  "2500": "long"
+ },
+ "units": {
+  "capacity": "yield displacement (in), yield acceleration (g), ultimate displacement (in), ultimate acceleration (g)",
+  "elastic_damping": "percent of critical",
+  "sd": "median (in) and lognormal standard deviation of peak spectral displacement, for slight, moderate, extensive and complete damage",
+  "pga": "median equivalent PGA (g) for the same four states, for the reference spectrum shape"
+ },
+ "transcription": "The rows of Tables 5-14, 5-15, 5-39, 5-40 and 5-42 for the six building types were read from the manual's text by script and compared with images of the pages; Tables 5-21 and 5-22 likewise, earlier. The equations are images in the manual and were read by eye from the rendered pages.",
+ "verification": "A self-test in tools/hazus_buildings.py checks the tables for consistency, that the capacity curve passes through its control points with the right slopes, that both damping reduction factors equal 1 at 5% damping, that Equation 5-6 returns the tabulated medians at the reference spectrum shape, and that the point found lies on both curves. The manual has no worked example for buildings to reproduce.",
+ "decisions": [
+  {
+   "id": "HB-01",
+   "topic": "Elastic damping of each building type",
+   "choice": "10% for low-rise, 8.5% for mid-rise and 7% for high-rise concrete buildings (C2 and C3).",
+   "basis": "The manual says elastic damping depends on the structure type and follows Newmark and Hall, but gives no values. These are the values in the NHERI SimCenter's open capacity-spectrum code (SimCenterBackendApplications, capacitySpectrum/DampingModels.py), which attributes them to Table 3 of Newmark and Hall (1982).",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-02",
+   "topic": "The capacity curve between yield and ultimate",
+   "choice": "An arc of an ellipse that leaves the yield point with the elastic slope and reaches the ultimate point with zero slope.",
+   "basis": "The manual says only that the curve passes from an elastic to a fully plastic state between the two points. The ellipse is the form given by Cao and Petersen (2006, Bull. Seismol. Soc. Am. 96, Appendix) and used in the SimCenter's code.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-03",
+   "topic": "Area of the hysteresis loop",
+   "choice": "The parallelogram through the peak points, with sides at the elastic stiffness and at the tangent stiffness of the capacity curve at the peak.",
+   "basis": "The manual defines the area as that of a symmetric push and pull of the capacity curve but gives no formula, and refers to Tokas and Lobo (2008) for the approach in Hazus. This is the formula of Cao and Petersen (2006), as written out by Steelman and Hajjar and in the SimCenter's code.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-04",
+   "topic": "Equation 5-10: hysteretic damping as a percentage",
+   "choice": "The term Area / (2 pi D A) is multiplied by 100 before it is added to the elastic damping.",
+   "basis": "Equations 5-7 and 5-8 take damping as a percentage: both reduction factors equal 1 at 5. Equation 5-10 as printed adds the fraction Area / (2 pi D A), which cannot exceed 0.64, to a percentage, which would make hysteretic damping and the degradation factors of Table 5-42 immaterial. The SimCenter's code adds the fraction as printed (the line that multiplies by 100 is commented out there), so results will differ from it.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-05",
+   "topic": "Effective damping along the demand spectrum",
+   "choice": "Each trial point on the capacity curve is tested against the demand spectrum reduced for that point's own effective damping, which also sets the period at which the acceleration and velocity domains meet (Equation 5-14). Beyond the period TVD the damping is that of the capacity-curve point whose period is TVD.",
+   "basis": "Equations 5-11 to 5-14 name the damping at each transition period but the manual does not describe the search for the intersection.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-06",
+   "topic": "Magnitude and duration",
+   "choice": "A scenario layer's magnitude sets TVD (Equation 4-4) and the duration (short up to 5.5, long from 7.5, moderate between). A probabilistic layer has no magnitude: TVD is taken as 10 s, as the manual assumes when the magnitude is unknown, and the duration follows the manual's convention by return period (100 and 200 years short; 500 to 1,000 moderate; 1,500 to 2,500 long), a return period between or beyond those taking the nearest. A layer with neither is treated as magnitude 7: TVD 10 s, moderate duration.",
+   "basis": "Manual, section 4.1.3.2 and the text after Table 5-42. The rule for return periods the manual does not list, and for layers with no magnitude, is ours.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-07",
+   "topic": "Ground motion at the building",
+   "choice": "The short-period and 1-second spectral accelerations of the demand spectrum are the hazard layer's Sa(0.3 s) and Sa(1.0 s) at the building, with no soil factors.",
+   "basis": "Decision DMG-03: the layer's values are used as they are, for the site condition the layer states.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-08",
+   "topic": "Method 2: the spectrum shape",
+   "choice": "The medians of Tables 5-39 and 5-40 are converted with Equation 5-6, taking the ratio of PGA to 1-second spectral acceleration from the hazard layer's own values at the building, in place of Tables 5-35 and 5-36, and a soil factor of 1.",
+   "basis": "The tabulated medians hold for a spectrum whose Sa(1.0 s) is 1.5 times its PGA, at a soil site. The manual provides Equation 5-6 for other shapes, with the ratio looked up from magnitude and distance; a hazard layer gives the ratio directly. The soil factor is 1 for the reason of HB-07. The alternative is to use the tabulated medians unchanged, which suits a soil site in a large earthquake and no other case.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-09",
+   "topic": "Constants in the period and displacement formulas",
+   "choice": "0.32 and 9.8, as printed in Equations 4-2, 4-3 and 5-15.",
+   "basis": "They are rounded forms of the exact values (0.3198 and 9.779 for inches and g). The printed values are kept so that the calculation is the manual's.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  }
+ ],
+ "classes": {
+  "C2L-LC": {
+   "type": "C2L",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete shear walls, low-rise, 1 to 3 stories, Low-Code",
+   "capacity": [
+    0.12,
+    0.1,
+    1.499,
+    0.25
+   ],
+   "elastic_damping": 10.0,
+   "kappa": {
+    "short": 0.6,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     0.72,
+     1.04
+    ],
+    [
+     1.37,
+     1.02
+    ],
+    [
+     3.55,
+     0.99
+    ],
+    [
+     9.0,
+     0.95
+    ]
+   ],
+   "pga": [
+    0.14,
+    0.19,
+    0.3,
+    0.52
+   ]
+  },
+  "C2L-PC": {
+   "type": "C2L",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete shear walls, low-rise, 1 to 3 stories, Pre-Code",
+   "capacity": [
+    0.12,
+    0.1,
+    1.499,
+    0.25
+   ],
+   "elastic_damping": 10.0,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     0.58,
+     1.12
+    ],
+    [
+     1.1,
+     1.08
+    ],
+    [
+     2.84,
+     1.06
+    ],
+    [
+     7.2,
+     0.93
+    ]
+   ],
+   "pga": [
+    0.11,
+    0.15,
+    0.24,
+    0.42
+   ]
+  },
+  "C2M-LC": {
+   "type": "C2M",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete shear walls, mid-rise, 4 to 7 stories, Low-Code",
+   "capacity": [
+    0.26,
+    0.083,
+    2.163,
+    0.208
+   ],
+   "elastic_damping": 8.5,
+   "kappa": {
+    "short": 0.6,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     1.2,
+     0.83
+    ],
+    [
+     2.29,
+     0.81
+    ],
+    [
+     5.92,
+     0.82
+    ],
+    [
+     15.0,
+     1.0
+    ]
+   ],
+   "pga": [
+    0.12,
+    0.19,
+    0.38,
+    0.63
+   ]
+  },
+  "C2M-PC": {
+   "type": "C2M",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete shear walls, mid-rise, 4 to 7 stories, Pre-Code",
+   "capacity": [
+    0.26,
+    0.083,
+    2.163,
+    0.208
+   ],
+   "elastic_damping": 8.5,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     0.96,
+     0.86
+    ],
+    [
+     1.83,
+     0.83
+    ],
+    [
+     4.74,
+     0.8
+    ],
+    [
+     12.0,
+     0.98
+    ]
+   ],
+   "pga": [
+    0.1,
+    0.15,
+    0.3,
+    0.5
+   ]
+  },
+  "C2H-LC": {
+   "type": "C2H",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete shear walls, high-rise, 8 or more stories, Low-Code",
+   "capacity": [
+    0.735,
+    0.063,
+    4.593,
+    0.159
+   ],
+   "elastic_damping": 7.0,
+   "kappa": {
+    "short": 0.6,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     1.73,
+     0.68
+    ],
+    [
+     3.3,
+     0.73
+    ],
+    [
+     8.53,
+     0.84
+    ],
+    [
+     21.6,
+     0.95
+    ]
+   ],
+   "pga": [
+    0.11,
+    0.19,
+    0.38,
+    0.65
+   ]
+  },
+  "C2H-PC": {
+   "type": "C2H",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete shear walls, high-rise, 8 or more stories, Pre-Code",
+   "capacity": [
+    0.735,
+    0.063,
+    4.593,
+    0.159
+   ],
+   "elastic_damping": 7.0,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     1.38,
+     0.73
+    ],
+    [
+     2.64,
+     0.75
+    ],
+    [
+     6.82,
+     0.92
+    ],
+    [
+     17.28,
+     0.97
+    ]
+   ],
+   "pga": [
+    0.09,
+    0.15,
+    0.31,
+    0.52
+   ]
+  },
+  "C3L-LC": {
+   "type": "C3L",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, low-rise, 1 to 3 stories, Low-Code",
+   "capacity": [
+    0.12,
+    0.1,
+    1.349,
+    0.225
+   ],
+   "elastic_damping": 10.0,
+   "kappa": {
+    "short": 0.5,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     0.54,
+     1.09
+    ],
+    [
+     1.08,
+     1.07
+    ],
+    [
+     2.7,
+     1.08
+    ],
+    [
+     6.3,
+     0.91
+    ]
+   ],
+   "pga": [
+    0.12,
+    0.17,
+    0.26,
+    0.44
+   ]
+  },
+  "C3L-PC": {
+   "type": "C3L",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, low-rise, 1 to 3 stories, Pre-Code",
+   "capacity": [
+    0.12,
+    0.1,
+    1.349,
+    0.225
+   ],
+   "elastic_damping": 10.0,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     0.43,
+     1.19
+    ],
+    [
+     0.86,
+     1.15
+    ],
+    [
+     2.16,
+     1.16
+    ],
+    [
+     5.04,
+     0.92
+    ]
+   ],
+   "pga": [
+    0.1,
+    0.14,
+    0.21,
+    0.35
+   ]
+  },
+  "C3M-LC": {
+   "type": "C3M",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, mid-rise, 4 to 7 stories, Low-Code",
+   "capacity": [
+    0.26,
+    0.083,
+    1.946,
+    0.188
+   ],
+   "elastic_damping": 8.5,
+   "kappa": {
+    "short": 0.5,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     0.9,
+     0.85
+    ],
+    [
+     1.8,
+     0.83
+    ],
+    [
+     4.5,
+     0.79
+    ],
+    [
+     10.5,
+     0.98
+    ]
+   ],
+   "pga": [
+    0.11,
+    0.17,
+    0.32,
+    0.51
+   ]
+  },
+  "C3M-PC": {
+   "type": "C3M",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, mid-rise, 4 to 7 stories, Pre-Code",
+   "capacity": [
+    0.26,
+    0.083,
+    1.946,
+    0.188
+   ],
+   "elastic_damping": 8.5,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     0.72,
+     0.9
+    ],
+    [
+     1.44,
+     0.86
+    ],
+    [
+     3.6,
+     0.9
+    ],
+    [
+     8.4,
+     0.96
+    ]
+   ],
+   "pga": [
+    0.09,
+    0.14,
+    0.25,
+    0.41
+   ]
+  },
+  "C3H-LC": {
+   "type": "C3H",
+   "level": "LC",
+   "design_level": "Low-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, high-rise, 8 or more stories, Low-Code",
+   "capacity": [
+    0.735,
+    0.063,
+    4.134,
+    0.143
+   ],
+   "elastic_damping": 7.0,
+   "kappa": {
+    "short": 0.5,
+    "moderate": 0.3,
+    "long": 0.1
+   },
+   "sd": [
+    [
+     1.3,
+     0.71
+    ],
+    [
+     2.59,
+     0.74
+    ],
+    [
+     6.48,
+     0.9
+    ],
+    [
+     15.12,
+     0.96
+    ]
+   ],
+   "pga": [
+    0.09,
+    0.16,
+    0.33,
+    0.53
+   ]
+  },
+  "C3H-PC": {
+   "type": "C3H",
+   "level": "PC",
+   "design_level": "Pre-Code",
+   "description": "Concrete frame with unreinforced masonry infill walls, high-rise, 8 or more stories, Pre-Code",
+   "capacity": [
+    0.735,
+    0.063,
+    4.134,
+    0.143
+   ],
+   "elastic_damping": 7.0,
+   "kappa": {
+    "short": 0.4,
+    "moderate": 0.2,
+    "long": 0.0
+   },
+   "sd": [
+    [
+     1.04,
+     0.73
+    ],
+    [
+     2.07,
+     0.74
+    ],
+    [
+     5.18,
+     0.9
+    ],
+    [
+     12.1,
+     0.95
+    ]
+   ],
+   "pga": [
+    0.08,
+    0.13,
+    0.27,
+    0.43
+   ]
+  }
+ }
+}

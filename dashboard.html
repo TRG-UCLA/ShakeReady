@@ -144,6 +144,13 @@ footer a{color:var(--muted)}
 .shake-get{margin-top:14px}
 .shake-actions{flex-wrap:wrap;margin-top:0}
 .shake-actions button{flex:1}
+.dmg-sum{font-size:13px;margin:4px 0 2px}
+.dmg-sum table{width:100%;border-collapse:collapse;margin:6px 0}
+.dmg-sum td{padding:3px 0;border-bottom:1px solid var(--line)}
+.dmg-sum td:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--paper)}
+.dmg-sum td i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px}
+.legend-inv{font-weight:600;margin:8px 0 4px}
+.legend-inv:first-child{margin-top:0}
 #dmg-summary{font-size:13px;margin:4px 0 2px}
 #dmg-summary table{width:100%;border-collapse:collapse;margin:6px 0}
 #dmg-summary td{padding:3px 0;border-bottom:1px solid var(--line)}
@@ -654,7 +661,7 @@ function applyFilters(s){
   s.shown = s.active.length ? s.records.filter(r => s.active.every(a => a.test(r))) : s.records;
   s.applied = controlsState(s);
   if (s.pending) s.pending.hidden = true;
-  if (s.rows) renderBridges(); else { s.layer.clearLayers(); s.layer.addData({type: "FeatureCollection", features: s.shown}); updateCounts(s); }
+  if (s.rows) renderBridges(); else { redrawPoints(s); updateCounts(s); }
 }
 const filterText = s => s.active.map(a => a.text).join("; ");
 
@@ -804,9 +811,7 @@ function updateTabNotes(){
   updateReportLink();
   const short = s => s.length > 22 ? s.slice(0, 21) + "…" : s;
   document.getElementById("tabsub-hazard").textContent = HAZ ? short(HAZ.title) : "None";
-  const metric = document.getElementById("dmg-metric").value;
-  document.getElementById("tabsub-damage").textContent = !HAZ ? "Needs a hazard" : !(damageActive() && BR && BR.box.checked) ? "Shaking values"
-    : metric === "pex" ? ["", "Slight or worse", "Moderate or worse", "Extensive or worse", "Complete"][mappedState()] : metric === "state" ? "Likely state" : "Shaking at bridges";
+  setDamageTabNote();
   document.getElementById("damage-all").hidden = !HAZ;
   document.getElementById("dmg-need-hazard").hidden = !!HAZ;
 }
@@ -816,16 +821,32 @@ const mapLegend = L.control({position: "bottomleft"});
 mapLegend.onAdd = () => { const d = L.DomUtil.create("div", "map-legend"); d.id = "map-legend"; d.hidden = true; L.DomEvent.disableClickPropagation(d); return d; };
 mapLegend.addTo(map);
 function updateMapLegend(){
-  const box = document.getElementById("map-legend"), src = document.getElementById("dmg-legend");
-  const on = damageActive() && BR && BR.box.checked;
-  box.hidden = !on;
-  if (!on) return;
-  const metric = document.getElementById("dmg-metric").value, copy = src.cloneNode(true);
-  copy.querySelectorAll(".legend-note").forEach(n => n.remove());
-  box.innerHTML = (metric === "state" ? `<div class="legend-title">Likely damage state</div>` : metric === "sa10" ? `<div class="legend-title">Shaking at the bridge, Sa(1.0 s)</div>` : "") + copy.innerHTML;
+  const box = document.getElementById("map-legend"), parts = [];
+  if (damageActive() && BR && BR.box.checked){
+    const metric = document.getElementById("dmg-metric").value, copy = document.getElementById("dmg-legend").cloneNode(true);
+    copy.querySelectorAll(".legend-note").forEach(n => n.remove());
+    parts.push({s: BR, html: (metric === "state" ? `<div class="legend-title">Likely damage state</div>` : metric === "sa10" ? `<div class="legend-title">Shaking at the bridge, Sa(1.0 s)</div>` : "") + copy.innerHTML});
+  }
+  for (const s of INV) if (s !== BR && s.dmg && s.dmg.legend && s.box.checked && buildingActive(s)){
+    const copy = s.dmg.legend.cloneNode(true);
+    copy.querySelectorAll(".legend-note").forEach(n => n.remove());
+    parts.push({s, html: copy.innerHTML});
+  }
+  box.hidden = !parts.length;
+  if (!parts.length) return;                       // with more than one inventory colored, each legend is headed by its inventory's name
+  const same = new Map();
+  for (const p of parts) same.set(p.html, (same.get(p.html) || []).concat(p.s.inv.title));
+  box.innerHTML = parts.length === 1 && parts[0].s === BR ? parts[0].html : [...same].map(([html, names]) => `<div class="legend-inv">${esc(names.join(" and "))}</div>${html}`).join("");
+}
+function setDamageTabNote(){
+  const metric = document.getElementById("dmg-metric").value;
+  const bridges = damageActive() && BR && BR.box.checked, buildings = INV.some(s => s !== BR && s.box.checked && buildingActive(s));
+  document.getElementById("tabsub-damage").textContent = !HAZ ? "Needs a hazard"
+    : bridges ? (metric === "pex" ? ["", "Slight or worse", "Moderate or worse", "Extensive or worse", "Complete"][mappedState()] : metric === "state" ? "Likely state" : "Shaking at bridges")
+    : buildings ? "Building damage" : "Shaking values";
 }
 
-function refreshHazardViews(){ computeDamage(); renderBridges(); drawHazardOverlay(); drawHazardSource(); renderLegends(); renderDamagePane(); }
+function refreshHazardViews(){ computeDamage(); renderBridges(); INV.forEach(computeBuilding); drawHazardOverlay(); drawHazardSource(); renderLegends(); renderDamagePane(); }
 
 function selectHazard(id){
   const local = id.startsWith("local:");
@@ -900,7 +921,7 @@ function damageCsv(rows, prov){
     `Inventory: ${B.source}, ${B.state}, ${B.source_year}` + (B.provenance ? `. Source file ${B.provenance.source_file}, SHA-256 ${B.provenance.source_sha256}` : ""),
     `Fragility set: ${HZ.name}. ${HZ.source}`,
     `Method: lognormal fragility curves on Sa(1.0 s) with dispersion ${HZ.beta}; class medians adjusted for skew, number of spans and spectral shape; ground motion read at each bridge by bilinear interpolation of the hazard grid`,
-    `Recorded choices in effect: ${(HZ.decisions || []).map(d => d.id).join(", ")}${prov && prov.damage_decisions ? ", " + prov.damage_decisions.map(d => d.id).join(", ") : ""}. Each is explained at ${site}methods.html`,
+    `Recorded choices in effect: ${(HZ.decisions || []).map(d => d.id).join(", ")}${prov && prov.damage_decisions ? ", " + prov.damage_decisions.map(d => d.id).filter(id => id !== "DMG-10").join(", ") : ""}. Each is explained at ${site}methods.html`,
     "Code: ShakeReady's bridge inventory builder, HAZUS bridge fragilities and damage calculation, made by E. Taciroglu (https://github.com/TRG-UCLA/ShakeReady)",
     prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
     "Limits: the curves describe classes of bridges, not individual structures. Seismic retrofits are not reflected. Culverts are included. Only ground shaking is considered.",
@@ -1023,6 +1044,218 @@ function shakingSummary(s){
     + (HAZ.kind === "probabilistic" ? `<span class="haz-note">Each ${esc(s.units(1))} is read at its own site's hazard level. These are not the shaking of one earthquake.</span>` : "") + `</div>`;
 }
 
+/* ---------- damage to buildings: the two methods of the Hazus manual ----------
+   The calculation mirrors tools/hazus_buildings.py, and the numbers come from the fragility file that script writes.
+   Where the manual is silent a choice was made; each has an identifier (HB-01 to HB-09) and is explained on the Methods page. */
+const BUILDING_METHODS = ["hazus-capacity-spectrum", "hazus-equivalent-pga"];
+const FRAG_FILES = new Map();                        // a fragility file is fetched once, whichever inventories use it
+const fragFile = url => { if (!FRAG_FILES.has(url)) FRAG_FILES.set(url, fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.json(); })); return FRAG_FILES.get(url); };
+
+/* a capacity curve: straight to its yield point, an arc of an ellipse to its ultimate point, flat beyond (HB-02) */
+function hbCapacity(c){
+  const [dy, ay, du, au] = c, ke = ay / dy;
+  const ax = (au * au * dy - ay * ay * du) / (2 * au * dy - ay * dy - ay * du), b = au - ax;
+  const cc = Math.sqrt(dy * b * b * (du - dy) / (ay * (ay - ax)));
+  const a = d => d <= dy ? ke * d : d >= du ? au : ax + b * Math.sqrt(Math.max(0, 1 - ((d - du) / cc) * ((d - du) / cc)));
+  const tangent = d => d <= dy ? ke : d >= du ? 0 : (b / cc) * (b / cc) * (du - d) / (a(d) - ax);
+  const period = d => 0.32 * Math.sqrt(d / a(d));                                         // Equation 4-2: T = 0.32 sqrt(SD / SA)
+  const area = d => { const A = a(d), kt = tangent(d); return d <= dy || kt >= ke ? 0 : Math.max(0, 4 * (A - d * ke) * (d * kt - A) / (ke - kt)); };   // hysteresis loop (HB-03)
+  const damping = (d, be, kappa) => d <= 0 ? be : be + kappa * (area(d) / (2 * Math.PI * d * a(d))) * 100;   // Equation 5-10, the bracket as a percentage (HB-04)
+  return {dy, du, a, period, damping};
+}
+const hbReduction = b => [2.12 / (3.21 - 0.68 * Math.log(b)), 1.65 / (2.31 - 0.41 * Math.log(b))];          // Equations 5-7 and 5-8: RA, RV
+/* where the capacity curve meets the demand spectrum reduced for the damping of the point tried (Equations 5-11 to 5-15; HB-05) */
+function hbPerformancePoint(cap, sas, sa1, tvd, be, kappa){
+  if (sas <= 0 || sa1 <= 0) return {d: 0, a: 0, beff: be, period: cap.period(cap.dy)};
+  const tav = sa1 / sas, te = cap.period(cap.dy);
+  let btvd;
+  if (tvd <= te) btvd = be;
+  else {
+    let lo = cap.dy, hi = cap.du;
+    while (cap.period(hi) < tvd) hi *= 2;
+    for (let i = 0; i < 200; i++){ const mid = 0.5 * (lo + hi); if (cap.period(mid) < tvd) lo = mid; else hi = mid; }
+    btvd = cap.damping(0.5 * (lo + hi), be, kappa);
+  }
+  const demand = d => {
+    const t = cap.period(d), [ra, rv] = hbReduction(cap.damping(d, be, kappa)), tavb = tav * ra / rv;       // Equation 5-14
+    if (t <= tavb) return sas / ra;                                                                       // Equation 5-11
+    if (t <= tvd) return sa1 / t / rv;                                                                    // Equation 5-12
+    return sa1 * tvd / (t * t) / hbReduction(btvd)[1];                                                    // Equation 5-13
+  };
+  let lo = 1e-9, hi = cap.du;
+  while (demand(hi) - cap.a(hi) > 0){ hi *= 2; if (hi > 1e6) return null; }
+  for (let i = 0; i < 200; i++){ const mid = 0.5 * (lo + hi); if (demand(mid) - cap.a(mid) > 0) lo = mid; else hi = mid; }
+  const d = 0.5 * (lo + hi);
+  return {d, a: cap.a(d), beff: cap.damping(d, be, kappa), period: cap.period(d)};
+}
+/* the period TVD and the duration of shaking, from what the hazard layer records (HB-06) */
+function hbTiming(data){
+  const src = HAZ.source || {};
+  for (const key of ["scenario", "event"]){
+    const m = (src[key] || {}).magnitude;
+    if (typeof m === "number" && isFinite(m)) return {tvd: Math.pow(10, (m - 5) / 2), duration: m <= 5.5 ? "short" : m >= 7.5 ? "long" : "moderate", basis: `magnitude ${m}`};   // Equation 4-4
+  }
+  const rp = LEVEL.return_period_years;
+  if (typeof rp === "number" && isFinite(rp)){
+    const listed = Object.keys(data.listed_return_periods).map(Number).sort((x, y) => x - y);
+    let best = listed[0]; for (const y of listed) if (Math.abs(y - rp) < Math.abs(best - rp)) best = y;      // the nearest listed; a tie goes to the shorter
+    return {tvd: 10, duration: data.listed_return_periods[best], basis: `return period of ${fmt(rp)} years`};
+  }
+  return {tvd: 10, duration: "moderate", basis: "no magnitude recorded, taken as 7"};
+}
+function missingMeasure(s){                         // a measure the chosen method needs and the layer does not carry
+  return (s.fragData.methods[s.frag.method].measures || []).find(m => !LEVEL.measures[m]) || null;
+}
+function buildingActive(s){ return !!(HAZ && LEVEL && s && s.ready && s.frag && s.fragData && !missingMeasure(s)); }
+
+function buildingDamage(s, f){
+  const data = s.fragData, cls = f.properties[data.class_field], c = data.classes[cls], res = {cls: blank(cls) ? "" : cls};
+  if (!c) return res;
+  const lat = f.geometry.coordinates[1], lng = f.geometry.coordinates[0], at = k => hazAt(LEVEL.measures[k], lat, lng);
+  let ex;
+  if (s.frag.method === "hazus-capacity-spectrum"){
+    const sas = at("SA0P3"), sa1 = at("SA1P0");
+    if (sas === null || sa1 === null) return res;
+    const kappa = c.kappa[s.timing.duration];
+    const pp = hbPerformancePoint(s.caps[c.type] || (s.caps[c.type] = hbCapacity(c.capacity)), sas, sa1, s.timing.tvd, c.elastic_damping, kappa);
+    if (!pp) return res;
+    Object.assign(res, {sa03: sas, sa10: sa1, duration: s.timing.duration, kappa, be: c.elastic_damping, pp});
+    ex = c.sd.map(([median, beta]) => pp.d > 0 ? phi(Math.log(pp.d / median) / beta) : 0);                  // Equation 5-3
+  } else {
+    const pga = at("PGA"), sa1 = at("SA1P0");
+    if (pga === null || sa1 === null) return res;
+    Object.assign(res, {pga, sa10: sa1});
+    if (pga <= 0 || sa1 <= 0){ res.ratio = null; res.med = [null, null, null, null]; ex = [0, 0, 0, 0]; }
+    else {                                                                                                // Equation 5-6, with the layer's own ratio and FV = 1 (HB-08)
+      res.ratio = pga / sa1;
+      res.med = c.pga.map(v => v * res.ratio * data.reference_sa1_over_pga);
+      ex = res.med.map(v => phi(Math.log(pga / v) / data.beta_pga));
+    }
+  }
+  for (let i = 1; i < 4; i++) ex[i] = Math.min(ex[i], ex[i - 1]);                                         // a worse state is never the more likely to be reached
+  const p = [1 - ex[0], ex[0] - ex[1], ex[1] - ex[2], ex[2] - ex[3], ex[3]];
+  res.ex = ex; res.p = p; res.pext = p[3] + p[4];
+  let best = 0; for (let i = 1; i < 5; i++) if (p[i] > p[best]) best = i;
+  res.state = best;
+  let acc = 0, s50 = 0; for (let i = 4; i >= 1; i--){ acc += p[i]; if (acc >= 0.5){ s50 = i; break; } }
+  res.state50 = s50;
+  return res;
+}
+const bldMetric = s => s.dmg.metric.value, bldState = s => Number(s.dmg.state.value);
+const bldValue = (s, d) => !d || !d.p ? null : bldMetric(s) === "pex" ? d.ex[bldState(s) - 1] : bldMetric(s) === "state" ? d.state50 : d.sa10;
+
+/* recompute an inventory's damage for the hazard and fragilities now chosen, and redraw it */
+function computeBuilding(s){
+  s.dmgMap = new Map();
+  if (s === BR || !s.ready) return;
+  if (buildingActive(s)){
+    s.timing = hbTiming(s.fragData); s.caps = {};
+    for (const f of s.records) s.dmgMap.set(f, buildingDamage(s, f));
+  }
+  redrawPoints(s);
+}
+function redrawPoints(s){
+  if (!s.layer || !s.ready) return;
+  s.layer.clearLayers(); s.layer.addData({type: "FeatureCollection", features: s.shown});
+}
+function setFragility(s, id){
+  const set = s.fragSets.find(f => f.id === id) || null;
+  s.frag = set; s.fragData = null; s.fragFailed = false;
+  if (!set){ computeBuilding(s); renderDamagePane(); return; }
+  fragFile(set.file).then(data => { if (s.frag === set){ s.fragData = data; computeBuilding(s); renderDamagePane(); } })
+    .catch(() => { if (s.frag === set){ s.fragFailed = true; computeBuilding(s); renderDamagePane(); } });
+}
+
+function buildingDamageBlock(s, d){
+  const data = s.fragData, method = data.methods[s.frag.method];
+  if (!d.p) return `<div class="pop-dmg"><b>Damage estimate:</b> none. ` + (data.classes[d.cls] ? `This ${esc(s.units(1))} lies outside the area covered by the hazard layer (${whereText()}).` : `This ${esc(s.units(1))} has no fragility class.`) + `</div>`;
+  const shaking = [d.pga !== undefined ? `PGA ${d.pga.toFixed(3)} g` : "", d.sa03 !== undefined ? `Sa(0.3 s) ${d.sa03.toFixed(3)} g` : "", `Sa(1.0 s) ${d.sa10.toFixed(3)} g`].filter(Boolean).join(", ");
+  return `<div class="pop-dmg"><b>${esc(method.title)}</b><br><b>Shaking here:</b> ${shaking}<br>`
+    + `<span class="pop-note">${whereText()}. ${esc(HAZ.site_condition)}.</span><br>`
+    + (d.pp ? `<b>Peak spectral displacement:</b> ${d.pp.d.toFixed(2)} in, at ${d.pp.beff.toFixed(0)}% effective damping<br>` : "")
+    + `<b>Chance of any damage:</b> ${pct(1 - d.p[0])}<br><b>Chance of extensive or complete damage:</b> ${pct(d.pext)}<br>`
+    + `<table><tr><th>Damage state</th><th>Exactly this</th><th>This or worse</th></tr>`
+    + STATES.map((n, i) => `<tr><td>${n}</td><td>${pct(d.p[i])}</td><td>${i === 0 ? "" : pct(d.ex[i - 1])}</td></tr>`).join("") + `</table>`
+    + `<span class="pop-note">` + (HAZ.kind === "probabilistic" ? "Evaluated at this site's own hazard level, not for a single earthquake. " : "") + (method.caution ? esc(method.caution) + " " : "")
+    + `<a href="methods.html#damage-buildings" target="_blank" rel="noopener">Source and method</a></span></div>`;
+}
+function buildingLegend(s){
+  const metric = bldMetric(s), many = esc(s.units(2));
+  if (metric === "state") return `<div class="legend-title">Likely damage state</div><div class="sw">` + STATES.map((n, i) => `<span><i style="background:${STATE_COLORS[i]}"></i>${n}</span>`).join("") + `</div>`
+    + `<div class="legend-note">The worst state a ${esc(s.units(1))} has at least an even chance of reaching. “None” means damage of any kind is less likely than not. It does not mean no risk.</div>`;
+  const sa = metric === "sa10", bins = sa ? SA_BINS : P_BINS, ramp = sa ? DMG_RAMP : P_RAMP, f = sa ? (v => v + " g") : (v => Math.round(v * 100) + "%");
+  const labels = [`under ${f(bins[0])}`].concat(bins.slice(0, -1).map((b, i) => `${f(b)} to ${f(bins[i + 1])}`)).concat([`over ${f(bins[bins.length - 1])}`]);
+  return `<div class="legend-title">${sa ? `Shaking at the ${esc(s.units(1))}, Sa(1.0 s)` : `Probability of ${STATE_OR_WORSE[bldState(s)]}`}</div>`
+    + `<div class="sw">` + labels.map((t, i) => `<span><i style="background:${ramp[i]}"></i>${t}</span>`).join("") + `</div>`;
+}
+function buildingSummary(s){
+  const sums = [0, 0, 0, 0, 0], k = bldState(s), many = esc(s.units(2)); let without = 0, expected = 0, likely = 0;
+  for (const f of s.shown){ const d = s.dmgMap.get(f); if (d && d.p){ d.p.forEach((v, i) => sums[i] += v); const v = d.ex[k - 1]; expected += v; if (v >= 0.5) likely++; } else without++; }
+  return `Expected number of ${many} in each damage state, of the ${fmt(s.shown.length)} shown:`
+    + `<table>` + STATES.map((n, i) => `<tr><td><i style="background:${STATE_COLORS[i]}"></i>${n}</td><td>${fmt(Math.round(sums[i]))}</td></tr>`).join("")
+    + (without ? `<tr><td>No estimate (outside the hazard layer, or no class)</td><td>${fmt(without)}</td></tr>` : "") + `</table>`
+    + (bldMetric(s) === "pex" ? `<div class="dmg-exceed">Reaching ${STATE_OR_WORSE[k]}: <b>${fmt(Math.round(expected))}</b> expected; <b>${fmt(likely)}</b> ${esc(s.units(likely))} ${likely === 1 ? "has" : "have"} at least a 50% chance.</div>` : "")
+    + (HAZ.kind === "probabilistic" ? `<span class="haz-note">Each ${esc(s.units(1))} is evaluated at its own site's hazard level. These are not the losses of one earthquake.</span>` : "");
+}
+function fragilityNote(s){                           // under the choice: what the chosen method rests on, or why it cannot be applied
+  if (!s.frag) return "";
+  if (s.fragFailed) return "The fragility file could not be loaded. Refresh to retry.";
+  if (!s.fragData) return "Loading the fragilities…";
+  const method = s.fragData.methods[s.frag.method], lacks = missingMeasure(s);
+  if (lacks) return `This hazard layer has no ${esc(MEASURE_NAMES[lacks] || lacks)}, which this method needs. The shaking values are given instead.`;
+  return `Fragility classes assigned by ${esc(s.fragData.classes_assigned_by.replace(/ \(.*\)$/, ""))}. `
+    + (s.frag.method === "hazus-capacity-spectrum" && s.timing ? `Duration of shaking taken as ${s.timing.duration}: ${esc(s.timing.basis)}. ` : "")
+    + (method.caution ? esc(method.caution) : "");
+}
+
+const BLD_TAIL = ["p_none", "p_slight", "p_moderate", "p_extensive", "p_complete", "p_slight_or_worse", "p_moderate_or_worse", "p_extensive_or_worse", "most_likely_state", "state_with_50pct_chance_or_worse"];
+const BLD_COLUMNS = {
+  "hazus-capacity-spectrum": ["sa03_g", "sa10_g", "duration", "kappa", "elastic_damping_pct", "sd_in", "sa_at_sd_g", "effective_damping_pct", "period_s"],
+  "hazus-equivalent-pga": ["pga_g", "sa10_g", "pga_over_sa1", "median_slight_g", "median_moderate_g", "median_extensive_g", "median_complete_g"]};
+function buildingDamageRow(s, f){
+  const d = s.dmgMap.get(f), m = s.frag.method, own = s.inv.table_fields || [];
+  const head = [s.position.get(f), f.geometry.coordinates[1].toFixed(5), f.geometry.coordinates[0].toFixed(5)].concat(own.map(k => blank(f.properties[k]) ? "" : f.properties[k]), [d.cls]);
+  if (!d.p) return head.concat(Array(BLD_COLUMNS[m].length + BLD_TAIL.length).fill("")).map(csvCell).join(",");
+  const mid = m === "hazus-capacity-spectrum" ? [f4(d.sa03), f4(d.sa10), d.duration, f4(d.kappa), f4(d.be), f4(d.pp.d), f4(d.pp.a), f4(d.pp.beff), f4(d.pp.period)]
+    : [f4(d.pga), f4(d.sa10), f4(d.ratio)].concat(d.med.map(f4));
+  return head.concat(mid, d.p.map(f4), [f4(d.ex[0]), f4(d.ex[1]), f4(d.ex[2])], [STATES[d.state], STATES[d.state50]]).map(csvCell).join(",");
+}
+function buildingDamageCsv(s, prov){
+  const data = s.fragData, method = data.methods[s.frag.method], m = s.frag.method, unit = s.units(1), many = s.units(2);
+  const now = new Date().toISOString().replace(/\.\d+Z$/, "Z"), site = location.origin + location.pathname.replace(/[^/]*$/, "");
+  const choices = method.decisions.concat(prov && prov.damage_decisions ? prov.damage_decisions.map(d => d.id).filter(id => id !== "DMG-10") : []);
+  const head = [
+    `ShakeReady building damage estimates, ${unit} by ${unit}: ${s.inv.title}`,
+    `Generated ${now} from ${site}dashboard.html`,
+    `${many[0].toUpperCase() + many.slice(1)}: ${s.shown.length} of ${s.records.length} in the inventory (those shown on the dashboard when the table was made)`,
+    `Filters in effect: ${filterText(s) || "none"}`,
+    "",
+    ...hazardLines(unit),
+    m === "hazus-capacity-spectrum" ? `Duration of shaking: ${s.timing.duration} (${s.timing.basis}); period TVD ${s.timing.tvd.toFixed(2)} s` : null,
+    "",
+    `Inventory: ${s.inv.title}. File ${site}${s.inv.file}. Its source and processing are at ${site}methods.html`,
+    `Fragility classes: assigned by ${data.classes_assigned_by}`,
+    `Fragility set: ${data.name}. ${data.source}`,
+    `Method: ${method.title}. ${method.summary}` + (method.caution ? ` ${method.caution}` : ""),
+    `Recorded choices in effect: ${choices.join(", ")}. Each is explained at ${site}methods.html`,
+    "Code: ShakeReady's Hazus building damage calculation (tools/hazus_buildings.py and the dashboard), made by E. Taciroglu (https://github.com/TRG-UCLA/ShakeReady)",
+    prov ? `Data release ${prov.release}; provenance record generated ${prov.generated_utc}; ${site}data/provenance.json` : null,
+    `Limits: the curves describe classes of buildings, not individual structures. Retrofits are not reflected. Only structural damage from ground shaking is considered. No adjustment is made for the ground at each site: the hazard values are used for the site condition stated above.`,
+    "",
+    "Columns: item is the position of the building in the inventory file, counting from 1. "
+      + (m === "hazus-capacity-spectrum" ? "sa03_g and sa10_g are spectral accelerations at 0.3 s and 1.0 s at the building, in g. duration is that assumed for the shaking, kappa the degradation factor for it, and elastic_damping_pct the elastic damping of the building type. sd_in and sa_at_sd_g are the peak spectral displacement, in inches, and the acceleration on the capacity curve there, in g; effective_damping_pct and period_s are the damping and period at that point. "
+        : "pga_g and sa10_g are peak ground acceleration and spectral acceleration at 1.0 s at the building, in g. pga_over_sa1 is their ratio. median_* are the medians of the equivalent-PGA curves after conversion to that ratio, in g. ")
+      + "p_none to p_complete are the probabilities of each damage state and sum to 1. p_slight_or_worse, p_moderate_or_worse and p_extensive_or_worse are the chances of reaching that state or a worse one. most_likely_state is the single most likely state; state_with_50pct_chance_or_worse is the worst state reached with at least an even chance. A row is blank from the shaking onward where the building lies outside the hazard layer or has no class."
+  ].filter(l => l !== null).map(l => l === "" ? "#" : "# " + l);
+  const columns = ["item", "latitude", "longitude"].concat(s.inv.table_fields || [], [data.class_field], BLD_COLUMNS[m], BLD_TAIL);
+  return head.concat([columns.join(",")], s.shown.map(f => buildingDamageRow(s, f))).join("\n") + "\n";
+}
+function downloadBuildingDamage(s){
+  if (!buildingActive(s)) return;
+  fetch("data/provenance.json").then(r => r.json()).catch(() => null).then(prov =>
+    saveFile(`shakeready_building_damage_${s.inv.id}_${s.frag.method.replace("hazus-", "")}_${HAZ.id}${HAZ.levels.length > 1 ? "_" + LEVEL.id : ""}.csv`, buildingDamageCsv(s, prov), "text/csv"));
+}
+
 /* ---------- the Damage part: one block for each inventory on the map ----------
    An inventory with fragilities offers them one at a time, with "None" always among them; one without gets its shaking values.
    Each inventory is assessed on its own: the same structure can be in two inventories, so nothing is added across them. */
@@ -1033,11 +1266,31 @@ function addDamageBlock(s){
     document.getElementById("dmg-name-bridges").textContent = s.inv.title;
     return;
   }
+  const id = esc(s.inv.id), unit = esc(s.units(1)), many = esc(s.units(2));
+  s.fragSets = (s.inv.fragilities || []).map(x => (REG.fragilities || []).find(f => f.id === x)).filter(f => f && BUILDING_METHODS.includes(f.method));
   const el = document.createElement("div"); el.className = "inv"; el.id = "dmg-block-" + s.inv.id; el.hidden = true;
-  el.innerHTML = `<div class="dmg-head"><span class="chip" style="background:${esc(s.inv.color)}"></span><span class="inv-name">${esc(s.inv.title)}</span><span class="inv-count"></span></div>`
-    + `<div class="inv-body"><p class="haz-note">${(s.inv.fragilities || []).length ? "The dashboard cannot yet apply the fragilities listed for this inventory." : "No fragilities are defined for this inventory."} The shaking at each ${esc(s.units(1))} is given instead.</p><div class="dmg-shake"></div></div>`;
+  el.innerHTML = `<div class="dmg-head"><span class="chip" style="background:${esc(s.inv.color)}"></span><span class="inv-name">${esc(s.inv.title)}</span><span class="inv-count"></span></div><div class="inv-body">`
+    + (s.fragSets.length
+      ? `<div class="frow"><label for="frag-${id}">Fragilities</label><select id="frag-${id}" data-frag>` + s.fragSets.map(f => `<option value="${esc(f.id)}">${esc(f.title)}</option>`).join("") + `<option value="">None: shaking values only</option></select></div>`
+        + `<p class="haz-note" data-frag-note></p><div data-dmg-controls hidden>`
+        + `<div class="frow"><label for="met-${id}">Color ${many} by</label><select id="met-${id}" data-metric><option value="pex">Probability of reaching a damage state</option><option value="state">Likely damage state (at least a 50% chance of this or worse)</option><option value="sa10">Shaking at the ${unit}, Sa(1.0 s)</option></select></div>`
+        + `<div class="frow" data-state-row><label for="st-${id}">Damage state to map</label><select id="st-${id}" data-state><option value="1">Slight or worse (any damage)</option><option value="2">Moderate or worse</option><option value="3" selected>Extensive or worse</option><option value="4">Complete</option></select></div>`
+        + `<div class="legend" data-legend></div><div class="dmg-sum" data-summary></div>`
+        + `<div class="actions"><button type="button" class="btn-apply" data-dmg-download>Download damage table (CSV)</button></div>`
+        + `<p class="haz-note">The table covers the ${many} currently shown and carries its sources and method. <a href="methods.html#damage-buildings" target="_blank" rel="noopener">How damage is estimated</a></p></div>`
+      : `<p class="haz-note">${(s.inv.fragilities || []).length ? "The dashboard cannot apply the fragilities listed for this inventory." : "No fragilities are defined for this inventory."} The shaking at each ${unit} is given instead.</p>`)
+    + `<div class="dmg-shake"></div></div>`;
   document.getElementById("dmg-list").appendChild(el);
-  s.dmg = {block: el, count: el.querySelector(".inv-count"), shake: el.querySelector(".dmg-shake")};
+  const q = sel => el.querySelector(sel);
+  s.dmg = {block: el, count: q(".inv-count"), shake: q(".dmg-shake"), note: q("[data-frag-note]"), controls: q("[data-dmg-controls]"), metric: q("[data-metric]"), state: q("[data-state]"),
+           stateRow: q("[data-state-row]"), legend: q("[data-legend]"), summary: q("[data-summary]")};
+  if (!s.fragSets.length) return;
+  el.addEventListener("change", e => {
+    if (e.target.matches("[data-frag]")) setFragility(s, e.target.value);
+    else if (e.target.matches("[data-metric], [data-state]")){ redrawPoints(s); renderDamagePane(); }
+  });
+  el.addEventListener("click", e => { if (e.target.closest("[data-dmg-download]")) downloadBuildingDamage(s); });
+  setFragility(s, s.fragSets[0].id);
 }
 function renderDamagePane(){
   if (!HAZ || !LEVEL) return;
@@ -1048,7 +1301,12 @@ function renderDamagePane(){
     s.dmg.block.hidden = !on;
     if (!on) continue;
     any = true;
-    const N = s.records.length, withDamage = s === BR && damageActive();
+    const N = s.records.length, withDamage = s === BR ? damageActive() : buildingActive(s);
+    if (s.dmg.controls){                          // an inventory of buildings that has fragilities to choose from
+      s.dmg.controls.hidden = !withDamage;
+      s.dmg.note.textContent = fragilityNote(s); s.dmg.note.hidden = !s.dmg.note.textContent;
+      if (withDamage){ s.dmg.stateRow.hidden = bldMetric(s) !== "pex"; s.dmg.legend.innerHTML = buildingLegend(s); s.dmg.summary.innerHTML = buildingSummary(s); }
+    }
     s.dmg.count.textContent = s.active.length ? `${fmt(s.shown.length)} of ${fmt(N)} ${s.units(N)}` : `${fmt(N)} ${s.units(N)}`;
     s.dmg.shake.innerHTML = (withDamage ? "" : shakingSummary(s))
       + `<div class="frow shake-get" role="group" aria-label="Download the shaking values"><span class="flabel">Download the shaking values</span>`
@@ -1056,6 +1314,7 @@ function renderDamagePane(){
       + `<p class="haz-note">For analysis elsewhere: each ${esc(s.units(1))} shown, with the shaking at its location and the sources of the values. No fragilities are applied, and no adjustment is made for the ground at the site.</p>`;
   }
   document.getElementById("dmg-none").hidden = any;
+  updateMapLegend(); setDamageTabNote();
 }
 document.getElementById("damage-all").addEventListener("click", e => {
   const b = e.target.closest("[data-shake]");
@@ -1158,7 +1417,7 @@ document.getElementById("dmg-download").addEventListener("click", downloadDamage
 
 /* ---------- building inventories ---------- */
 const SKIP_PROPS = new Set(["name","layer","style","images","coord_source","address_kml","Latitude","Longitude","lat","lon","num","fragility_mapping_id","hazus_fragility_class","hazus_fragility_description","hazus_fragility_table"]);
-function buildingPopup(props, coords, inv){
+function buildingPopup(props, coords, inv, s, f){
   const pop = inv && inv.popup;
   let html, images = props.images;
   if (pop){                                 // the registry names the title and the rows to show, in order
@@ -1183,7 +1442,7 @@ function buildingPopup(props, coords, inv){
     }
     html += "</div>";
   }
-  html += shakingBlock(coords, inv && inv.unit ? inv.unit[0] : "structure");
+  html += s && buildingActive(s) && s.dmgMap.get(f) ? buildingDamageBlock(s, s.dmgMap.get(f)) : shakingBlock(coords, inv && inv.unit ? inv.unit[0] : "structure");
   if (images && images.length){
     html += `<img class="pop-img" src="${esc(images[0])}" alt="" onerror="this.remove()">`;
   }
@@ -1197,12 +1456,14 @@ function failInventory(s, message){
 }
 function loadPoints(s){
   s.layer = L.geoJSON(null, {
-    pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius:7, color:"#13202E", weight:1.5, fillColor:s.inv.color, fillOpacity:.9}),
-    onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties, f.geometry && f.geometry.coordinates, s.inv), {maxWidth:280})
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, buildingActive(s)          // colored by its damage estimate where there is one
+      ? {radius:7, color:"#1B2836", weight:1, fillColor:metricColor(bldValue(s, s.dmgMap.get(f)), bldMetric(s) === "pex" ? "pex" : bldMetric(s)), fillOpacity:.95}
+      : {radius:7, color:"#13202E", weight:1.5, fillColor:s.inv.color, fillOpacity:.9}),
+    onEachFeature: (f, lyr) => lyr.bindPopup(() => buildingPopup(f.properties, f.geometry && f.geometry.coordinates, s.inv, s, f), {maxWidth:300})
   });
   fetch(s.inv.file).then(r => r.json()).then(gj => {
     fillInventory(s, gj, gj.features.filter(f => f.geometry));
-    s.layer.addData({type: "FeatureCollection", features: s.shown});
+    computeBuilding(s); renderDamagePane();
     if (s.box.checked) map.addLayer(s.layer);
   }).catch(() => failInventory(s, "This inventory failed to load. Refresh to retry."));
 }

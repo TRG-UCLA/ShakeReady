@@ -1,9 +1,9 @@
 {
  "about": "Provenance of the data published by ShakeReady: sources, processing, recorded decisions, checks and file checksums.",
  "release": "2026-11-17",
- "generated_utc": "2026-11-27T21:25:47Z",
+ "generated_utc": "2026-11-28T08:38:14Z",
  "repository": "https://github.com/TRG-UCLA/ShakeReady",
- "code_version": "a719e4cd75b97f84ba6dccfafefef16f364da9c7",
+ "code_version": "9b02df23f8796ad69dea9cc75aeaf9d759110740",
  "code_version_note": "The repository commit in place when this file was generated. The commit that publishes this file is the next one.",
  "prepared_by": "ShakeReady's code, namely the bridge inventory builder, the HAZUS bridge fragilities and the damage calculation, was made by E. Taciroglu, as was SR-HazardMaker. The processing, transcription and checks described here were carried out in November 2026 with an AI assistant (Claude, made by Anthropic) working at his direction. Values taken from published documents were transcribed and then compared against those documents by script.",
  "sources": {
@@ -183,7 +183,8 @@
     "Read the workbook's two sheets.",
     "Join each row to a building of the LA Times inventory on the inventory's own number, which the workbook carries, and check for every row that the building type, the code level, the story count, the construction year and the address agree. Stop without writing anything if any row disagrees.",
     "Add each class's structural fragility parameters from the Hazus 6.1 manual, Tables 5-21 and 5-22: roof and modal height, the inter-story drift ratio at the threshold of each damage state, and the median and beta of the spectral displacement curve for each state.",
-    "Write the assignments as a table carrying both numberings, each building's coordinates and its class's drift thresholds; mark the four buildings the source records as demolished and the one occupancy the authors entered; write the twelve classes with their counts and parameters."
+    "Write the assignments as a table carrying both numberings, each building's coordinates and its class's drift thresholds; mark the four buildings the source records as demolished and the one occupancy the authors entered; write the twelve classes with their counts and parameters.",
+    "For the dashboard's damage estimates, write the parameters of the twelve classes for both Hazus methods to data/fragility/hazus_concrete_buildings.json (tools/hazus_buildings.py): capacity curves, elastic damping, degradation factors, spectral-displacement curves and equivalent-PGA medians, with the choices made (decisions HB-01 to HB-09)."
    ],
    "published_files": [
     {
@@ -196,6 +197,12 @@
      "path": "data/fragility/hazus_ndrcb_la_classes.json",
      "sha256": "48bf4aac6753dbcbd188a3e4b7694e1ab427dff2ba7e50efadd6c95decad46d1",
      "bytes": 10508,
+     "records": 12
+    },
+    {
+     "path": "data/fragility/hazus_concrete_buildings.json",
+     "sha256": "072795afc280a71e7445bc61588bc18084541ace0117e29cbb5c30f083af187b",
+     "bytes": 15932,
      "records": 12
     },
     {
@@ -295,6 +302,71 @@
    "basis": "The factor needs Sa(0.3 s) and Sa(1.0 s) at the site, which come from a hazard layer. It is applied when damage is computed.",
    "status": "In use. Recorded at the request of the project lead; open to review.",
    "effect": "14,198 bridges are in classes where the factor can apply."
+  }
+ ],
+ "building_fragility_decisions": [
+  {
+   "id": "HB-01",
+   "topic": "Elastic damping of each building type",
+   "choice": "10% for low-rise, 8.5% for mid-rise and 7% for high-rise concrete buildings (C2 and C3).",
+   "basis": "The manual says elastic damping depends on the structure type and follows Newmark and Hall, but gives no values. These are the values in the NHERI SimCenter's open capacity-spectrum code (SimCenterBackendApplications, capacitySpectrum/DampingModels.py), which attributes them to Table 3 of Newmark and Hall (1982).",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-02",
+   "topic": "The capacity curve between yield and ultimate",
+   "choice": "An arc of an ellipse that leaves the yield point with the elastic slope and reaches the ultimate point with zero slope.",
+   "basis": "The manual says only that the curve passes from an elastic to a fully plastic state between the two points. The ellipse is the form given by Cao and Petersen (2006, Bull. Seismol. Soc. Am. 96, Appendix) and used in the SimCenter's code.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-03",
+   "topic": "Area of the hysteresis loop",
+   "choice": "The parallelogram through the peak points, with sides at the elastic stiffness and at the tangent stiffness of the capacity curve at the peak.",
+   "basis": "The manual defines the area as that of a symmetric push and pull of the capacity curve but gives no formula, and refers to Tokas and Lobo (2008) for the approach in Hazus. This is the formula of Cao and Petersen (2006), as written out by Steelman and Hajjar and in the SimCenter's code.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-04",
+   "topic": "Equation 5-10: hysteretic damping as a percentage",
+   "choice": "The term Area / (2 pi D A) is multiplied by 100 before it is added to the elastic damping.",
+   "basis": "Equations 5-7 and 5-8 take damping as a percentage: both reduction factors equal 1 at 5. Equation 5-10 as printed adds the fraction Area / (2 pi D A), which cannot exceed 0.64, to a percentage, which would make hysteretic damping and the degradation factors of Table 5-42 immaterial. The SimCenter's code adds the fraction as printed (the line that multiplies by 100 is commented out there), so results will differ from it.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-05",
+   "topic": "Effective damping along the demand spectrum",
+   "choice": "Each trial point on the capacity curve is tested against the demand spectrum reduced for that point's own effective damping, which also sets the period at which the acceleration and velocity domains meet (Equation 5-14). Beyond the period TVD the damping is that of the capacity-curve point whose period is TVD.",
+   "basis": "Equations 5-11 to 5-14 name the damping at each transition period but the manual does not describe the search for the intersection.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-06",
+   "topic": "Magnitude and duration",
+   "choice": "A scenario layer's magnitude sets TVD (Equation 4-4) and the duration (short up to 5.5, long from 7.5, moderate between). A probabilistic layer has no magnitude: TVD is taken as 10 s, as the manual assumes when the magnitude is unknown, and the duration follows the manual's convention by return period (100 and 200 years short; 500 to 1,000 moderate; 1,500 to 2,500 long), a return period between or beyond those taking the nearest. A layer with neither is treated as magnitude 7: TVD 10 s, moderate duration.",
+   "basis": "Manual, section 4.1.3.2 and the text after Table 5-42. The rule for return periods the manual does not list, and for layers with no magnitude, is ours.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-07",
+   "topic": "Ground motion at the building",
+   "choice": "The short-period and 1-second spectral accelerations of the demand spectrum are the hazard layer's Sa(0.3 s) and Sa(1.0 s) at the building, with no soil factors.",
+   "basis": "Decision DMG-03: the layer's values are used as they are, for the site condition the layer states.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-08",
+   "topic": "Method 2: the spectrum shape",
+   "choice": "The medians of Tables 5-39 and 5-40 are converted with Equation 5-6, taking the ratio of PGA to 1-second spectral acceleration from the hazard layer's own values at the building, in place of Tables 5-35 and 5-36, and a soil factor of 1.",
+   "basis": "The tabulated medians hold for a spectrum whose Sa(1.0 s) is 1.5 times its PGA, at a soil site. The manual provides Equation 5-6 for other shapes, with the ratio looked up from magnitude and distance; a hazard layer gives the ratio directly. The soil factor is 1 for the reason of HB-07. The alternative is to use the tabulated medians unchanged, which suits a soil site in a large earthquake and no other case.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
+  },
+  {
+   "id": "HB-09",
+   "topic": "Constants in the period and displacement formulas",
+   "choice": "0.32 and 9.8, as printed in Equations 4-2, 4-3 and 5-15.",
+   "basis": "They are rounded forms of the exact values (0.3198 and 9.779 for inches and g). The printed values are kept so that the calculation is the manual's.",
+   "status": "In use. Approved by the project lead on 2026-11-28; open to review."
   }
  ],
  "inventory_decisions": [
@@ -680,6 +752,14 @@
    "result": "The shaking tables the dashboard offers were compared with tools/shaking_reference.py, written apart from the dashboard, on made-up test layers that are not published: a scenario, and a hazard map at one of its two levels. For all 25,974 bridges, the 61 CSMIP buildings and the 1,451 LA Times buildings, every value in the CSV is identical to the reference, blanks outside the layer included, and the GeoJSON holds the same values. A table downloaded with a filter applied holds exactly the structures shown. After the Damage part was rebuilt for this (2026-11-27), the bridge damage table again equals the reference for all 25,974 bridges and, row for row, what the dashboard gave before."
   },
   {
+   "check": "Hazus building tables and equations",
+   "result": "For the six concrete building types, the rows of Hazus 6.1 Tables 5-14, 5-15, 5-39, 5-40 and 5-42 were read from the manual's text by script and compared with images of the pages. For all twelve classes the equivalent-PGA medians and the drift thresholds also equal the NHERI SimCenter library's own transcription. The equations are images in the manual and were read by eye from the rendered pages. A self-test confirms that each capacity curve passes through its control points with the right slopes, that both damping reduction factors equal 1 at 5% damping, and that Equation 5-6 returns the tabulated medians at the reference spectrum shape. The manual has no worked example for buildings to reproduce."
+  },
+  {
+   "check": "Building damage against an independent implementation",
+   "result": "The damage table the dashboard offers for the 1,451 LA Times buildings was compared with tools/building_damage_reference.py, for both Hazus methods, on made-up test layers that are not published: a scenario of magnitude 5.4, a hazard map at its 475- and 2,475-year levels, and a layer that records no magnitude, so that short, moderate and long durations all occur. Every value of every row is identical. A table downloaded with a filter applied holds exactly the buildings shown."
+  },
+  {
    "check": "SR-HazardMaker against ShakeMap files",
    "result": "Seven real USGS ShakeMap grid files (shortened samples from the OpenQuake engine's test data, three versions of the ShakeMap software, both unit spellings): every row read lands on the right grid node with the right value. For a full grid in the same layout, all 81,993 values match the source after conversion from percent of g, zipped or not."
   },
@@ -724,6 +804,7 @@
   "NBI values are as submitted by the owning agencies. No value has been corrected.",
   "The building layers date from 2017 and have not been updated.",
   "Six of the CSMIP instrumented buildings are marked as from the original site's non-ductile layer. The other 55 were never classified; the mark is not a statement that they are ductile.",
+  "Damage to the concrete buildings is estimated for classes of buildings, with the hazard values as the layer gives them and no adjustment for the ground at each site. The capacity-spectrum method rests on choices the manual leaves open (decisions HB-01 to HB-09); its results differ from those of the NHERI SimCenter's code, which treats hysteretic damping differently (HB-04). The manual gives the equivalent-PGA curves as guidance only.",
   "The Los Angeles concrete buildings carry their HAZUS fragility class and its parameters, but the dashboard does not yet estimate damage to buildings. The parameters are read against a building's drift or spectral displacement, which a hazard layer does not give directly; how that is to be estimated is not yet decided."
  ]
 }

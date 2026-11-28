@@ -13,6 +13,7 @@ import csv, datetime, hashlib, json, os, subprocess, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hazus_bridges as hz
+import hazus_buildings as hb
 
 
 def sha256(path):
@@ -115,6 +116,7 @@ def main():
         'sources': src['sources'],
         'datasets': src['datasets'],
         'fragility_decisions': [dict(d, effect=effects.get(d['id'])) for d in frag['decisions']],
+        'building_fragility_decisions': [dict(c, status=hb.STATUS) for c in hb.CHOICES],
         'inventory_decisions': src['inventory_decisions'],
         'damage_decisions': src.get('damage_decisions', []),
         'hazard_decisions': src.get('hazard_decisions', []),
@@ -127,7 +129,7 @@ def main():
     }
     with open('data/provenance.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=1, ensure_ascii=False)
-    print('wrote data/provenance.json:', len(out['datasets']), 'datasets,', len(out['fragility_decisions']) + len(out['inventory_decisions']) + len(out['damage_decisions']) + len(out['hazard_decisions']) + len(out['scenario_decisions']), 'decisions,', len(out['hazard_layers']), 'hazard layers')
+    print('wrote data/provenance.json:', len(out['datasets']), 'datasets,', len(out['fragility_decisions']) + len(out['building_fragility_decisions']) + len(out['inventory_decisions']) + len(out['damage_decisions']) + len(out['hazard_decisions']) + len(out['scenario_decisions']), 'decisions,', len(out['hazard_layers']), 'hazard layers')
 
 
 if __name__ == '__main__':

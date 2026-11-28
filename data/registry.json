@@ -76,7 +76,8 @@
    "color": "#E05252",
    "visible": false,
    "unit": ["building", "buildings"],
-   "fragilities": [],
+   "fragilities": ["hazus-buildings-capacity-spectrum", "hazus-buildings-equivalent-pga"],
+   "table_fields": ["num", "address"],
    "filters": [
     {"id": "q", "type": "text", "fields": ["address", "building_name", "zip_code"], "label": "Address, building name or ZIP code contains"},
     {"id": "class", "type": "select", "field": "hazus_fragility_class", "label": "HAZUS fragility class", "any": "Any class", "describe_field": "hazus_fragility_description", "show": "{name} ({count}): {description}", "options": ["C2L-PC", "C2L-LC", "C2M-PC", "C2M-LC", "C2H-PC", "C2H-LC", "C3L-PC", "C3L-LC", "C3M-PC", "C3M-LC", "C3H-PC", "C3H-LC"]},
@@ -90,6 +91,8 @@
   }
  ],
  "fragilities": [
-  {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges", "file": "data/fragility/hazus_highway_bridges.json", "method": "hazus-bridges"}
+  {"id": "hazus-highway-bridges", "title": "HAZUS highway bridges", "file": "data/fragility/hazus_highway_bridges.json", "method": "hazus-bridges"},
+  {"id": "hazus-buildings-capacity-spectrum", "title": "Hazus Method 1: capacity spectrum", "file": "data/fragility/hazus_concrete_buildings.json", "method": "hazus-capacity-spectrum"},
+  {"id": "hazus-buildings-equivalent-pga", "title": "Hazus Method 2: equivalent PGA (guidance only)", "file": "data/fragility/hazus_concrete_buildings.json", "method": "hazus-equivalent-pga"}
  ]
 }

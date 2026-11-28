@@ -141,6 +141,7 @@
    "files": [
     "data/la_ndrcb_hazus_fragility.csv",
     "data/fragility/hazus_ndrcb_la_classes.json",
+    "data/fragility/hazus_concrete_buildings.json",
     "data/sources/LA_HAZUS_Fragility_Mapping_Updated.xlsx"
    ],
    "source": "xlsx-ndrcb-fragility",
@@ -149,7 +150,8 @@
     "Read the workbook's two sheets.",
     "Join each row to a building of the LA Times inventory on the inventory's own number, which the workbook carries, and check for every row that the building type, the code level, the story count, the construction year and the address agree. Stop without writing anything if any row disagrees.",
     "Add each class's structural fragility parameters from the Hazus 6.1 manual, Tables 5-21 and 5-22: roof and modal height, the inter-story drift ratio at the threshold of each damage state, and the median and beta of the spectral displacement curve for each state.",
-    "Write the assignments as a table carrying both numberings, each building's coordinates and its class's drift thresholds; mark the four buildings the source records as demolished and the one occupancy the authors entered; write the twelve classes with their counts and parameters."
+    "Write the assignments as a table carrying both numberings, each building's coordinates and its class's drift thresholds; mark the four buildings the source records as demolished and the one occupancy the authors entered; write the twelve classes with their counts and parameters.",
+    "For the dashboard's damage estimates, write the parameters of the twelve classes for both Hazus methods to data/fragility/hazus_concrete_buildings.json (tools/hazus_buildings.py): capacity curves, elastic damping, degradation factors, spectral-displacement curves and equivalent-PGA medians, with the choices made (decisions HB-01 to HB-09)."
    ]
   }
  ],
@@ -303,6 +305,14 @@
    "result": "The shaking tables the dashboard offers were compared with tools/shaking_reference.py, written apart from the dashboard, on made-up test layers that are not published: a scenario, and a hazard map at one of its two levels. For all 25,974 bridges, the 61 CSMIP buildings and the 1,451 LA Times buildings, every value in the CSV is identical to the reference, blanks outside the layer included, and the GeoJSON holds the same values. A table downloaded with a filter applied holds exactly the structures shown. After the Damage part was rebuilt for this (2026-11-27), the bridge damage table again equals the reference for all 25,974 bridges and, row for row, what the dashboard gave before."
   },
   {
+   "check": "Hazus building tables and equations",
+   "result": "For the six concrete building types, the rows of Hazus 6.1 Tables 5-14, 5-15, 5-39, 5-40 and 5-42 were read from the manual's text by script and compared with images of the pages. For all twelve classes the equivalent-PGA medians and the drift thresholds also equal the NHERI SimCenter library's own transcription. The equations are images in the manual and were read by eye from the rendered pages. A self-test confirms that each capacity curve passes through its control points with the right slopes, that both damping reduction factors equal 1 at 5% damping, and that Equation 5-6 returns the tabulated medians at the reference spectrum shape. The manual has no worked example for buildings to reproduce."
+  },
+  {
+   "check": "Building damage against an independent implementation",
+   "result": "The damage table the dashboard offers for the 1,451 LA Times buildings was compared with tools/building_damage_reference.py, for both Hazus methods, on made-up test layers that are not published: a scenario of magnitude 5.4, a hazard map at its 475- and 2,475-year levels, and a layer that records no magnitude, so that short, moderate and long durations all occur. Every value of every row is identical. A table downloaded with a filter applied holds exactly the buildings shown."
+  },
+  {
    "check": "SR-HazardMaker against ShakeMap files",
    "result": "Seven real USGS ShakeMap grid files (shortened samples from the OpenQuake engine's test data, three versions of the ShakeMap software, both unit spellings): every row read lands on the right grid node with the right value. For a full grid in the same layout, all 81,993 values match the source after conversion from percent of g, zipped or not."
   },
@@ -347,6 +357,7 @@
   "NBI values are as submitted by the owning agencies. No value has been corrected.",
   "The building layers date from 2017 and have not been updated.",
   "Six of the CSMIP instrumented buildings are marked as from the original site's non-ductile layer. The other 55 were never classified; the mark is not a statement that they are ductile.",
+  "Damage to the concrete buildings is estimated for classes of buildings, with the hazard values as the layer gives them and no adjustment for the ground at each site. The capacity-spectrum method rests on choices the manual leaves open (decisions HB-01 to HB-09); its results differ from those of the NHERI SimCenter's code, which treats hysteretic damping differently (HB-04). The manual gives the equivalent-PGA curves as guidance only.",
   "The Los Angeles concrete buildings carry their HAZUS fragility class and its parameters, but the dashboard does not yet estimate damage to buildings. The parameters are read against a building's drift or spectral displacement, which a hazard layer does not give directly; how that is to be estimated is not yet decided."
  ],
  "damage_decisions": [
