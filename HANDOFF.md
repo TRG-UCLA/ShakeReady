@@ -49,6 +49,9 @@ several (data, code, publications, people, projects).
   inventories and work with them." A national inventory, or a BRAILS-corrected one, would be "just new inventories
   (that may have overlaps with other inventories)". So never fold a new source into an existing inventory's file, and
   keep each inventory's own record of where it came from. See "More building inventories" below.
+- **The choices behind the Hazus building methods are approved.** On 2026-11-27 the owner was shown the five points the
+  manual leaves open, with what each changes, and on 2026-11-28 answered "build". They are HB-01 to HB-09 in
+  `tools/hazus_buildings.py` and on the Methods page. Change one only at his word.
 - **Fragilities are matched to inventories in the Damage part.** The owner, 2026-11-27: an inventory may have no
   fragilities, one set, or several alternatives. Where it has none, the site gives the shaking at each item for
   download, so that people can do their own damage analysis elsewhere, perhaps with fragilities they do not wish to
@@ -306,11 +309,12 @@ The owner approved this design the same day ("I like this design"); his rules ar
   chosen the part shows only a note asking for one.
 - **Fragility choice.** An inventory's `fragilities` in `data/registry.json` lists the sets that can be applied to it.
   The choice offers them one at a time, with "None: shaking values only" always last. Today only the bridges have a set
-  (HAZUS highway bridges). An inventory with none says so. **To add a set to the bridges, list it in the registry. To
-  give a building inventory damage estimates, the calculation has to be written first:** the dashboard applies
-  fragilities to the bridge inventory only, and a building inventory that lists a set gets a note saying it cannot be
-  applied yet. The two Hazus building methods for the LA concrete buildings are the first that would use this (see the
-  section on their fragility classes): each would be one choice in that inventory's block.
+  (HAZUS highway bridges). An inventory with none says so. **A set names its file and its `method`:** `hazus-bridges` for
+  the bridge inventory, and `hazus-capacity-spectrum` or `hazus-equivalent-pga` for an inventory of buildings whose
+  features carry a class of the set's file (built 2026-11-28 for the LA Times buildings; see the section on their
+  fragility classes). A building inventory lists what its damage table carries under `table_fields`. A method the
+  dashboard does not know is left out of the choice, and the block says the fragilities cannot be applied. Bridges
+  and buildings colored the same way share one legend on the map; otherwise each legend is headed by its inventory.
 - **Shaking values for every inventory** (decision DMG-10): each block has a download, CSV and GeoJSON, of every
   measure in the hazard layer at each structure shown, read as the damage calculation reads it, with the structure's
   own attributes and a header naming the sources. With no fragilities chosen, a block also shows the lowest, median and
@@ -430,8 +434,8 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
   are in Turkish, informal "sen".
 - **Decided 2026-11-26: build both of Hazus's default methods for building damage on the regional dashboard.**
   Method 1 is the capacity-spectrum method with the spectral displacement curves; Method 2 is the
-  equivalent-PGA curves. **Nothing of either is built.** The work was stopped before starting because the
-  conversation had grown too long to do it safely; start it fresh. What was established, all from the Hazus 6.1
+  equivalent-PGA curves. Both went onto the dashboard on 2026-11-28
+  (see "Built 2026-11-28" below). What was established, all from the Hazus 6.1
   manual already on file (`fema_hazus-earthquake-model-technical-manual-6-1.pdf`, sha256 59b7e55a...):
 
   - **Where things are.** Standard spectrum shape and Equations 4-2 to 4-4 (period from SD and SA; TVD from
@@ -459,7 +463,7 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
     of Tables 5-14, 5-15, 5-39, 5-40 and 5-42 for the six concrete types were compared with images of the pages and
     agree with what was read by script. Equations 4-2 to 4-4 and 5-6 to 5-15 were read by eye from rendered pages
     and are written out in the reference beside the code that uses each. The reference computes both methods for
-    the twelve classes and passes its self-test. **Nothing is on the dashboard, and no result has been published.**
+    the twelve classes and passes its self-test. Both methods went onto the dashboard on 2026-11-28.
   - **What the manual does not say, found that day.** Method 2 can be computed from the manual. Method 1 cannot:
     the manual gives no elastic damping for the building types, no form for the capacity curve between yield and
     ultimate, and no formula for the hysteresis-loop area; and Equation 5-10 as printed adds a fraction to a
@@ -468,18 +472,28 @@ each building in `data/latimes_concrete_buildings.geojson`, and writes `data/la_
     except that it takes the hysteretic term as a percentage; the SimCenter's code adds it as a fraction (its line
     that multiplies by 100 is commented out), which leaves almost no hysteretic damping. For Method 2 the tabulated
     medians hold only for a spectrum with Sa(1.0 s) = 1.5 PGA at a soil site, and the reference converts them with
-    Equation 5-6 using the layer's own ratio. **Every such point is in `CHOICES` (HB-01 to HB-09) as a proposal. The
-    owner was asked to decide on 2026-11-27. Do not put either method on the site, or copy the choices into the
-    provenance record, until he has.** For scale, at one sample motion: Method 1 gives 0.12 to 0.50 for the chance
+    Equation 5-6 using the layer's own ratio. **Every such point is in `CHOICES` (HB-01 to HB-09). The owner approved
+    them on 2026-11-28, and they are on the Methods page.** For scale, at one sample motion: Method 1 gives 0.12 to 0.50 for the chance
     of extensive damage or worse across the classes; Method 2 converted, 0.22 to 0.57; Method 2 as tabulated, 0.53
     to 0.84; and Method 1 with the fraction as printed gives 0.45 where the percentage gives 0.24 (C2M Pre-Code).
   - **What a hazard layer carries for this:** a scenario layer made by SR-HazardMaker records its `magnitude`; a
     probabilistic layer's levels record `return_period_years`; a layer opened from a plain table has neither.
-  - **Then, to build:** a fragility file for the dashboard written by the reference (as `hazus_bridges.py` does);
-    the same calculation in `dashboard.html`; damage for a building inventory in its block of the Damage part (the
-    two methods as its choices, colors, counts by damage state, a damage table, the popup), which today exists only
-    for the bridges; a test that the dashboard equals the reference for all 1,451 buildings by both methods; the
-    choices recorded and shown on the Methods page; Method 2 labeled as guidance that Hazus itself does not use.
+  - **Built 2026-11-28.** `tools/hazus_buildings.py` writes `data/fragility/hazus_concrete_buildings.json` (the twelve
+    classes with capacity curve, elastic damping, degradation factors, spectral-displacement curves and
+    equivalent-PGA medians, and the decisions). The registry lists two fragility sets on that file, one per method,
+    for the LA Times inventory. `dashboard.html` repeats the calculation (`hbCapacity`, `hbPerformancePoint`,
+    `hbTiming`, `buildingDamage`) and shows, in the inventory's block of the Damage part: the choice of method, a note
+    naming who assigned the classes and the duration assumed, colors on the map, expected counts by damage state, the
+    popup, and a damage table. `tools/building_damage_reference.py` makes the same table independently, and the test
+    requires the two to be identical for all 1,451 buildings by both methods on four hazard settings. **Keep the two
+    in step: a change to the calculation goes into the Python first, then the page, then the test.** Squares are
+    written as products in both on purpose, so that the arithmetic is the same operation for operation.
+  - **Method 2 is labeled as guidance wherever it appears** (the choice, the note, the popup, the table, the Methods
+    page), because the manual says Hazus does not use those curves. Keep the label.
+  - **Not done:** an entry for this code on the Code page; soil factors (the layer's values are used as they are, as
+    for the bridges); nonstructural damage; damage for any other building inventory (it needs classes of this file,
+    or a file of its own in the same form). The owner was told that the SimCenter's code adds hysteretic damping as
+    a fraction and may wish to raise it with them; nothing was sent to anyone.
   - **Put to the owner:** questions 2 and 3 were answered on 2026-11-27 (each method is a choice in the inventory's
     block in the Damage part, one at a time; buildings get their own block, as described in "The Damage part").
     Question 1 is still open. They were: (1) for a probabilistic hazard layer, which has no magnitude, use the
